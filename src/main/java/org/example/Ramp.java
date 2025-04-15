@@ -16,17 +16,25 @@ import java.util.HashMap;
 public class Ramp {
 
     // Data members
-    private int rampLength;             // length of actual ramp
+    private int rampLength;                     // length of actual ramp
     private int surfaceQLength;
     private int undergroundQLength;
-    private int[] passBays;         // list of vertexIDs (only considering the actual ramp) that the passing bays are adjacent to
-    private final int rampStart = surfaceQLength;
-    private final int rampEnd = undergroundQLength;
+    private int[] passBays;                     // list of vertexIDs (only considering the actual ramp) that the passing bays are adjacent to
+    private int rampStart;                      // needed?
+    private int rampEnd;                        // needed?
 
     private HashMap<Integer, ArrayList<Integer>> adjList;      // adjacency list to keep track of edges
 
     // Constructors
     public Ramp(int rampLength, int surfaceQLength, int undergroundQLength, int[] passBays) {
+        // Update data members
+        this.rampLength = rampLength;
+        this.surfaceQLength = surfaceQLength;
+        this.undergroundQLength = undergroundQLength;
+        this.passBays = passBays;
+        this.rampStart = surfaceQLength;
+        this.rampEnd = surfaceQLength + rampLength;
+
         // Initialise the adjacency list which represents the ramp
         this.adjList = new HashMap<>();
         initialiseAdjList(rampLength, surfaceQLength, undergroundQLength, passBays);
