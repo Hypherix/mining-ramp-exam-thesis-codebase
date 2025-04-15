@@ -51,33 +51,39 @@ public class Ramp {
         verticesInRamp++;
 
         // Add the surface queue to the adjacency list. Note: directed subgraph!
-        for(int i = verticesInRamp; i < surfaceQLength; i++) {
-            addVertexToRamp(i);
-            addEdge(i - 1, i);
+        for(int i = 1; i < surfaceQLength; i++) {
+            addVertexToRamp(verticesInRamp);
+            addEdge(verticesInRamp - 1, verticesInRamp);
+            verticesInRamp++;
         }
 
         // Add the actual ramp to the adjacency list. Note: undirected subgraph!
-        for(int i = verticesInRamp; i < rampLength; i++) {
-            addVertexToRamp(i);
-            addEdge(i - 1, i);
-            if(i != surfaceQLength) {           // Don't create backwards edge in the first ramp vertex
-                addEdge(i, i - 1);
+        for(int i = 0; i < rampLength; i++) {
+            addVertexToRamp(verticesInRamp);
+            addEdge(verticesInRamp - 1, verticesInRamp);
+            if(i != 0) {                // Don't create backwards edge in the first ramp vertex
+                addEdge(verticesInRamp, verticesInRamp - 1);
             }
+            verticesInRamp++;
         }
 
         // Add the underground queue to the adjacency list. Note: directed subgraph!
-        for(int i = verticesInRamp; i < undergroundQLength; i++) {
-            addVertexToRamp(i);
-            addEdge(i, i - 1);
+        for(int i = 0; i < undergroundQLength; i++) {
+            addVertexToRamp(verticesInRamp);
+            addEdge(verticesInRamp, verticesInRamp - 1);
+            verticesInRamp++;
         }
 
         // Add passing bays. Add edge to corresponding edges in the ramp
         int currentPassBay = 0;
-        for(int i = verticesInRamp; i < this.adjList.size() + passBays.length; i++) {
-            addVertexToRamp(i);
-            addEdge(surfaceQLength + passBays[currentPassBay] - 2, i);      // -2 needed for adjustment
-            addEdge(i, surfaceQLength + passBays[currentPassBay] + 1);                       // +1 needed for adjustment
+        for(int i = 0; i < passBays.length; i++) {
+            addVertexToRamp(verticesInRamp);
+            addEdge(surfaceQLength + passBays[currentPassBay] - 2, verticesInRamp);      // -2 needed for adjustment
+            addEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay] - 2);
+            addEdge(surfaceQLength + passBays[currentPassBay], verticesInRamp);
+            addEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay]);
             currentPassBay++;
+            verticesInRamp++;
         }
 
         // Add the surface exit vertex to the adjacency list
