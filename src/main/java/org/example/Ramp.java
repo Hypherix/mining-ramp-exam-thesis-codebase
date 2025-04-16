@@ -20,8 +20,8 @@ public class Ramp {
     private int surfaceQLength;
     private int undergroundQLength;
     private int[] passBays;                     // list of vertexIDs (only considering the actual ramp) that the passing bays are adjacent to
-    private int rampStart;                      // needed?
-    private int rampEnd;                        // needed?
+    private int rampSurfaceStart;                      // needed?
+    private int rampUndergroundStart;                        // needed?
 
     private HashMap<Integer, ArrayList<Integer>> adjList;      // adjacency list to keep track of edges
 
@@ -32,8 +32,8 @@ public class Ramp {
         this.surfaceQLength = surfaceQLength;
         this.undergroundQLength = undergroundQLength;
         this.passBays = passBays;
-        this.rampStart = surfaceQLength;
-        this.rampEnd = surfaceQLength + rampLength;
+        this.rampSurfaceStart = surfaceQLength;
+        this.rampUndergroundStart = surfaceQLength + rampLength;
 
         // Initialise the adjacency list which represents the ramp
         this.adjList = new HashMap<>();
