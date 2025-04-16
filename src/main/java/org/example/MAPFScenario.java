@@ -1,5 +1,6 @@
 package org.example;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 // This class represents a MAPF problem/scenario
@@ -43,5 +44,21 @@ public class MAPFScenario {
     int getDuration() {
         // Return duration
         return this.duration;
+    }
+
+    public HashMap<Integer, ArrayList<Integer>> fetchAdjList() {
+        return this.ramp.getAdjList();
+    }
+
+    public int fetchSurfaceStart() {
+        return this.ramp.getSurfaceStart();
+    }
+
+    public int fetchUndergroundStart() {
+        return this.ramp.getUndergroundStart();
+    }
+
+    public int fetchVerticesInRamp() {
+        return this.ramp.getVerticesInRamp();
     }
 }

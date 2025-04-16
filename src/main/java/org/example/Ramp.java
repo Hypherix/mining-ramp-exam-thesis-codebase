@@ -1,6 +1,5 @@
 package org.example;
 
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -20,10 +19,13 @@ public class Ramp {
     private int surfaceQLength;
     private int undergroundQLength;
     private int[] passBays;                     // list of vertexIDs (only considering the actual ramp) that the passing bays are adjacent to
-    private int rampSurfaceStart;                      // needed?
-    private int rampUndergroundStart;                        // needed?
+    private int surfaceStart;                      // needed?
+    private int undergroundStart;                        // needed?
+    private int surfaceExit;
+    private int undergroundExit;
+    private int verticesInRamp;
 
-    private HashMap<Vertex, ArrayList<Vertex>> adjList;      // adjacency list to keep track of edges
+    private HashMap<Integer, ArrayList<Integer>> adjList;      // adjacency list to keep track of edges
 
     // Constructors
     public Ramp(int rampLength, int surfaceQLength, int undergroundQLength, int[] passBays) {
@@ -32,36 +34,34 @@ public class Ramp {
         this.surfaceQLength = surfaceQLength;
         this.undergroundQLength = undergroundQLength;
         this.passBays = passBays;
-        this.rampSurfaceStart = surfaceQLength;
-        this.rampUndergroundStart = surfaceQLength + rampLength;
+        this.surfaceStart = surfaceQLength;
+        this.undergroundStart = surfaceQLength + rampLength;
 
         // Initialise the adjacency list which represents the ramp
         this.adjList = new HashMap<>();
         initialiseAdjList(rampLength, surfaceQLength, undergroundQLength, passBays);
     }
 
-    // CHANGE ALL INTEGERS TO VERTEX TYPE. THE REST SHOULD WORK THE SAME
-
     // Methods
-    void printAdjList() {
+    private void printAdjList() {
         // Task: Print the adjacency list
         System.out.println(this.adjList);
     }
 
-    void addVertexToRamp(int vertexId) {
+    private void addVertexToRamp(int vertexId) {
         // Task: Add a vertex to the ramp
         this.adjList.put(vertexId, new ArrayList<Integer>());
     }
 
-    void addEdge(int fromVertex, int toVertex) {
+    private void addEdge(int fromVertex, int toVertex) {
         // Task: Add an edge to the ramp
         this.adjList.get(fromVertex).add(toVertex);
     }
 
-    void initialiseAdjList(int rampLength, int surfaceQLength, int undergroundQLength, int[] passBays) {
+    private void initialiseAdjList(int rampLength, int surfaceQLength, int undergroundQLength, int[] passBays) {
         // Task: Given length of the ramp, initialise the adjacency list
 
-        int verticesInRamp = 0;
+        verticesInRamp = 0;
 
         // Add the first vertex separately
         addVertexToRamp(0);
@@ -106,15 +106,29 @@ public class Ramp {
         // Add the surface exit vertex to the adjacency list
         addVertexToRamp(verticesInRamp);
         addEdge(surfaceQLength, verticesInRamp);    // Add edge from first ramp vertex to the surface exit vertex
+        this.surfaceExit = verticesInRamp;
         verticesInRamp++;
 
         // Add the underground exit vertex to the adjacency list
         addVertexToRamp(verticesInRamp);
         addEdge(surfaceQLength + rampLength - 1, verticesInRamp);
+        this.undergroundExit = verticesInRamp;
         verticesInRamp++;
     }
 
     HashMap<Integer, ArrayList<Integer>> getAdjList() {
         return this.adjList;
+    }
+
+    public int getSurfaceStart() {
+        return this.surfaceStart;
+    }
+
+    public int getUndergroundStart() {
+        return this.undergroundStart;
+    }
+
+    public int getVerticesInRamp() {
+        return this.verticesInRamp;
     }
 }

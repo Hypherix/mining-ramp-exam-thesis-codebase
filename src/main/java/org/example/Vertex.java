@@ -9,9 +9,7 @@ public class Vertex {
 
 
     // Constructors
-    public Vertex(int id) {
 
-    }
 
     // Methods
 
