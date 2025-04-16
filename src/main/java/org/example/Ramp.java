@@ -7,7 +7,7 @@ import java.util.HashMap;
 /*
 * NOTES!!
 * passBays holds the ACTUAL RAMP vertex IDs. In other words, if passBay[x] = 2, then we mean adjacent to the second
-* vertex in the ACTUAL ramp (disregarding the queues)
+* vertex in the ACTUAL ramp (i.e. disregarding the queues)
 *
 *
 * */

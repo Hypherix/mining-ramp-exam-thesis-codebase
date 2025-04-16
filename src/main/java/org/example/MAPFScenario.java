@@ -28,6 +28,20 @@ public class MAPFScenario {
         this.duration = duration;
     }
 
+
     // Methods
-    
+    Ramp getRamp() {
+        // Returns ramp
+        return this.ramp;
+    }
+
+    HashMap<Integer, int[]> getAgentList() {
+        // Returns agentList
+        return this.agentList;
+    }
+
+    int getDuration() {
+        // Return duration
+        return this.duration;
+    }
 }
