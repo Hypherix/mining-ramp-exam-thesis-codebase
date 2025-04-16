@@ -23,7 +23,7 @@ public class Ramp {
     private int rampSurfaceStart;                      // needed?
     private int rampUndergroundStart;                        // needed?
 
-    private HashMap<Integer, ArrayList<Integer>> adjList;      // adjacency list to keep track of edges
+    private HashMap<Vertex, ArrayList<Vertex>> adjList;      // adjacency list to keep track of edges
 
     // Constructors
     public Ramp(int rampLength, int surfaceQLength, int undergroundQLength, int[] passBays) {
@@ -39,6 +39,8 @@ public class Ramp {
         this.adjList = new HashMap<>();
         initialiseAdjList(rampLength, surfaceQLength, undergroundQLength, passBays);
     }
+
+    // CHANGE ALL INTEGERS TO VERTEX TYPE. THE REST SHOULD WORK THE SAME
 
     // Methods
     void printAdjList() {
