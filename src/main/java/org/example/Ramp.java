@@ -41,11 +41,18 @@ public class Ramp {
     }
 
     // Methods
+    void printAdjList() {
+        // Task: Print the adjacency list
+        System.out.println(this.adjList);
+    }
+
     void addVertexToRamp(int vertexId) {
+        // Task: Add a vertex to the ramp
         this.adjList.put(vertexId, new ArrayList<Integer>());
     }
 
     void addEdge(int fromVertex, int toVertex) {
+        // Task: Add an edge to the ramp
         this.adjList.get(fromVertex).add(toVertex);
     }
 
@@ -59,24 +66,24 @@ public class Ramp {
         verticesInRamp++;
 
         // Add the surface queue to the adjacency list. Note: directed subgraph!
-        for(int i = 1; i < surfaceQLength; i++) {
+        for (int i = 1; i < surfaceQLength; i++) {
             addVertexToRamp(verticesInRamp);
             addEdge(verticesInRamp - 1, verticesInRamp);
             verticesInRamp++;
         }
 
         // Add the actual ramp to the adjacency list. Note: undirected subgraph!
-        for(int i = 0; i < rampLength; i++) {
+        for (int i = 0; i < rampLength; i++) {
             addVertexToRamp(verticesInRamp);
             addEdge(verticesInRamp - 1, verticesInRamp);
-            if(i != 0) {                // Don't create backwards edge in the first ramp vertex
+            if (i != 0) {                // Don't create backwards edge in the first ramp vertex
                 addEdge(verticesInRamp, verticesInRamp - 1);
             }
             verticesInRamp++;
         }
 
         // Add the underground queue to the adjacency list. Note: directed subgraph!
-        for(int i = 0; i < undergroundQLength; i++) {
+        for (int i = 0; i < undergroundQLength; i++) {
             addVertexToRamp(verticesInRamp);
             addEdge(verticesInRamp, verticesInRamp - 1);
             verticesInRamp++;
@@ -84,7 +91,7 @@ public class Ramp {
 
         // Add passing bays. Add edge to corresponding edges in the ramp
         int currentPassBay = 0;
-        for(int i = 0; i < passBays.length; i++) {
+        for (int i = 0; i < passBays.length; i++) {
             addVertexToRamp(verticesInRamp);
             addEdge(surfaceQLength + passBays[currentPassBay] - 2, verticesInRamp);      // -2 needed for adjustment
             addEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay] - 2);
@@ -105,7 +112,7 @@ public class Ramp {
         verticesInRamp++;
     }
 
-    void printAdjList() {
-        System.out.println(this.adjList);
+    HashMap<Integer, ArrayList<Integer>> getAdjList() {
+        return this.adjList;
     }
 }
