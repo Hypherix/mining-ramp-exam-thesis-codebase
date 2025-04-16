@@ -1,4 +1,6 @@
-package org.example;
+package org.example.algorithms;
+
+import org.example.MAPFScenario;
 
 public class Astar implements MAPFAlgorithm {
 

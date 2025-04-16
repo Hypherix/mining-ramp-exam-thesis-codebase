@@ -1,6 +1,8 @@
-package org.example;
+package org.example.algorithms;
 
-public class CBSwP implements MAPFAlgorithm {
+import org.example.MAPFScenario;
+
+public class CBS implements MAPFAlgorithm {
 
     // Data members
 

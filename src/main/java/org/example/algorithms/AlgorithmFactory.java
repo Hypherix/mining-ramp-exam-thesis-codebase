@@ -1,4 +1,4 @@
-package org.example;
+package org.example.algorithms;
 
 /*
 * AlgorithmFactory implements the factory pattern where, depending on the by string
@@ -6,8 +6,6 @@ package org.example;
 * The factory pattern is used to alleviate extension of further algorithms
 *
 * */
-
-import java.util.Locale;
 
 public class AlgorithmFactory {
 
