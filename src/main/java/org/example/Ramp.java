@@ -24,6 +24,8 @@ public class Ramp {
     private int surfaceExit;
     private int undergroundExit;
     private int verticesInRamp;
+    private int surfaceQFree;
+    private int undergroundQFree;
 
     private HashMap<Integer, ArrayList<Integer>> adjList;      // adjacency list to keep track of edges
 
@@ -114,6 +116,10 @@ public class Ramp {
         addEdge(surfaceQLength + rampLength - 1, verticesInRamp);
         this.undergroundExit = verticesInRamp;
         verticesInRamp++;
+
+        // Set first free slot in surface queue and underground queue
+        surfaceQFree = surfaceStart;
+        undergroundQFree = undergroundStart;
     }
 
     HashMap<Integer, ArrayList<Integer>> getAdjList() {
@@ -131,4 +137,21 @@ public class Ramp {
     public int getVerticesInActualRamp() {
         return this.rampLength;
     }
+
+    public int getSurfaceQFree() {
+        return this.surfaceQFree;
+    }
+
+    public void setSurfaceQFree(int vertex) {
+        this.surfaceQFree = vertex;
+    }
+
+    public int getUndergroundQFree() {
+        return this.undergroundQFree;
+    }
+
+    public void setUndergroundQFree(int vertex) {
+        this.undergroundQFree = vertex;
+    }
+
 }

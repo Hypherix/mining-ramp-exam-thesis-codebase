@@ -1,6 +1,5 @@
 package org.example;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /*
@@ -17,15 +16,15 @@ public class MAPFState {
 
     // Data members
     private Ramp ramp;
-    private HashMap<Integer, Integer> agentLocation;
-    private HashMap<Integer, Integer> agentVelocity;
+    private HashMap<Integer, Integer> agentLocations;
+    private HashMap<Integer, Integer> agentVelocities;
 
     // Constructors
     public MAPFState(Ramp ramp, HashMap<Integer, Integer> agentLocation,
                      HashMap<Integer, Integer> agentVelocity) {
         this.ramp = ramp;
-        this.agentLocation = agentLocation;
-        this.agentVelocity = agentVelocity;
+        this.agentLocations = agentLocation;
+        this.agentVelocities = agentVelocity;
     }
 
     // Methods
@@ -34,10 +33,10 @@ public class MAPFState {
     }
 
     HashMap<Integer, Integer> getAgentLocation() {
-        return this.agentLocation;
+        return this.agentLocations;
     }
 
-    HashMap<Integer, Integer> getAgentVelocity() {
-        return this.agentVelocity;
+    HashMap<Integer, Integer> getAgentVelocities() {
+        return this.agentVelocities;
     }
 }

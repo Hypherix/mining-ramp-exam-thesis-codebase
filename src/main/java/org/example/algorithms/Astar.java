@@ -1,6 +1,7 @@
 package org.example.algorithms;
 
 import org.example.MAPFScenario;
+import org.example.MAPFState;
 
 import java.util.*;
 
@@ -87,7 +88,7 @@ public class Astar implements MAPFAlgorithm {
     }
 
     @Override
-    public void solve(MAPFScenario scenario) {
+    public ArrayList<MAPFState> solve(MAPFScenario scenario) {  // TODO: SHALL RETURN SET OF SOLUTION STATES
 
         // Fetch the scenario adjacency list and other key numbers
         HashMap<Integer, ArrayList<Integer>> adjList = scenario.fetchAdjList();
@@ -111,5 +112,6 @@ public class Astar implements MAPFAlgorithm {
 
         PriorityQueue<Integer> frontier = new PriorityQueue<>();
         PriorityQueue<Integer> explored = new PriorityQueue<>();
+
     }
 }

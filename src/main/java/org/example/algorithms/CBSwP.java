@@ -1,6 +1,8 @@
 package org.example.algorithms;
 
 import org.example.MAPFScenario;
+import org.example.MAPFState;
+import java.util.ArrayList;
 
 public class CBSwP implements MAPFAlgorithm {
 
@@ -12,7 +14,7 @@ public class CBSwP implements MAPFAlgorithm {
 
     // Methods
     @Override
-    public void solve(MAPFScenario scenario) {
-
+    public ArrayList<MAPFState> solve(MAPFScenario scenario) {
+        return null;
     }
 }

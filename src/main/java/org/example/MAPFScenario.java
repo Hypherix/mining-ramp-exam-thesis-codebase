@@ -19,15 +19,22 @@ public class MAPFScenario {
     // Data members
     private Ramp ramp;
     private MAPFState initialState;
-    private HashMap<Integer, int[]> agentList;
     private int duration;
+    private int totalAgentCount;
+    // Key = timeStep where the agents are entering the scenario
+    // Value = [start location, velocity] for each of the entering agents
+    private HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocity;
+
+
+
 
 
     // Constructors
-    public MAPFScenario(Ramp ramp, MAPFState initialState, HashMap<Integer, int[]> agentList, int duration) {
+    public MAPFScenario(Ramp ramp, MAPFState initialState,
+                        HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocity, int duration) {
         this.ramp = ramp;
         this.initialState = initialState;
-        this.agentList = agentList;
+        this.newAgentLocationVelocity = newAgentLocationVelocity;
         this.duration = duration;
     }
 
@@ -38,14 +45,26 @@ public class MAPFScenario {
         return this.ramp;
     }
 
-    HashMap<Integer, int[]> getAgentList() {
+    HashMap<Integer, ArrayList<int[]>> getNewAgentLocationVelocity() {
         // Returns agentList
-        return this.agentList;
+        return this.newAgentLocationVelocity;
     }
 
-    int getDuration() {
+    public int getDuration() {
         // Return duration
         return this.duration;
+    }
+
+    public void setInitialState(MAPFState initialState) {
+        this.initialState = initialState;
+    }
+
+    public int getTotalAgentCount() {
+        return this.totalAgentCount;
+    }
+
+    public void addTotalAgentCount(int nrOfNewAgents) {
+        this.totalAgentCount += nrOfNewAgents;
     }
 
     public int fetchSurfaceStart() {
