@@ -32,7 +32,7 @@ public class MAPFState {
         return this.ramp;
     }
 
-    HashMap<Integer, Integer> getAgentLocation() {
+    HashMap<Integer, Integer> getAgentLocations() {
         return this.agentLocations;
     }
 

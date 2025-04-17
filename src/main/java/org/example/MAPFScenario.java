@@ -67,6 +67,10 @@ public class MAPFScenario {
         this.totalAgentCount += nrOfNewAgents;
     }
 
+    public void setTotalAgentCount(int totalAgentCount) {
+        this.totalAgentCount = totalAgentCount;
+    }
+
     public int fetchSurfaceStart() {
         return this.ramp.getSurfaceStart();
     }
@@ -77,6 +81,14 @@ public class MAPFScenario {
 
     public int fetchVerticesInActualRamp() {
         return this.ramp.getVerticesInActualRamp();
+    }
+
+    public HashMap<Integer, Integer> fetchAgentLocations() {
+        return this.initialState.getAgentLocations();
+    }
+
+    public HashMap<Integer, Integer> fetchAgentVelocities() {
+        return this.initialState.getAgentVelocities();
     }
 
     public HashMap<Integer, ArrayList<Integer>> fetchAdjList() {

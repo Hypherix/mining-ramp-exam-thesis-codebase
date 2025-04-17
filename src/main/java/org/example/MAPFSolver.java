@@ -42,8 +42,8 @@ public class MAPFSolver {
 
         Ramp ramp = scenario.getRamp();
         HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocity = scenario.getNewAgentLocationVelocity();
-        HashMap<Integer, Integer> agentLocations = new HashMap<>();
-        HashMap<Integer, Integer> agentVelocity = new HashMap<>();
+        HashMap<Integer, Integer> newAgentLocations = new HashMap<>();
+        HashMap<Integer, Integer> newAgentVelocities = new HashMap<>();
 
         // Get the number of new agents at this timeStep
         int nrOfNewAgentsThisTimeStep = newAgentLocationVelocity.get(timeStep).size();
@@ -54,18 +54,27 @@ public class MAPFSolver {
         // Add each new agent's location and velocity in respective HashMap
         // Use totalAgentCount to ensure new agents have the correct key (id) in the hashmap
         for (int i = scenario.getTotalAgentCount(); i < nrOfNewAgentsThisTimeStep + scenario.getTotalAgentCount(); i++) {
-            agentLocations.put(i, newAgentLocationVelocityThisTimeStep.get(i)[0]);
-            agentVelocity.put(i, newAgentLocationVelocityThisTimeStep.get(i)[1]);
+            newAgentLocations.put(i, newAgentLocationVelocityThisTimeStep.get(i)[0]);
+            newAgentVelocities.put(i, newAgentLocationVelocityThisTimeStep.get(i)[1]);
         }
 
         // If multiple starting agents, they will occupy the same start vertex --> put in queue instead
-        putAgentsInQueue(scenario.getRamp(), agentLocations);
+        putAgentsInQueue(scenario.getRamp(), newAgentLocations);
 
-        return new MAPFState(ramp, agentLocations, agentVelocity);
+        // Update scenario's totalAgentCount
+        scenario.addTotalAgentCount(nrOfNewAgentsThisTimeStep);
+
+        // Finally, add new newAgentLocations to the already existing newAgentLocations
+        HashMap<Integer, Integer> finalAgentLocations = scenario.fetchAgentLocations();
+        finalAgentLocations.putAll(newAgentLocations);
+
+        // Do the same for velocities
+        HashMap<Integer, Integer> finalAgentVelocities = scenario.fetchAgentVelocities();
+        finalAgentVelocities.putAll(newAgentVelocities);
+
+        return new MAPFState(ramp, finalAgentLocations, finalAgentVelocities);
     }
-
-    // TODO: FORTSÄTT PÅ DENNA FUNKTION. GÖR SÅ ATT DEN FUNKAR GENERELLT, DVS ENQUEUAR ALLA NYA AGENTER
-    //       OAVSETT OM NY STATE (DVS INGA AGENTS I RAMPEN) ELLER GAMMAL
+    
     public void putAgentsInQueue(Ramp ramp, HashMap<Integer, Integer> newAgentLocations) {
         // Task: If multiple agents in the same start vertex, put them in queue instead
         // newAgentLocations is a hashmap of the agent id and its start vertex (either surface or underground)
@@ -97,21 +106,6 @@ public class MAPFSolver {
         ramp.setUndergroundQFree(undergroundQFree);
     }
 
-    public MAPFState generateNewInitialState(MAPFState currentState, MAPFScenario scenario, int timeStep) {
-        // Task: Create a new initialState based on the current state and new agents
-        // Call generateInitialState() to first get the newly entering agents. Then add the already existing agents
-        // afterward in this method
-
-        MAPFState newInitialState = generateInitialState(scenario, timeStep);
-
-        // newInitialState now has all new, for this timeStep, agents in the queues.
-        // Now, the already existing ones from currentState must be added
-        HashMap<Integer, Integer> existingAgentLocations = currentState.getAgentLocation();
-
-        // Go through the agentList where key = timeStep and put the agents on the Ramp
-        // TODO:
-    }
-
     public void solve() {
         // Task: Prompts the algorithm to solve the MAPF scenario
         // As of now, the solve methods return void. When A* is implemented,
@@ -132,8 +126,18 @@ public class MAPFSolver {
                 this.solution.subList(timeStep, this.solution.size()).clear();
 
                 // Generate a new initialState and update MAPFScenario
-                MAPFState newInitialState =
-                        generateNewInitialState(this.solution.get(timeStep - 1), newAgentLocationVelocity, timeStep);
+
+                // Get the state we want to revert to
+                MAPFState newCurrentState = this.solution.get(timeStep - 1);
+                // Assign the scenario newCurrentState
+                scenario.setInitialState(newCurrentState);
+                // Update totalAgentCount to reflect currentState's
+                scenario.setTotalAgentCount(newCurrentState.getAgentLocations().size());
+
+                // With the scenario reverted to its state reflecting newCurrentState, generate a new initialState
+                MAPFState newInitialState = generateInitialState(scenario, timeStep);
+
+                // Update MAPFScenario
                 this.scenario.setInitialState(newInitialState);
 
                 // Invoke the algorithm anew
