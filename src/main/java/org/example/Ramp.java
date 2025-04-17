@@ -43,7 +43,7 @@ public class Ramp {
     }
 
     // Methods
-    private void printAdjList() {
+    void printAdjList() {
         // Task: Print the adjacency list
         System.out.println(this.adjList);
     }
@@ -128,7 +128,7 @@ public class Ramp {
         return this.undergroundStart;
     }
 
-    public int getVerticesInRamp() {
-        return this.verticesInRamp;
+    public int getVerticesInActualRamp() {
+        return this.rampLength;
     }
 }

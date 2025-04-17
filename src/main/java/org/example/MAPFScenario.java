@@ -18,13 +18,15 @@ public class MAPFScenario {
 
     // Data members
     private Ramp ramp;
+    private MAPFState initialState;
     private HashMap<Integer, int[]> agentList;
     private int duration;
 
 
     // Constructors
-    public MAPFScenario(Ramp ramp, HashMap<Integer, int[]> agentList, int duration) {
+    public MAPFScenario(Ramp ramp, MAPFState initialState, HashMap<Integer, int[]> agentList, int duration) {
         this.ramp = ramp;
+        this.initialState = initialState;
         this.agentList = agentList;
         this.duration = duration;
     }
@@ -46,10 +48,6 @@ public class MAPFScenario {
         return this.duration;
     }
 
-    public HashMap<Integer, ArrayList<Integer>> fetchAdjList() {
-        return this.ramp.getAdjList();
-    }
-
     public int fetchSurfaceStart() {
         return this.ramp.getSurfaceStart();
     }
@@ -58,7 +56,11 @@ public class MAPFScenario {
         return this.ramp.getUndergroundStart();
     }
 
-    public int fetchVerticesInRamp() {
-        return this.ramp.getVerticesInRamp();
+    public int fetchVerticesInActualRamp() {
+        return this.ramp.getVerticesInActualRamp();
+    }
+
+    public HashMap<Integer, ArrayList<Integer>> fetchAdjList() {
+        return this.ramp.getAdjList();
     }
 }
