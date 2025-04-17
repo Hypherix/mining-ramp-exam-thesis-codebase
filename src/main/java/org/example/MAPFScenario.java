@@ -38,6 +38,12 @@ public class MAPFScenario {
         this.duration = duration;
     }
 
+    public MAPFScenario(Ramp ramp, HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocity, int duration) {
+        this.ramp = ramp;
+        this.newAgentLocationVelocity = newAgentLocationVelocity;
+        this.duration = duration;
+    }
+
 
     // Methods
     Ramp getRamp() {

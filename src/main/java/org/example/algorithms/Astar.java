@@ -48,7 +48,7 @@ public class Astar implements MAPFAlgorithm {
         int currentVertex;
         ArrayList<Integer> currentNeighbours = new ArrayList<>();
 
-        // Get costs to all
+        // Get costs of all vertices
         while(!frontierVertex.isEmpty()){
             currentVertex = frontierVertex.poll();              // Dequeue vertex first in queue
             currentNeighbours = frontierNeighbours.get(currentVertex);  // Get its neighbours
@@ -112,6 +112,6 @@ public class Astar implements MAPFAlgorithm {
 
         PriorityQueue<Integer> frontier = new PriorityQueue<>();
         PriorityQueue<Integer> explored = new PriorityQueue<>();
-
+        return null;
     }
 }

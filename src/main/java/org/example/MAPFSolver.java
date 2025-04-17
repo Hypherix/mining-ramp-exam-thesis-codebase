@@ -36,7 +36,7 @@ public class MAPFSolver {
     }
 
     // Methods
-    public MAPFState generateInitialState(MAPFScenario scenario, int timeStep) {
+    public void generateInitialState(MAPFScenario scenario, int timeStep) {
         // Task: From the MAPFScenario, generate the first initial MAPFState
         // The MAPFState only contains the ramp, agent location and velocity
 
@@ -72,9 +72,9 @@ public class MAPFSolver {
         HashMap<Integer, Integer> finalAgentVelocities = scenario.fetchAgentVelocities();
         finalAgentVelocities.putAll(newAgentVelocities);
 
-        return new MAPFState(ramp, finalAgentLocations, finalAgentVelocities);
+        scenario.setInitialState(new MAPFState(ramp, finalAgentLocations, finalAgentVelocities));
     }
-    
+
     public void putAgentsInQueue(Ramp ramp, HashMap<Integer, Integer> newAgentLocations) {
         // Task: If multiple agents in the same start vertex, put them in queue instead
         // newAgentLocations is a hashmap of the agent id and its start vertex (either surface or underground)
@@ -118,7 +118,7 @@ public class MAPFSolver {
         // Need to implement so that for every time step, MAPFSolver checks its scenario if
         // new agents enter. In that case, run t
 
-        currentSolution = this.algorithm.solve(this.scenario);
+        //currentSolution = this.algorithm.solve(this.scenario);
 
         for(timeStep = 1; timeStep < endTime; timeStep++) {
             if (newAgentLocationVelocity.containsKey(timeStep)) {   // If there are new agents entering this timeStep
@@ -134,19 +134,16 @@ public class MAPFSolver {
                 // Update totalAgentCount to reflect currentState's
                 scenario.setTotalAgentCount(newCurrentState.getAgentLocations().size());
 
-                // With the scenario reverted to its state reflecting newCurrentState, generate a new initialState
-                MAPFState newInitialState = generateInitialState(scenario, timeStep);
-
-                // Update MAPFScenario
-                this.scenario.setInitialState(newInitialState);
+                // Update MAPFScenario's initialState
+                generateInitialState(scenario, timeStep);
 
                 // Invoke the algorithm anew
-                currentSolution = this.algorithm.solve(this.scenario);
+                //currentSolution = this.algorithm.solve(this.scenario);
 
                 timeStep++;
             }
         }
 
-        this.solution = currentSolution;
+        //this.solution = currentSolution;
     }
 }

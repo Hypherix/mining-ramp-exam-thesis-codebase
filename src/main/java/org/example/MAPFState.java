@@ -27,6 +27,12 @@ public class MAPFState {
         this.agentVelocities = agentVelocity;
     }
 
+    public MAPFState(Ramp ramp) {
+        this.ramp = ramp;
+        this.agentLocations = new HashMap<Integer, Integer>();
+        this.agentVelocities = new HashMap<Integer, Integer>();
+    }
+
     // Methods
     Ramp getRamp() {
         return this.ramp;
