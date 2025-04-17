@@ -40,6 +40,7 @@ public class MAPFScenario {
 
     public MAPFScenario(Ramp ramp, HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocity, int duration) {
         this.ramp = ramp;
+        this.initialState = new MAPFState(ramp);
         this.newAgentLocationVelocity = newAgentLocationVelocity;
         this.duration = duration;
     }

@@ -118,7 +118,7 @@ public class MAPFSolver {
         // Need to implement so that for every time step, MAPFSolver checks its scenario if
         // new agents enter. In that case, run t
 
-        //currentSolution = this.algorithm.solve(this.scenario);
+        currentSolution = this.algorithm.solve(this.scenario);
 
         for(timeStep = 1; timeStep < endTime; timeStep++) {
             if (newAgentLocationVelocity.containsKey(timeStep)) {   // If there are new agents entering this timeStep
@@ -138,12 +138,12 @@ public class MAPFSolver {
                 generateInitialState(scenario, timeStep);
 
                 // Invoke the algorithm anew
-                //currentSolution = this.algorithm.solve(this.scenario);
+                currentSolution = this.algorithm.solve(this.scenario);
 
                 timeStep++;
             }
         }
 
-        //this.solution = currentSolution;
+        this.solution = currentSolution;
     }
 }
