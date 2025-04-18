@@ -37,7 +37,6 @@ public class Main {
 
         MAPFScenario scenario = new MAPFScenario(myRamp, newAgentLocationVelocity, 5);
         MAPFSolver solver = new MAPFSolver(scenario, "astar");
-        solver.generateInitialState(scenario, 0);
         solver.solve();
     }
 }

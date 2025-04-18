@@ -2,6 +2,7 @@ package org.example;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 // This class represents a MAPF problem/scenario
 
@@ -40,13 +41,94 @@ public class MAPFScenario {
 
     public MAPFScenario(Ramp ramp, HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocity, int duration) {
         this.ramp = ramp;
-        this.initialState = new MAPFState(ramp);
         this.newAgentLocationVelocity = newAgentLocationVelocity;
         this.duration = duration;
+        generateInitialState(0);
     }
 
 
     // Methods
+    public void generateInitialState(int timeStep) {
+        // Task: From the MAPFScenario, generate the first initial MAPFState
+        // The MAPFState only contains the ramp, agent location and velocity
+
+        Ramp ramp = getRamp();
+        HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocity = getNewAgentLocationVelocity();
+        HashMap<Integer, Integer> newAgentLocations = new HashMap<>();
+        HashMap<Integer, Integer> newAgentVelocities = new HashMap<>();
+
+        // Get the number of new agents at this timeStep
+        int nrOfNewAgentsThisTimeStep = newAgentLocationVelocity.get(timeStep).size();
+
+        // Extract the [location, velocity] of every new agent this TimeStep
+        ArrayList<int[]> newAgentLocationVelocityThisTimeStep = newAgentLocationVelocity.get(timeStep);
+
+        // Add each new agent's location and velocity in respective HashMap
+        // Use totalAgentCount to ensure new agents have the correct key (id) in the hashmap
+        for (int i = getTotalAgentCount(); i < nrOfNewAgentsThisTimeStep + getTotalAgentCount(); i++) {
+            newAgentLocations.put(i, newAgentLocationVelocityThisTimeStep.get(i)[0]);
+            newAgentVelocities.put(i, newAgentLocationVelocityThisTimeStep.get(i)[1]);
+        }
+
+        // If multiple starting agents, they will occupy the same start vertex --> put in queue instead
+        putNewAgentsInQueue(getRamp(), newAgentLocations);
+
+        // Update scenario's totalAgentCount
+        addTotalAgentCount(nrOfNewAgentsThisTimeStep);
+
+        HashMap<Integer, Integer> finalAgentLocations;
+        HashMap<Integer, Integer> finalAgentVelocities;
+
+
+        if(timeStep == 0) {
+            // If scenario is new, newAgentLocations/Velocities are the only ones existing
+            finalAgentLocations = newAgentLocations;
+            finalAgentVelocities = newAgentVelocities;
+        }
+        else {
+            // Add new newAgentLocations to the already existing newAgentLocations if scenario is not new
+            finalAgentLocations = fetchAgentLocations();
+            finalAgentLocations.putAll(newAgentLocations);
+
+            // Do the same for velocities
+            finalAgentVelocities = fetchAgentVelocities();
+            finalAgentVelocities.putAll(newAgentVelocities);
+        }
+
+        setInitialState(new MAPFState(ramp, finalAgentLocations, finalAgentVelocities));
+    }
+
+    public void putNewAgentsInQueue(Ramp ramp, HashMap<Integer, Integer> newAgentLocations) {
+        // Task: If multiple agents in the same start vertex, put them in queue instead
+        // newAgentLocations is a hashmap of the agent id and its start vertex (either surface or underground)
+        // of ONLY the new agents that are joining the ramp.
+
+        int surfaceQFree = ramp.getSurfaceQFree();
+        int undergroundQFree = ramp.getUndergroundQFree();
+        int surfaceStart = ramp.getSurfaceStart();
+        int undergroundStart = ramp.getUndergroundStart();
+
+        // Put excessive starting agents in their corresponding queues
+        int surfaceCount = 0;
+        int undergroundCount = 0;
+        for (Map.Entry<Integer, Integer> entry : newAgentLocations.entrySet()) {
+            // Agents starting from the surface
+            if (entry.getValue() == surfaceStart) {
+                newAgentLocations.put(entry.getKey(), surfaceQFree);
+                surfaceQFree--;
+            }
+            // Agents starting from the underground
+            else if (entry.getValue() == undergroundStart) {
+                newAgentLocations.put(entry.getKey(), undergroundQFree);
+                undergroundQFree++;
+            }
+        }
+
+        // Update the surface and underground queue free statuses
+        ramp.setSurfaceQFree(surfaceQFree);
+        ramp.setUndergroundQFree(undergroundQFree);
+    }
+
     Ramp getRamp() {
         // Returns ramp
         return this.ramp;
