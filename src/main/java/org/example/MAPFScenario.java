@@ -103,6 +103,10 @@ public class MAPFScenario {
         // newAgentLocations is a hashmap of the agent id and its start vertex (either surface or underground)
         // of ONLY the new agents that are joining the ramp.
 
+        // TODO: Create helper function for checking queueFree vertices. Probably don't have as a ramp
+        //  data member. Instead, the helper function takes the ramp and checks for the earliest free
+        //  vertices in both queues!!
+
         int surfaceQFree = ramp.getSurfaceQFree();
         int undergroundQFree = ramp.getUndergroundQFree();
         int surfaceStart = ramp.getSurfaceStart();

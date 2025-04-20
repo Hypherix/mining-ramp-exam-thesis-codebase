@@ -4,10 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /*
-* TODO: Tedious initialisation process. Perhaps make newAgentLocationVelocityDirection into a class
-*  that holds all information, and create methods for simply adding new upgoing/downgoing agents
-*  at certain timeSteps with certain velocities. When done, create MAPFScenario by using this
-*  newAgentLocationVelocityDirection object as parameter for the MAPFScenario constructor!
+*
 * */
 
 public class Main {
