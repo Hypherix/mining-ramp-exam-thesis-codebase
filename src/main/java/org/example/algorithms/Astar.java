@@ -8,7 +8,7 @@ import java.util.*;
 
 /*
 * NOTES!
-* surface and underground exit nodes are not handled in a special way when assigning fgh values.
+* Surface and underground exit nodes are not handled in a special way when assigning fgh values.
 * TODO: implement check for if an upgoing vehicle has reached the surface vertex, force it to move to
 *  surface exit, vice versa for downgoing vehicles and underground exit
 * TODO: Likewise as previous TODO, downgoing vehicles reaching surface start should not be allowed to
@@ -110,6 +110,7 @@ public class Astar implements MAPFAlgorithm {
 
         // Set fgh values of all vertices
         setfgh(fghUpgoing, fghDowngoing, adjList, surfaceStart, undergroundStart, verticesInActualRamp);
+
 
         PriorityQueue<MAPFState> frontier = new PriorityQueue<MAPFState>(new StateComparator());
         PriorityQueue<MAPFState> explored = new PriorityQueue<MAPFState>(new StateComparator());

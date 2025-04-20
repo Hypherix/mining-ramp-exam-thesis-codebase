@@ -5,7 +5,6 @@ import org.example.algorithms.MAPFAlgorithm;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 
 /*
@@ -41,7 +40,7 @@ public class MAPFSolver {
         // As of now, the solve methods return void. When A* is implemented,
         // return a representation of a solution
 
-        HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocity = scenario.getNewAgentLocationVelocity();
+        HashMap<Integer, ArrayList<int[]>> agentEntries = scenario.fetchAgentEntries();
         int endTime = this.scenario.getDuration();
         ArrayList<MAPFState> currentSolution;
 
@@ -51,7 +50,7 @@ public class MAPFSolver {
         currentSolution = this.algorithm.solve(this.scenario);
 
         for(timeStep = 1; timeStep < endTime; timeStep++) {
-            if (newAgentLocationVelocity.containsKey(timeStep)) {   // If there are new agents entering this timeStep
+            if (agentEntries.containsKey(timeStep)) {   // If there are new agents entering this timeStep
                 // Remove from solution states those states that are now invalid
                 this.solution.subList(timeStep, this.solution.size()).clear();
 

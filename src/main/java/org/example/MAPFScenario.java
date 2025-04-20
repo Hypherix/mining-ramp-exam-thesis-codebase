@@ -24,24 +24,24 @@ public class MAPFScenario {
     private int totalAgentCount;
     // Key = timeStep where the agents are entering the scenario
     // Value = [start location, velocity] for each of the entering agents
-    private HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocity;
+    private AgentEntries agentEntries;
 
 
 
 
 
     // Constructors
-    public MAPFScenario(Ramp ramp, MAPFState initialState,
-                        HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocity, int duration) {
-        this.ramp = ramp;
-        this.initialState = initialState;
-        this.newAgentLocationVelocity = newAgentLocationVelocity;
-        this.duration = duration;
-    }
+//    public MAPFScenario(Ramp ramp, MAPFState initialState,
+//                        HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocityDirection, int duration) {
+//        this.ramp = ramp;
+//        this.initialState = initialState;
+//        this.newAgentLocationVelocityDirection = newAgentLocationVelocityDirection;
+//        this.duration = duration;
+//    }
 
-    public MAPFScenario(Ramp ramp, HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocity, int duration) {
+    public MAPFScenario(Ramp ramp, AgentEntries agentEntries, int duration) {
         this.ramp = ramp;
-        this.newAgentLocationVelocity = newAgentLocationVelocity;
+        this.agentEntries = agentEntries;
         this.duration = duration;
         generateInitialState(0);
     }
@@ -52,33 +52,32 @@ public class MAPFScenario {
         // Task: From the MAPFScenario, generate the first initial MAPFState
         // The MAPFState only contains the ramp, agent location and velocity
 
-        Ramp ramp = getRamp();
-        HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocity = getNewAgentLocationVelocity();
+        HashMap<Integer, ArrayList<int[]>> entries = agentEntries.getEntries();
         HashMap<Integer, Integer> newAgentLocations = new HashMap<>();
         HashMap<Integer, Integer> newAgentVelocities = new HashMap<>();
+        HashMap<Integer, Integer> newAgentDirections = new HashMap<>();
 
         // Get the number of new agents at this timeStep
-        int nrOfNewAgentsThisTimeStep = newAgentLocationVelocity.get(timeStep).size();
+        int nrOfNewAgentsThisTimeStep = entries.get(timeStep).size();
 
-        // Extract the [location, velocity] of every new agent this TimeStep
-        ArrayList<int[]> newAgentLocationVelocityThisTimeStep = newAgentLocationVelocity.get(timeStep);
+        // Extract the [direction, velocity] of every new agent this TimeStep
+        ArrayList<int[]> newAgentDirectionVelocity = entries.get(timeStep);
 
-        // Add each new agent's location and velocity in respective HashMap
+        // Add each new agent's location, velocity and direction in respective HashMap
         // Use totalAgentCount to ensure new agents have the correct key (id) in the hashmap
-        for (int i = getTotalAgentCount(); i < nrOfNewAgentsThisTimeStep + getTotalAgentCount(); i++) {
-            newAgentLocations.put(i, newAgentLocationVelocityThisTimeStep.get(i)[0]);
-            newAgentVelocities.put(i, newAgentLocationVelocityThisTimeStep.get(i)[1]);
+        for (int i = totalAgentCount; i < nrOfNewAgentsThisTimeStep + totalAgentCount; i++) {
+            newAgentDirections.put(i, newAgentDirectionVelocity.get(i)[0]);
+            newAgentVelocities.put(i, newAgentDirectionVelocity.get(i)[1]);
         }
 
         // If multiple starting agents, they will occupy the same start vertex --> put in queue instead
-        putNewAgentsInQueue(getRamp(), newAgentLocations);
+        putNewAgentsInQueue(this.ramp, newAgentDirections, newAgentLocations);
 
         // Update scenario's totalAgentCount
         addTotalAgentCount(nrOfNewAgentsThisTimeStep);
 
         HashMap<Integer, Integer> finalAgentLocations;
         HashMap<Integer, Integer> finalAgentVelocities;
-
 
         if(timeStep == 0) {
             // If scenario is new, newAgentLocations/Velocities are the only ones existing
@@ -98,7 +97,8 @@ public class MAPFScenario {
         setInitialState(new MAPFState(ramp, finalAgentLocations, finalAgentVelocities));
     }
 
-    public void putNewAgentsInQueue(Ramp ramp, HashMap<Integer, Integer> newAgentLocations) {
+    public void putNewAgentsInQueue(Ramp ramp, HashMap<Integer, Integer> newAgentDirections,
+                                    HashMap<Integer, Integer> newAgentLocations) {
         // Task: If multiple agents in the same start vertex, put them in queue instead
         // newAgentLocations is a hashmap of the agent id and its start vertex (either surface or underground)
         // of ONLY the new agents that are joining the ramp.
@@ -109,16 +109,17 @@ public class MAPFScenario {
         int undergroundStart = ramp.getUndergroundStart();
 
         // Put excessive starting agents in their corresponding queues
+        // Direction = 1 means upgoing. Direction = 0 means downgoing.
         int surfaceCount = 0;
         int undergroundCount = 0;
-        for (Map.Entry<Integer, Integer> entry : newAgentLocations.entrySet()) {
-            // Agents starting from the surface
-            if (entry.getValue() == surfaceStart) {
+        for (Map.Entry<Integer, Integer> entry : newAgentDirections.entrySet()) {
+            // Agents starting from the surface (i.e. downgoing --> direction = 0)
+            if (entry.getValue() == Constants.DOWN) {
                 newAgentLocations.put(entry.getKey(), surfaceQFree);
                 surfaceQFree--;
             }
             // Agents starting from the underground
-            else if (entry.getValue() == undergroundStart) {
+            else if (entry.getValue() == Constants.UP) {
                 newAgentLocations.put(entry.getKey(), undergroundQFree);
                 undergroundQFree++;
             }
@@ -134,9 +135,9 @@ public class MAPFScenario {
         return this.ramp;
     }
 
-    HashMap<Integer, ArrayList<int[]>> getNewAgentLocationVelocity() {
+    HashMap<Integer, ArrayList<int[]>> fetchAgentEntries() {
         // Returns agentList
-        return this.newAgentLocationVelocity;
+        return this.agentEntries.getEntries();
     }
 
     public int getDuration() {

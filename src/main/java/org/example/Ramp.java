@@ -37,7 +37,7 @@ public class Ramp {
         this.undergroundQLength = undergroundQLength;
         this.passBays = passBays;
         this.surfaceStart = surfaceQLength;
-        this.undergroundStart = surfaceQLength + rampLength;
+        this.undergroundStart = surfaceQLength + rampLength - 1;
 
         // Initialise the adjacency list which represents the ramp
         this.adjList = new HashMap<>();

@@ -27,7 +27,7 @@ public class MAPFState {
         this.ramp = ramp;
         this.agentLocations = agentLocation;
         this.agentVelocities = agentVelocity;
-        // Handle cost calculation
+        //this.cost = calculateCost;
     }
 
     public MAPFState(Ramp ramp) {
@@ -37,6 +37,12 @@ public class MAPFState {
     }
 
     // Methods
+    public int calculateCost() {
+        // TODO
+        // Undo comment in constructor when done
+        return 0;
+    }
+
     Ramp getRamp() {
         return this.ramp;
     }
