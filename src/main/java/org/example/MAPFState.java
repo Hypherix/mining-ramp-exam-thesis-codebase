@@ -38,7 +38,7 @@ public class MAPFState {
 
     // Methods
     public int calculateCost() {
-        // TODO
+        // TODO: calculateCost
         // Undo comment in constructor when done
         return 0;
     }
