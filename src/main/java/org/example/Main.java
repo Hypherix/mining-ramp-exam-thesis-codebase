@@ -17,10 +17,6 @@ public class Main {
         agentLocations.put(1, 7);       // agent starting from the underground
         agentVelocities.put(1, 1);
 
-        MAPFState initialState = new MAPFState(myRamp, agentLocations, agentVelocities);
-
-        MAPFState initialState2 = new MAPFState(myRamp);
-
         HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocity = new HashMap<Integer, ArrayList<int[]>>();
         int[] locationVelocity1 = new int[]{3, 1};
         int[] locationVelocity2 = new int[]{7, 1};

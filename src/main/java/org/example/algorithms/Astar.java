@@ -2,6 +2,7 @@ package org.example.algorithms;
 
 import org.example.MAPFScenario;
 import org.example.MAPFState;
+import org.example.StateComparator;
 
 import java.util.*;
 
@@ -110,8 +111,8 @@ public class Astar implements MAPFAlgorithm {
         // Set fgh values of all vertices
         setfgh(fghUpgoing, fghDowngoing, adjList, surfaceStart, undergroundStart, verticesInActualRamp);
 
-        PriorityQueue<Integer> frontier = new PriorityQueue<>();
-        PriorityQueue<Integer> explored = new PriorityQueue<>();
+        PriorityQueue<MAPFState> frontier = new PriorityQueue<MAPFState>(new StateComparator());
+        PriorityQueue<MAPFState> explored = new PriorityQueue<MAPFState>(new StateComparator());
         return null;
     }
 }

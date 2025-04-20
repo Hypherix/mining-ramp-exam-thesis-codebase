@@ -1,5 +1,6 @@
 package org.example;
 
+import java.util.Comparator;
 import java.util.HashMap;
 
 /*
@@ -18,6 +19,7 @@ public class MAPFState {
     private Ramp ramp;
     private HashMap<Integer, Integer> agentLocations;
     private HashMap<Integer, Integer> agentVelocities;
+    private int cost;
 
     // Constructors
     public MAPFState(Ramp ramp, HashMap<Integer, Integer> agentLocation,
@@ -25,6 +27,7 @@ public class MAPFState {
         this.ramp = ramp;
         this.agentLocations = agentLocation;
         this.agentVelocities = agentVelocity;
+        // Handle cost calculation
     }
 
     public MAPFState(Ramp ramp) {
@@ -45,4 +48,9 @@ public class MAPFState {
     HashMap<Integer, Integer> getAgentVelocities() {
         return this.agentVelocities;
     }
+
+    public int getCost() {
+        return this.cost;
+    }
 }
+
