@@ -13,20 +13,18 @@ public class Main {
         Ramp myRamp = new Ramp(5, 3, 3, passBays);
         myRamp.printAdjList();
 
-        // I don't think this section is being used. Remove?
-        HashMap<Integer, Integer> agentLocations = new HashMap<>();
-        HashMap<Integer, Integer> agentVelocities = new HashMap<>();
-        agentLocations.put(0, 3);       // agent starting from the surface
-        agentVelocities.put(0, 1);
-        agentLocations.put(1, 7);       // agent starting from the underground
-        agentVelocities.put(1, 1);
-
         // This section should be equivalent to the section after (now commented)
+        // Add initial agents
+        // Every other agent goes the same direction
         AgentEntries agentEntries = new AgentEntries();
-        agentEntries.addEntry(0, "down", 1);
-        agentEntries.addEntry(0, "up", 1);
-        agentEntries.addEntry(2, "down", 1);
-        agentEntries.addEntry(2, "up", 1);
+        for(int i = 0; i < 3; i++) {
+            if(i % 2 == 0) {
+                agentEntries.addEntry(0, new Agent(i, 1, Constants.DOWN));
+            }
+            else {
+                agentEntries.addEntry(0, new Agent(i, 1, Constants.UP));
+            }
+        }
 
 //        HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocityDirection = new HashMap<Integer, ArrayList<int[]>>();
 //        int[] locationVelocity1 = new int[]{3, 1, 0};

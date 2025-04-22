@@ -40,7 +40,7 @@ public class MAPFSolver {
         // As of now, the solve methods return void. When A* is implemented,
         // return a representation of a solution
 
-        HashMap<Integer, ArrayList<int[]>> agentEntries = scenario.fetchAgentEntries();
+        HashMap<Integer, ArrayList<Agent>> agentEntries = scenario.fetchAgentEntries();
         int endTime = this.scenario.getDuration();
         ArrayList<MAPFState> currentSolution;
 

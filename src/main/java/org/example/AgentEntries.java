@@ -6,36 +6,22 @@ import java.util.HashMap;
 /*
  * Holds information regarding new agents entering a scenario.
  * Required as parameter for creating a MAPFScenario.
- * Format: (timeStep, ArrayList<{direction, velocity}>)
+ * Format: (timeStep, ArrayList<Agent>)
  * Direction = 1 means upgoing. Direction = 0 means downgoing.
  * */
 public class AgentEntries {
 
     // Data members
-    HashMap<Integer, ArrayList<int[]>> entries;
+    HashMap<Integer, ArrayList<Agent>> entries;
 
     // Constructors
     public AgentEntries() {
-        entries = new HashMap<Integer, ArrayList<int[]>>();
+        entries = new HashMap<Integer, ArrayList<Agent>>();
     }
 
     // Methods
-    public void addEntry(int timeStep, String direction, int velocity) {
+    public void addEntry(int timeStep, Agent agent) {
         // Task: Add an entry to entries hashmap
-
-        // Convert direction string to int
-        int directionInt;
-        direction = direction.toLowerCase();
-        if (direction.equals("up")) {
-            directionInt = Constants.UP;
-        }
-        else if (direction.equals("down")) {
-            directionInt = Constants.DOWN;
-        }
-        else {
-            System.out.println("UNKNOWN DIRECTION, CAN'T ADD TO AGENT ENTRIES!");
-            directionInt = -1;
-        }
 
         // If there is no entry for the specified timeStep, add it
         if(!entries.containsKey(timeStep)) {
@@ -43,11 +29,10 @@ public class AgentEntries {
         }
 
         // Add the entry
-        int[] agentInfo = new int[]{directionInt, velocity};
-        entries.get(timeStep).add(agentInfo);
+        entries.get(timeStep).add(agent);
     }
 
-    public HashMap<Integer, ArrayList<int[]>> getEntries() {
+    public HashMap<Integer, ArrayList<Agent>> getEntries() {
         return this.entries;
     }
 }

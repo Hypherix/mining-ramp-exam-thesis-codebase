@@ -122,6 +122,7 @@ public class Ramp {
         undergroundQFree = undergroundStart;
     }
 
+
     HashMap<Integer, ArrayList<Integer>> getAdjList() {
         return this.adjList;
     }
