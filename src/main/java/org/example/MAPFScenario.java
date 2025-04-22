@@ -67,7 +67,7 @@ public class MAPFScenario {
         int nrOfNewAgentsThisTimeStep = entries.get(timeStep).size();
         // Update scenario's totalAgentCount
         addTotalAgentCount(nrOfNewAgentsThisTimeStep);
-        
+
         if(timeStep == 0) {
             // If scenario is new, newAgentLocations are the only ones existing
             setInitialState(new MAPFState(ramp, newAgentLocations));

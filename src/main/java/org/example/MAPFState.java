@@ -2,6 +2,7 @@ package org.example;
 
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 
 /*
 * - The purpose of MAPFState is to act as input for the MAPF algorithms. It only contains
@@ -25,7 +26,7 @@ public class MAPFState {
     public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocation) {
         this.ramp = ramp;
         this.agentLocations = agentLocation;
-        //this.cost = calculateCost;
+        this.cost = calculateCost();
     }
 
     public MAPFState(Ramp ramp) {
@@ -35,9 +36,27 @@ public class MAPFState {
 
     // Methods
     public int calculateCost() {
-        // TODO: calculateCost
-        // Undo comment in constructor when done
-        return 0;
+        // Task: Go through each agent's location and calculate the sum of their f values
+
+        int cost = 0;
+
+        for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
+            Agent agent = entry.getKey();
+            int location = entry.getValue();
+            if (agent.direction == Constants.DOWN) {
+                // If downgoing, add the agent location's downgoing f value to the cost
+                cost += ramp.fghDowngoing.get(location)[0];
+            }
+            else if (agent.direction == Constants.UP) {
+                // If upgoing, add upgoing f value
+                cost += ramp.fghUpgoing.get(location)[0];
+            }
+            else {
+                System.out.println("UNKNOWN DIRECTION WHEN CALCULATING STATE COST!");
+            }
+        }
+
+        return cost;
     }
 
     Ramp getRamp() {
