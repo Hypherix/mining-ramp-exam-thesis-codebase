@@ -1,10 +1,7 @@
 package org.example;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
 /*
-*
+* TODO LATER: Increase passing bay node count to simulate it being more costly
 * */
 
 public class Main {

@@ -1,13 +1,10 @@
 package org.example;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 /*
 * NOTES!!
-* passBays holds the ACTUAL RAMP vertex IDs. In other words, if passBay[x] = 2, then we mean adjacent to the second
+* passBaysAdjVertex holds the ACTUAL RAMP vertex IDs. In other words, if passBay[x] = 2, then we mean adjacent to the second
 * vertex in the ACTUAL ramp (i.e. disregarding the queues)
 *
 *
@@ -20,14 +17,21 @@ public class Ramp {
     private int rampLength;                     // length of actual ramp
     private int surfaceQLength;
     private int undergroundQLength;
-    private int[] passBays;                     // list of vertexIDs (only considering the actual ramp) that the passing bays are adjacent to
-    private int surfaceStart;                      // needed?
-    private int undergroundStart;                        // needed?
-    private int surfaceExit;
-    private int undergroundExit;
+    private int[] passBaysAdjVertex;                     // list of vertexIDs (only considering the actual ramp) that the passing bays are adjacent to
+
     private int verticesInRamp;
     private int surfaceQFree;
     private int undergroundQFree;
+
+    // Data members to keep track of which vertices are what in the ramp
+    private ArrayList<Integer> verticesInSurfaceQ;
+    private ArrayList<Integer> verticesInActualRamp;
+    private ArrayList<Integer> verticesInUndergroundQ;
+    private ArrayList<Integer> passingBays;
+    private int surfaceStart;
+    private int undergroundStart;
+    private int surfaceExit;
+    private int undergroundExit;
 
     private HashMap<Integer, ArrayList<Integer>> adjList;      // adjacency list to keep track of edges
 
@@ -41,13 +45,16 @@ public class Ramp {
         this.rampLength = rampLength;
         this.surfaceQLength = surfaceQLength;
         this.undergroundQLength = undergroundQLength;
-        this.passBays = passBays;
+        this.passBaysAdjVertex = passBays;
         this.surfaceStart = surfaceQLength;
         this.undergroundStart = surfaceQLength + rampLength - 1;
 
         // Initialise the adjacency list which represents the ramp
         this.adjList = new HashMap<>();
-        initialiseAdjList(rampLength, surfaceQLength, undergroundQLength, passBays);
+        initialiseAdjList(rampLength, surfaceQLength, undergroundQLength, passBaysAdjVertex);
+
+        // Categorise vertices depending on what part of the ramp they are in
+        categoriseVertices();
 
         // Calculate and store fgh values for the vertices
         fghUpgoing = new HashMap<>();
@@ -56,7 +63,7 @@ public class Ramp {
     }
 
     // Methods
-    void printAdjList() {
+    public void printAdjList() {
         // Task: Print the adjacency list
         System.out.println(this.adjList);
     }
@@ -134,31 +141,67 @@ public class Ramp {
     }
 
 
-    public void setfgh() {
-        // Task: Set the fgh values of all vertices
+    private void categoriseVertices() {
+        // Task: Categorise vertices depending on what part of the ramp they are in
+
+        int currentVertex = 0;
+
+        // Surface queue
+        verticesInSurfaceQ = new ArrayList<>();
+        for(int i = 0; i < surfaceQLength; i++){
+            verticesInSurfaceQ.add(i);
+        }
+        currentVertex += surfaceQLength;
+
+        // The actual ramp
+        verticesInActualRamp = new ArrayList<>();
+        for (int i = 0; i < rampLength; i++) {
+            verticesInActualRamp.add(currentVertex++);
+        }
+
+        // Underground queue
+        verticesInUndergroundQ = new ArrayList<>();
+        for (int i = 0; i < undergroundQLength; i++) {
+            verticesInUndergroundQ.add(currentVertex++);
+        }
+
+        // Passing bays
+        passingBays = new ArrayList<>();
+        for (int i = 0; i < passBaysAdjVertex.length; i++) {
+            passingBays.add(currentVertex++);
+        }
+
+        // Surface exit and underground exit
+        surfaceExit = currentVertex++;
+        undergroundExit = currentVertex++;
+    }
+
+
+    private HashMap<Integer, Integer> getVerticesCosts(int sourceVertex) {
+        // Task: Get the vertices costs (= their generation from a starting vertex)
+
+        HashMap<Integer, Integer> vertexGeneration = new HashMap<>();
 
         Queue<Integer> frontierVertex = new LinkedList<>();      // Keeps track of vertices in frontier
         HashMap<Integer, ArrayList<Integer>> frontierNeighbours = new HashMap<>();  // Maps frontier vertices to neighbours
         ArrayList<Integer> explored = new ArrayList<>();            // Keeps track of explored vertices
-        HashMap<Integer, Integer> vertexGeneration = new HashMap<>();   // Keeps track of each vertex's generation
-
 
         // It is enough to start from the surface start vertex. fgh in downgoing and upgoing direction can be attained
         // from this
 
         // Add surface vertex to frontier and explored
-        frontierVertex.add(surfaceStart);
-        frontierNeighbours.put(surfaceStart, adjList.get(surfaceStart));
-        explored.add(surfaceStart);
-        vertexGeneration.put(surfaceStart, 0);      // surface vertex is the first generation
+        frontierVertex.add(sourceVertex);
+        frontierNeighbours.put(sourceVertex, adjList.get(sourceVertex));
+        explored.add(sourceVertex);
+        vertexGeneration.put(sourceVertex, 0);      // surface vertex is the first generation
 
-        int round = 0;
         int currentVertex;
         ArrayList<Integer> currentNeighbours = new ArrayList<>();
 
         // Get costs of all vertices
         while(!frontierVertex.isEmpty()){
             currentVertex = frontierVertex.poll();              // Dequeue vertex first in queue
+            explored.add(currentVertex);                        // Mark as explored
             currentNeighbours = frontierNeighbours.get(currentVertex);  // Get its neighbours
 
             int currentGeneration = vertexGeneration.get(currentVertex);    // Get current
@@ -175,23 +218,82 @@ public class Ramp {
             }
         }
 
+        // Manually assign costs/generations to surface queue and underground queue
+        // Surface queue
+        for(int i = 0; i < surfaceStart; i++) {
+            vertexGeneration.put(i, sourceVertex - i);
+        }
+
+        // Underground queue
+        // Since assigning fgh values assumes the surface start vertex as the source vertex, this must be used
+        // here as well
+        for(int i = undergroundStart + 1; i < undergroundStart + undergroundQLength + 1; i++) {
+            vertexGeneration.put(i, i - sourceVertex);
+        }
+
+        return vertexGeneration;
+    }
+
+
+    private void assignfgh(int vertex, HashMap<Integer, Integer> vertexGeneration, int direction) {
+        // Task: Assign fgh values to a vertex based on its generation/cost
+        // Note! Some fgh values for queue vertices will make no sense, but they will not be used in the program
+
+        // Depending on direction, populate downgoing or upgoing fgh values
+        if (direction == Constants.DOWN) {
+            fghDowngoing.put(vertex, new int[]{0, 0, 0});
+
+            // If a surface queue vertex, g is always 0, h is h, and f = h, since each of these could be the start vertex
+            if(verticesInSurfaceQ.contains(vertex)) {
+                fghDowngoing.get(vertex)[1] = 0;        // g is always 0 for surface queue vertices
+                fghDowngoing.get(vertex)[2] = undergroundStart - vertex;   // h is the distance from the vertex to underground start
+                fghDowngoing.get(vertex)[0] = fghDowngoing.get(vertex)[1] + fghDowngoing.get(vertex)[2];    // f = g + h
+            }
+            else {
+                int gDowngoing = vertexGeneration.get(vertex);       // Get current vertex's downgoing g
+                fghDowngoing.get(vertex)[1] = gDowngoing;            // g is the second value array element
+                fghDowngoing.get(vertex)[2] = rampLength - 1 - gDowngoing;  // from g we can get h
+                fghDowngoing.get(vertex)[0] = fghDowngoing.get(vertex)[1] + fghDowngoing.get(vertex)[2];    // f = g + h
+            }
+        }
+        // If an underground queue vertex, g is always 0, h is h, and f = h, since each of these could be the start vertex
+        else if (direction == Constants.UP) {
+            fghUpgoing.put(vertex, new int[]{0, 0, 0});
+
+            if(verticesInUndergroundQ.contains(vertex)) {
+                fghUpgoing.get(vertex)[1] = 0;      // g is always 0 for underground queue vertices
+                fghUpgoing.get(vertex)[2] = vertex - surfaceStart;     // h is the distance from the vertex to surface start
+                fghUpgoing.get(vertex)[0] = fghUpgoing.get(vertex)[1] + fghUpgoing.get(vertex)[2];    // f = g + h
+            }
+            else {
+                int gUpgoing = vertexGeneration.get(vertex);       // Get current vertex's downgoing g
+                fghUpgoing.get(vertex)[1] = gUpgoing;            // g is the second value array element
+                fghUpgoing.get(vertex)[2] = rampLength - 1 - gUpgoing;  // from g we can get h
+                fghUpgoing.get(vertex)[0] = fghUpgoing.get(vertex)[1] + fghUpgoing.get(vertex)[2];    // f = g + h
+            }
+        }
+        else {
+            System.out.println("UNKNOWN DIRECTION WHEN ASSIGNING FGH VALUES!");
+        }
+    }
+
+
+    public void setfgh() {
+        // Task: Set the fgh values of all vertices.
+        // Note! fgh values are set to queue and exit vertices as well. Some of these might technically have
+        // incorrect values, but they do not matter for the program to work. E.g. a surface queue's vertex's
+        // upgoing fgh values are nonsensical since only downgoing agents will occupy such a vertex
+
+        // First, get costs of all vertices (= their generation)
+        // Keep track of each vertex's generation
+        HashMap<Integer, Integer> vertexGenerationSurfaceSource = getVerticesCosts(surfaceStart);
+        HashMap<Integer, Integer> vertexGenerationUndergroundSource = getVerticesCosts(undergroundStart);
+
         // With the generations set to each vertex, assign fgh values
-        // Go through all actual ramp vertices. Get their cost and assign
-        for(int i = surfaceStart; i < undergroundStart; i++) {
-            int gDowngoing = vertexGeneration.get(i);
-            fghDowngoing.get(i)[1] = gDowngoing;            // g is the second value array element
-
-            // Since g in downgoing direction is the same as h in the upgoing direction, assign that too
-            fghUpgoing.get(i)[2] = gDowngoing;
-
-            // For every vertex in the actual ramp; if g in downgoing direction is 1 and the actual ramp length
-            // is 5, then g in upgoing direction is always (actualRampLength - 1) - gDowngoing.
-            fghUpgoing.get(i)[1] = rampLength - 1 - gDowngoing;
-            fghDowngoing.get(i)[2] = rampLength - 1 - gDowngoing;
-
-            // Assign f value as sum of g and h
-            fghDowngoing.get(i)[0] = fghDowngoing.get(i)[1] + fghDowngoing.get(i)[2];
-            fghUpgoing.get(i)[0] = fghUpgoing.get(i)[1] + fghUpgoing.get(i)[2];
+        for(Map.Entry<Integer, Integer> entry : vertexGenerationSurfaceSource.entrySet()) {
+            int vertex = entry.getKey();
+            assignfgh(vertex, vertexGenerationSurfaceSource, Constants.DOWN);
+            assignfgh(vertex, vertexGenerationUndergroundSource, Constants.UP);
         }
     }
 

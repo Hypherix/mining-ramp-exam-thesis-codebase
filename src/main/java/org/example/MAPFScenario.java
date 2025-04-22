@@ -28,9 +28,6 @@ public class MAPFScenario {
     private AgentEntries agentEntries;
 
 
-
-
-
     // Constructors
 //    public MAPFScenario(Ramp ramp, MAPFState initialState,
 //                        HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocityDirection, int duration) {
