@@ -51,41 +51,35 @@ public class MAPFScenario {
     // Methods
     public void generateInitialState(int timeStep) {
         // Task: From the MAPFScenario, generate the first initial MAPFState
-        // The MAPFState only contains the ramp, agent location and velocity
+        // The MAPFState only contains the ramp, agent locations and cost
 
-        HashMap<Integer, ArrayList<Agent>> entries = agentEntries.getEntries();
-        HashMap<Agent, Integer> newAgentLocations = new HashMap<>();
-
-        // Get the number of new agents at this timeStep
-        int nrOfNewAgentsThisTimeStep = entries.get(timeStep).size();
+        HashMap<Integer, ArrayList<Agent>> entries = this.agentEntries.getEntries();
 
         // Extract every new agent entering this TimeStep
         ArrayList<Agent> newAgentsThisTimeStep = entries.get(timeStep);
 
-        // Add each new agent's location, velocity and direction in respective HashMap
-        // Use totalAgentCount to ensure new agents have the correct key (id) in the hashmap
-
+        HashMap<Agent, Integer> newAgentLocations = new HashMap<>();
 
         // If multiple starting agents, they will occupy the same start vertex --> put in queue instead
         putNewAgentsInQueue(this.ramp, newAgentsThisTimeStep, newAgentLocations);
 
+        // Get the number of new agents at this timeStep
+        int nrOfNewAgentsThisTimeStep = entries.get(timeStep).size();
         // Update scenario's totalAgentCount
         addTotalAgentCount(nrOfNewAgentsThisTimeStep);
-
-        HashMap<Agent, Integer> finalAgentLocations;
-        HashMap<Integer, Integer> finalAgentVelocities;
-
+        
         if(timeStep == 0) {
-            // If scenario is new, newAgentLocations/Velocities are the only ones existing
-            finalAgentLocations = newAgentLocations;
+            // If scenario is new, newAgentLocations are the only ones existing
+            setInitialState(new MAPFState(ramp, newAgentLocations));
         }
         else {
             // Add new newAgentLocations to the already existing newAgentLocations if scenario is not new
+            HashMap<Agent, Integer> finalAgentLocations;
             finalAgentLocations = fetchAgentLocations();
             finalAgentLocations.putAll(newAgentLocations);
-        }
 
-        setInitialState(new MAPFState(ramp, finalAgentLocations));
+            setInitialState(new MAPFState(ramp, finalAgentLocations));
+        }
     }
 
     public void putNewAgentsInQueue(Ramp ramp, ArrayList<Agent> newAgentsThisTimeStep,
