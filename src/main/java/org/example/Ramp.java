@@ -319,24 +319,32 @@ public class Ramp {
         return this.undergroundStart;
     }
 
-    public int getVerticesInActualRamp() {
+    public int getRampLength() {
         return this.rampLength;
     }
 
-    public int getSurfaceQFree() {
-        return this.surfaceQFree;
+//    public int getSurfaceQFree() {
+//        return this.surfaceQFree;
+//    }
+//
+//    public void setSurfaceQFree(int vertex) {
+//        this.surfaceQFree = vertex;
+//    }
+//
+//    public int getUndergroundQFree() {
+//        return this.undergroundQFree;
+//    }
+//
+//    public void setUndergroundQFree(int vertex) {
+//        this.undergroundQFree = vertex;
+//    }
+
+    public ArrayList<Integer> getVerticesInSurfaceQ() {
+        return this.verticesInSurfaceQ;
     }
 
-    public void setSurfaceQFree(int vertex) {
-        this.surfaceQFree = vertex;
-    }
-
-    public int getUndergroundQFree() {
-        return this.undergroundQFree;
-    }
-
-    public void setUndergroundQFree(int vertex) {
-        this.undergroundQFree = vertex;
+    public ArrayList<Integer> getVerticesInUndergroundQ() {
+        return this.verticesInUndergroundQ;
     }
 
 }

@@ -33,7 +33,7 @@ public class Astar implements MAPFAlgorithm {
         HashMap<Integer, ArrayList<Integer>> adjList = scenario.fetchAdjList();
         int surfaceStart = scenario.fetchSurfaceStart();
         int undergroundStart = scenario.fetchUndergroundStart();
-        int verticesInActualRamp = scenario.fetchVerticesInActualRamp();
+        int verticesInActualRamp = scenario.fetchRampLength();
 
         PriorityQueue<MAPFState> frontier = new PriorityQueue<MAPFState>(new StateComparator());
         PriorityQueue<MAPFState> explored = new PriorityQueue<MAPFState>(new StateComparator());

@@ -1,8 +1,8 @@
 package org.example;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 
 // This class represents a MAPF problem/scenario
 
@@ -46,6 +46,81 @@ public class MAPFScenario {
 
 
     // Methods
+
+    private int getSurfaceQFree() {
+        // Task: Get the first free vertex in the surface queue
+
+        HashMap<Agent, Integer> agentLocations = fetchAgentLocations();
+        Collection<Integer> occupiedVertices = agentLocations.values();
+
+        int surfaceStart = ramp.getSurfaceStart();
+        ArrayList<Integer> verticesInSurfaceQ = ramp.getVerticesInSurfaceQ();
+
+        if(occupiedVertices.contains(surfaceStart)) {
+            return surfaceStart;
+        }
+        else {
+            for(Integer vertex : verticesInSurfaceQ) {
+                if(occupiedVertices.contains(vertex)) {
+                    return vertex;
+                }
+            }
+            System.out.println("MAPFScenario->getSurfaceQFree: SURFACE QUEUE IS FULL!");
+            return -1;
+        }
+    }
+
+    private int getUndergroundQFree() {
+        // Task: Get the first free vertex in the underground queue
+
+        HashMap<Agent, Integer> agentLocations = fetchAgentLocations();
+        Collection<Integer> occupiedVertices = agentLocations.values();
+
+        int undergroundStart = ramp.getUndergroundStart();
+        ArrayList<Integer> verticesInUndergroundQ = ramp.getVerticesInUndergroundQ();
+
+        if(occupiedVertices.contains(undergroundStart)) {
+            return undergroundStart;
+        }
+        else {
+            for(Integer vertex : verticesInUndergroundQ) {
+                if(occupiedVertices.contains(vertex)) {
+                    return vertex;
+                }
+            }
+            System.out.println("MAPFScenario->getUndergroundQFree: UNDERGROUND QUEUE IS FULL!");
+            return -1;
+        }
+    }
+
+    public void putNewAgentsInQueue(Ramp ramp, ArrayList<Agent> newAgentsThisTimeStep,
+                                    HashMap<Agent, Integer> newAgentLocations) {
+        // Task: If multiple agents in the same start vertex, put them in queue instead
+        // newAgentLocations is a hashmap of the agent id and its start vertex (either surface or underground)
+        // of ONLY the new agents that are joining the ramp.
+        // TODO? Note! After attaining the free vertices in the beginning, this method does NOT check if
+        //  the queues get full when trying to add further agents. To make this method check it,
+        //  make it call getSurface/UndergroundQFree() for each respective if-statement in the for loop
+
+
+        int surfaceQFree = getSurfaceQFree();
+        int undergroundQFree = getUndergroundQFree();
+
+        // Put excessive starting agents in their corresponding queues
+        for(Agent agent : newAgentsThisTimeStep) {
+            // Agents starting from the surface (i.e. downgoing)
+            if(agent.direction == Constants.DOWN) {
+                newAgentLocations.put(agent, surfaceQFree);     // TODO: Ska newAgentLocations ha Agent som key eller Agent.id?
+                surfaceQFree--;
+            }
+            // Agents starting from the underground
+            else if (agent.direction == Constants.UP){
+                newAgentLocations.put(agent, undergroundQFree);
+                undergroundQFree++;
+            }
+        }
+    }
+
     public void generateInitialState(int timeStep) {
         // Task: From the MAPFScenario, generate the first initial MAPFState
         // The MAPFState only contains the ramp, agent locations and cost
@@ -79,42 +154,7 @@ public class MAPFScenario {
         }
     }
 
-    public void putNewAgentsInQueue(Ramp ramp, ArrayList<Agent> newAgentsThisTimeStep,
-                                    HashMap<Agent, Integer> newAgentLocations) {
-        // Task: If multiple agents in the same start vertex, put them in queue instead
-        // newAgentLocations is a hashmap of the agent id and its start vertex (either surface or underground)
-        // of ONLY the new agents that are joining the ramp.
 
-        // TODO: Create helper function for checking queueFree vertices. Probably don't have as a ramp
-        //  data member. Instead, the helper function takes the ramp and checks for the earliest free
-        //  vertices in both queues!!
-
-        int surfaceQFree = ramp.getSurfaceQFree();
-        int undergroundQFree = ramp.getUndergroundQFree();
-        int surfaceStart = ramp.getSurfaceStart();
-        int undergroundStart = ramp.getUndergroundStart();
-
-        // Put excessive starting agents in their corresponding queues
-        // Direction = 1 means upgoing. Direction = 0 means downgoing.
-        int surfaceCount = 0;
-        int undergroundCount = 0;
-        for(Agent agent : newAgentsThisTimeStep) {
-            // Agents starting from the surface (i.e. downgoing --> direction = 0)
-            if(agent.direction == Constants.DOWN) {
-                newAgentLocations.put(agent, surfaceQFree);     // TODO: Ska newAgentLocations ha Agent som key eller Agent.id?
-                surfaceQFree--;
-            }
-            // Agents starting from the underground
-            else if (agent.direction == Constants.UP){
-                newAgentLocations.put(agent, undergroundQFree);
-                undergroundQFree++;
-            }
-        }
-
-        // Update the surface and underground queue free statuses
-        ramp.setSurfaceQFree(surfaceQFree);
-        ramp.setUndergroundQFree(undergroundQFree);
-    }
 
 
     Ramp getRamp() {
@@ -156,8 +196,8 @@ public class MAPFScenario {
         return this.ramp.getUndergroundStart();
     }
 
-    public int fetchVerticesInActualRamp() {
-        return this.ramp.getVerticesInActualRamp();
+    public int fetchRampLength() {
+        return this.ramp.getRampLength();
     }
 
     public HashMap<Agent, Integer> fetchAgentLocations() {
