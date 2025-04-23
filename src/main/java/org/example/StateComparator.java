@@ -11,10 +11,10 @@ import java.util.Comparator;
 
 public class StateComparator implements Comparator<MAPFState> {
     public int compare(MAPFState s1, MAPFState s2) {
-        if(s1.getCost() < s2.getCost()) {
+        if(s1.getFcost() < s2.getFcost()) {
             return -1;
         }
-        else if (s1.getCost() > s2.getCost()) {
+        else if (s1.getFcost() > s2.getFcost()) {
             return 1;
         }
         return 0;

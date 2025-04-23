@@ -207,4 +207,8 @@ public class MAPFScenario {
     public HashMap<Integer, ArrayList<Integer>> fetchAdjList() {
         return this.ramp.getAdjList();
     }
+
+    public MAPFState getInitialState() {
+        return this.initialState;
+    }
 }

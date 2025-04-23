@@ -347,4 +347,12 @@ public class Ramp {
         return this.verticesInUndergroundQ;
     }
 
+    public int getSurfaceExit() {
+        return this.surfaceExit;
+    }
+
+    public int getUndergroundExit() {
+        return this.undergroundExit;
+    }
+
 }
