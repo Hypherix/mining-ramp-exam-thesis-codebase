@@ -154,5 +154,13 @@ public class MAPFState {
     public int fetchUndergroundExit() {
         return this.ramp.getUndergroundExit();
     }
+
+    public ArrayList<Agent> getActiveAgents() {
+        return this.activeAgents;
+    }
+
+    public ArrayList<Agent> getInactiveAgents() {
+        return this.inactiveAgents;
+    }
 }
 

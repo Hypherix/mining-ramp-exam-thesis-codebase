@@ -24,7 +24,7 @@ public class Astar implements MAPFAlgorithm {
 
     // Methods
 
-    private boolean isGoal(MAPFState state) {
+   private static boolean isGoal(MAPFState state) {
         // Task: Check if state is a goal state, i.e. if all agents have reached the exits
 
         // Get agent locations and exit locations
@@ -42,7 +42,7 @@ public class Astar implements MAPFAlgorithm {
         return true;
     }
 
-    private void buildSolution(MAPFState currentState, ArrayList<MAPFState> solution) {
+   private static void buildSolution(MAPFState currentState, ArrayList<MAPFState> solution) {
         // Task: Starting from the currentState, add parent states to the stack to build a solution
 
         Stack<MAPFState> solutionStack = new Stack<>();
@@ -58,7 +58,7 @@ public class Astar implements MAPFAlgorithm {
         }
     }
 
-    private boolean isStateEqual(MAPFState state1, MAPFState state2) {
+   private static boolean isStateEqual(MAPFState state1, MAPFState state2) {
         // Task: Check if two states are equal in terms of the identical agents occupying the identical vertices
         // Thus, only compare their agentLocations
         // Agent class overrides equals() by comparing their id:s
@@ -69,8 +69,37 @@ public class Astar implements MAPFAlgorithm {
         return agentLocations1.equals(agentLocations2);
     }
 
+   private static HashMap<Agent, ArrayList<Integer>> getPossibleMoves(
+            HashMap<Agent, Integer> agentLocations,
+            HashMap<Integer, UpDownNeighbourList> adjList) {
+        // Task: With agents and their locations, get all possible agent moves
+
+        HashMap<Agent, ArrayList<Integer>> agentMoves = new HashMap<>();
+
+        // Go through each agent, its location, and get all neighbours from adjList
+        for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
+            Agent agent = entry.getKey();
+            Integer vertex = entry.getValue();
+
+            ArrayList<Integer> moves;
+            if(agent.direction == Constants.DOWN) {
+                moves = adjList.get(vertex).getDownNeighbours();
+                agentMoves.put(agent, moves);
+            }
+            else if(agent.direction == Constants.UP) {
+                moves = adjList.get(vertex).getUpNeighbours();
+                agentMoves.put(agent, moves);
+            }
+            else {
+                System.out.println("A*->solve: UNKNOWN AGENT DIRECTION!");
+            }
+        }
+
+        return agentMoves;
+    }
+
     @Override
-    public ArrayList<MAPFState> solve(MAPFScenario scenario) {
+   public ArrayList<MAPFState> solve(MAPFScenario scenario) {
         /*
         * Notes to self
         * - For each neighbour state, the g cost is that of the current state's g + num of all active agents (each action is g++)
@@ -120,9 +149,20 @@ public class Astar implements MAPFAlgorithm {
             ArrayList<int[]> prohibitedMoves = new ArrayList<>();
 
             HashMap<Agent, Integer> agentLocations = currentState.getAgentLocations();
-
+            HashMap<Agent, Integer> neighbourAgentLocations;
             // TODO: ITERATE THROUGH ALL ACTION COMBINATIONS
-            //for
+
+            // Get all possible agent moves
+            HashMap<Agent, ArrayList<Integer>> agentMoves = getPossibleMoves(agentLocations, adjList);
+
+            // Generate all move combinations
+            // See https://www.baeldung.com/java-cartesian-product-sets and
+            // https://chatgpt.com/c/68094965-3324-800b-9735-a243367c446f
+            // for cartesian product of sets. In this case, convert agentMoves to a list.
+            // Then do recursion.
+            // NOTE! Make sure to update prohibitedVertices+Moves and do NOT generate
+            // MAPFStates that violate these prohibitions.
+
         }
 
         System.out.println("A* COULD NOT FIND A SOLUTION!");

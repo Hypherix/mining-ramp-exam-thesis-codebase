@@ -91,7 +91,7 @@ public class Ramp {
 
     private void addDownEdge(int fromVertex, int toVertex) {
         // Task: Add an edge to the ramp
-        this.adjList.get(fromVertex).getDownEdges().add(toVertex);
+        this.adjList.get(fromVertex).getDownNeighbours().add(toVertex);
     }
 
     private void initialiseAdjList(int rampLength, int surfaceQLength, int undergroundQLength, int[] passBays) {

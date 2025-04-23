@@ -22,7 +22,7 @@ public class UpDownNeighbourList {
         return this.UpNeighbours;
     }
 
-    public ArrayList<Integer> getDownEdges() {
+    public ArrayList<Integer> getDownNeighbours() {
         return this.DownNeighbours;
     }
 
