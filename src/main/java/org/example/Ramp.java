@@ -36,8 +36,11 @@ public class Ramp {
     private HashMap<Integer, ArrayList<Integer>> adjList;      // adjacency list to keep track of edges
 
     // Information about f, g and h values for each vertex in the ramp
-    HashMap<Integer, int[]> fghUpgoing;
-    HashMap<Integer, int[]> fghDowngoing;
+//    HashMap<Integer, int[]> fghUpgoing;
+//    HashMap<Integer, int[]> fghDowngoing;
+    HashMap<Integer, Integer> hUpgoing;
+    HashMap<Integer, Integer> hDowngoing;
+
 
     // Constructors
     public Ramp(int rampLength, int surfaceQLength, int undergroundQLength, int[] passBays) {
@@ -57,9 +60,11 @@ public class Ramp {
         categoriseVertices();
 
         // Calculate and store fgh values for the vertices
-        fghUpgoing = new HashMap<>();
-        fghDowngoing = new HashMap<>();
-        setfgh();
+//        fghUpgoing = new HashMap<>();
+//        fghDowngoing = new HashMap<>();
+        hUpgoing = new HashMap<>();
+        hDowngoing = new HashMap<>();
+        seth();
     }
 
     // Methods
@@ -235,41 +240,45 @@ public class Ramp {
     }
 
 
-    private void assignfgh(int vertex, HashMap<Integer, Integer> vertexGeneration, int direction) {
-        // Task: Assign fgh values to a vertex based on its generation/cost
+    private void assignh(int vertex, HashMap<Integer, Integer> vertexGeneration, int direction) {
+        // Task: Assign h values to a vertex based on its generation/cost
         // Note! Some fgh values for queue vertices will make no sense, but they will not be used in the program
 
         // Depending on direction, populate downgoing or upgoing fgh values
         if (direction == Constants.DOWN) {
-            fghDowngoing.put(vertex, new int[]{0, 0, 0});
+//            fghDowngoing.put(vertex, new int[]{0, 0, 0});
 
             // If a surface queue vertex, g is always 0, h is h, and f = h, since each of these could be the start vertex
             if(verticesInSurfaceQ.contains(vertex)) {
-                fghDowngoing.get(vertex)[1] = 0;        // g is always 0 for surface queue vertices
-                fghDowngoing.get(vertex)[2] = undergroundStart - vertex;   // h is the distance from the vertex to underground start
-                fghDowngoing.get(vertex)[0] = fghDowngoing.get(vertex)[1] + fghDowngoing.get(vertex)[2];    // f = g + h
+//                fghDowngoing.get(vertex)[1] = 0;        // g is always 0 for surface queue vertices
+//                fghDowngoing.get(vertex)[2] = undergroundStart - vertex;   // h is the distance from the vertex to underground start
+//                fghDowngoing.get(vertex)[0] = fghDowngoing.get(vertex)[1] + fghDowngoing.get(vertex)[2];    // f = g + h
+                hDowngoing.put(vertex, undergroundStart - vertex); // h is the distance from the vertex to underground start
             }
             else {
                 int gDowngoing = vertexGeneration.get(vertex);       // Get current vertex's downgoing g
-                fghDowngoing.get(vertex)[1] = gDowngoing;            // g is the second value array element
-                fghDowngoing.get(vertex)[2] = rampLength - 1 - gDowngoing;  // from g we can get h
-                fghDowngoing.get(vertex)[0] = fghDowngoing.get(vertex)[1] + fghDowngoing.get(vertex)[2];    // f = g + h
+//                fghDowngoing.get(vertex)[1] = gDowngoing;            // g is the second value array element
+//                fghDowngoing.get(vertex)[2] = rampLength - 1 - gDowngoing;  // from g we can get h
+//                fghDowngoing.get(vertex)[0] = fghDowngoing.get(vertex)[1] + fghDowngoing.get(vertex)[2];    // f = g + h
+                hDowngoing.put(vertex, rampLength - 1 - gDowngoing);
             }
         }
         // If an underground queue vertex, g is always 0, h is h, and f = h, since each of these could be the start vertex
         else if (direction == Constants.UP) {
-            fghUpgoing.put(vertex, new int[]{0, 0, 0});
+//            fghUpgoing.put(vertex, new int[]{0, 0, 0});
 
             if(verticesInUndergroundQ.contains(vertex)) {
-                fghUpgoing.get(vertex)[1] = 0;      // g is always 0 for underground queue vertices
-                fghUpgoing.get(vertex)[2] = vertex - surfaceStart;     // h is the distance from the vertex to surface start
-                fghUpgoing.get(vertex)[0] = fghUpgoing.get(vertex)[1] + fghUpgoing.get(vertex)[2];    // f = g + h
+//                fghUpgoing.get(vertex)[1] = 0;      // g is always 0 for underground queue vertices
+//                fghUpgoing.get(vertex)[2] = vertex - surfaceStart;     // h is the distance from the vertex to surface start
+//                fghUpgoing.get(vertex)[0] = fghUpgoing.get(vertex)[1] + fghUpgoing.get(vertex)[2];    // f = g + h
+                hUpgoing.put(vertex, vertex - surfaceStart);    // h is the distance from the vertex to surface start
             }
             else {
                 int gUpgoing = vertexGeneration.get(vertex);       // Get current vertex's downgoing g
-                fghUpgoing.get(vertex)[1] = gUpgoing;            // g is the second value array element
-                fghUpgoing.get(vertex)[2] = rampLength - 1 - gUpgoing;  // from g we can get h
-                fghUpgoing.get(vertex)[0] = fghUpgoing.get(vertex)[1] + fghUpgoing.get(vertex)[2];    // f = g + h
+//                fghUpgoing.get(vertex)[1] = gUpgoing;            // g is the second value array element
+//                fghUpgoing.get(vertex)[2] = rampLength - 1 - gUpgoing;  // from g we can get h
+//                fghUpgoing.get(vertex)[0] = fghUpgoing.get(vertex)[1] + fghUpgoing.get(vertex)[2];    // f = g + h
+                hUpgoing.put(vertex, rampLength - 1 - gUpgoing);
             }
         }
         else {
@@ -278,8 +287,8 @@ public class Ramp {
     }
 
 
-    public void setfgh() {
-        // Task: Set the fgh values of all vertices.
+    public void seth() {
+        // Task: Set the h values of all vertices.
         // Note! fgh values are set to queue and exit vertices as well. Some of these might technically have
         // incorrect values, but they do not matter for the program to work. E.g. a surface queue's vertex's
         // upgoing fgh values are nonsensical since only downgoing agents will occupy such a vertex
@@ -292,8 +301,8 @@ public class Ramp {
         // With the generations set to each vertex, assign fgh values
         for(Map.Entry<Integer, Integer> entry : vertexGenerationSurfaceSource.entrySet()) {
             int vertex = entry.getKey();
-            assignfgh(vertex, vertexGenerationSurfaceSource, Constants.DOWN);
-            assignfgh(vertex, vertexGenerationUndergroundSource, Constants.UP);
+            assignh(vertex, vertexGenerationSurfaceSource, Constants.DOWN);
+            assignh(vertex, vertexGenerationUndergroundSource, Constants.UP);
         }
     }
 
