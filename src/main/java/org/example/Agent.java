@@ -15,4 +15,17 @@ public class Agent {
     }
 
     // Methods
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {        // True if same reference
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {  // False if null or different class
+            return false;
+        }
+
+        Agent otherAgent = (Agent) o;
+
+        return id == otherAgent.id;
+    }
 }

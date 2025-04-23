@@ -124,6 +124,7 @@ public class Ramp {
             addEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay] - 2);
             addEdge(surfaceQLength + passBays[currentPassBay], verticesInRamp);
             addEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay]);
+            addEdge(verticesInRamp, verticesInRamp);            // Agents can wait in the passing bay
             currentPassBay++;
             verticesInRamp++;
         }

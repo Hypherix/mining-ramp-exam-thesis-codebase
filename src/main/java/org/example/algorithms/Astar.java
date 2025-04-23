@@ -1,5 +1,6 @@
 package org.example.algorithms;
 
+import org.example.Agent;
 import org.example.MAPFScenario;
 import org.example.MAPFState;
 import org.example.StateComparator;
@@ -60,6 +61,17 @@ public class Astar implements MAPFAlgorithm {
         }
     }
 
+    private boolean isStateEqual(MAPFState state1, MAPFState state2) {
+        // Task: Check if two states are equal in terms of the identical agents occupying the identical vertices
+        // Thus, only compare their agentLocations
+        // Agent class overrides equals() by comparing their id:s
+
+        HashMap<Agent, Integer> agentLocations1 = state1.getAgentLocations();
+        HashMap<Agent, Integer> agentLocations2 = state2.getAgentLocations();
+
+        return agentLocations1.equals(agentLocations2);
+    }
+
     @Override
     public ArrayList<MAPFState> solve(MAPFScenario scenario) {
         /*
@@ -104,6 +116,10 @@ public class Astar implements MAPFAlgorithm {
             *  Additionally: if an upgoing agent is in surface start, automatically force to surface exit.
             *  Likewise: if a downgoing agent is in underground start, automatically force to underground exit.
             * */
+
+            // For each agent actions combination, generate a new state and add to frontier if not in explored
+
+            // TODO: SOME TYPE OF FOR LOOP TO ITERATE THROUGH ALL COMBINATIONS
         }
 
         System.out.println("A* COULD NOT FIND A SOLUTION!");

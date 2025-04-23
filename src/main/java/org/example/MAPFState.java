@@ -1,5 +1,6 @@
 package org.example;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,15 +24,33 @@ public class MAPFState {
     private int gcost;      // sum of agent actions
     private int hcost;      // sum of agent location h values
     public MAPFState parent;
+    public ArrayList<Agent> activeAgents;      // Agents not in an exit
+    public ArrayList<Agent> inactiveAgents;    // Agents in an exit
 
     // Constructors
     public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations) {
         this.ramp = ramp;
         this.agentLocations = agentLocations;
-        this.parent = null;
         this.fcost = calculateCost();
         this.hcost = calculateHcost();
-    }
+        this.parent = null;
+
+        // Categorise the agents as active or inactive
+        this.activeAgents = new ArrayList<>();
+        this.inactiveAgents = new ArrayList<>();
+        int surfaceExit = fetchSurfaceExit();
+        int undergroundExit = fetchUndergroundExit();
+        for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
+            Agent agent = entry.getKey();
+            int location = entry.getValue();
+            if (location == surfaceExit || location == undergroundExit) {
+                this.inactiveAgents.add(agent);
+            }
+            else {
+                this.activeAgents.add(agent);
+            }
+        }
+     }
 
     public MAPFState(Ramp ramp) {
         this.ramp = ramp;
@@ -72,7 +91,7 @@ public class MAPFState {
         *    calculateCost() is not to be called in the constructor. Change this method when A*
         *    is progressed on to only work with h, and find a way to get g.
         * */
-
+        // CURRENTLY NOT IN USE
 
         int cost = 0;
         int h = 0;
