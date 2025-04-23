@@ -1,9 +1,6 @@
 package org.example.algorithms;
 
-import org.example.Agent;
-import org.example.MAPFScenario;
-import org.example.MAPFState;
-import org.example.StateComparator;
+import org.example.*;
 
 import java.util.*;
 
@@ -83,7 +80,7 @@ public class Astar implements MAPFAlgorithm {
         ArrayList<MAPFState> solution = new ArrayList<>();
 
         // Fetch the scenario adjacency list and other key numbers
-        HashMap<Integer, ArrayList<Integer>> adjList = scenario.fetchAdjList();
+        HashMap<Integer, UpDownNeighbourList> adjList = scenario.fetchAdjList();
         int surfaceStart = scenario.fetchSurfaceStart();
         int undergroundStart = scenario.fetchUndergroundStart();
         int actualRampLength = scenario.fetchRampLength();
@@ -124,7 +121,8 @@ public class Astar implements MAPFAlgorithm {
 
             HashMap<Agent, Integer> agentLocations = currentState.getAgentLocations();
 
-            for
+            // TODO: ITERATE THROUGH ALL ACTION COMBINATIONS
+            //for
         }
 
         System.out.println("A* COULD NOT FIND A SOLUTION!");

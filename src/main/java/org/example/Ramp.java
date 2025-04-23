@@ -33,7 +33,7 @@ public class Ramp {
     private int surfaceExit;
     private int undergroundExit;
 
-    private HashMap<Integer, ArrayList<Integer>> adjList;      // adjacency list to keep track of edges
+    private HashMap<Integer, UpDownNeighbourList> adjList;      // adjacency list to keep track of edges
 
     // Information about f, g and h values for each vertex in the ramp
 //    HashMap<Integer, int[]> fghUpgoing;
@@ -70,17 +70,28 @@ public class Ramp {
     // Methods
     public void printAdjList() {
         // Task: Print the adjacency list
-        System.out.println(this.adjList);
+        System.out.print("{");
+        for(Integer key : this.adjList.keySet()) {
+            System.out.print(key + "=");
+            adjList.get(key).printNeighbourLists();
+            System.out.print(", ");
+        }
+        System.out.print("}");
     }
 
     private void addVertexToRamp(int vertexId) {
         // Task: Add a vertex to the ramp
-        this.adjList.put(vertexId, new ArrayList<Integer>());
+        this.adjList.put(vertexId, new UpDownNeighbourList());
     }
 
-    private void addEdge(int fromVertex, int toVertex) {
+    private void addUpEdge(int fromVertex, int toVertex) {
         // Task: Add an edge to the ramp
-        this.adjList.get(fromVertex).add(toVertex);
+        this.adjList.get(fromVertex).getUpNeighbours().add(toVertex);
+    }
+
+    private void addDownEdge(int fromVertex, int toVertex) {
+        // Task: Add an edge to the ramp
+        this.adjList.get(fromVertex).getDownEdges().add(toVertex);
     }
 
     private void initialiseAdjList(int rampLength, int surfaceQLength, int undergroundQLength, int[] passBays) {
@@ -95,16 +106,16 @@ public class Ramp {
         // Add the surface queue to the adjacency list. Note: directed subgraph!
         for (int i = 1; i < surfaceQLength; i++) {
             addVertexToRamp(verticesInRamp);
-            addEdge(verticesInRamp - 1, verticesInRamp);
+            addDownEdge(verticesInRamp - 1, verticesInRamp);
             verticesInRamp++;
         }
 
         // Add the actual ramp to the adjacency list. Note: undirected subgraph!
         for (int i = 0; i < rampLength; i++) {
             addVertexToRamp(verticesInRamp);
-            addEdge(verticesInRamp - 1, verticesInRamp);
+            addDownEdge(verticesInRamp - 1, verticesInRamp);    // Connect surface queue to surface start
             if (i != 0) {                // Don't create backwards edge in the first ramp vertex
-                addEdge(verticesInRamp, verticesInRamp - 1);
+                addUpEdge(verticesInRamp, verticesInRamp - 1);
             }
             verticesInRamp++;
         }
@@ -112,7 +123,7 @@ public class Ramp {
         // Add the underground queue to the adjacency list. Note: directed subgraph!
         for (int i = 0; i < undergroundQLength; i++) {
             addVertexToRamp(verticesInRamp);
-            addEdge(verticesInRamp, verticesInRamp - 1);
+            addUpEdge(verticesInRamp, verticesInRamp - 1);
             verticesInRamp++;
         }
 
@@ -120,24 +131,25 @@ public class Ramp {
         int currentPassBay = 0;
         for (int i = 0; i < passBays.length; i++) {
             addVertexToRamp(verticesInRamp);
-            addEdge(surfaceQLength + passBays[currentPassBay] - 2, verticesInRamp);      // -2 needed for adjustment
-            addEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay] - 2);
-            addEdge(surfaceQLength + passBays[currentPassBay], verticesInRamp);
-            addEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay]);
-            addEdge(verticesInRamp, verticesInRamp);            // Agents can wait in the passing bay
+            addDownEdge(surfaceQLength + passBays[currentPassBay] - 2, verticesInRamp);      // -2 needed for adjustment
+            addUpEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay] - 2);
+            addUpEdge(surfaceQLength + passBays[currentPassBay], verticesInRamp);
+            addDownEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay]);
+            addUpEdge(verticesInRamp, verticesInRamp);            // Agents can wait in the passing bay
+            addDownEdge(verticesInRamp, verticesInRamp);
             currentPassBay++;
             verticesInRamp++;
         }
 
         // Add the surface exit vertex to the adjacency list
         addVertexToRamp(verticesInRamp);
-        addEdge(surfaceQLength, verticesInRamp);    // Add edge from first ramp vertex to the surface exit vertex
+        addUpEdge(surfaceQLength, verticesInRamp);    // Add edge from first ramp vertex to the surface exit vertex
         this.surfaceExit = verticesInRamp;
         verticesInRamp++;
 
         // Add the underground exit vertex to the adjacency list
         addVertexToRamp(verticesInRamp);
-        addEdge(surfaceQLength + rampLength - 1, verticesInRamp);
+        addDownEdge(surfaceQLength + rampLength - 1, verticesInRamp);
         this.undergroundExit = verticesInRamp;
         verticesInRamp++;
 
@@ -197,7 +209,7 @@ public class Ramp {
 
         // Add surface vertex to frontier and explored
         frontierVertex.add(sourceVertex);
-        frontierNeighbours.put(sourceVertex, adjList.get(sourceVertex));
+        frontierNeighbours.put(sourceVertex, adjList.get(sourceVertex).getAllNeighbours());
         explored.add(sourceVertex);
         vertexGeneration.put(sourceVertex, 0);      // surface vertex is the first generation
 
@@ -216,7 +228,10 @@ public class Ramp {
                 // Only add neighbour to frontier if it hasn't already been explored or is already in the frontier
                 if (!explored.contains(neighbour) && !frontierVertex.contains(neighbour)) {
                     frontierVertex.add(neighbour);
-                    frontierNeighbours.put(neighbour, adjList.get(neighbour));
+
+                    ArrayList<Integer> neighboursOfNeighbour = adjList.get(neighbour).getAllNeighbours();
+
+                    frontierNeighbours.put(neighbour, neighboursOfNeighbour);
 
                     // Set the generation of the neighbour (+ 1 from the parent)
                     vertexGeneration.put(neighbour, currentGeneration + 1);
@@ -308,7 +323,7 @@ public class Ramp {
     }
 
 
-    HashMap<Integer, ArrayList<Integer>> getAdjList() {
+    HashMap<Integer, UpDownNeighbourList> getAdjList() {
         return this.adjList;
     }
 

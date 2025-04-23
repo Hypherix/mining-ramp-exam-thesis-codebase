@@ -204,7 +204,7 @@ public class MAPFScenario {
         return this.initialState.getAgentLocations();
     }
 
-    public HashMap<Integer, ArrayList<Integer>> fetchAdjList() {
+    public HashMap<Integer, UpDownNeighbourList> fetchAdjList() {
         return this.ramp.getAdjList();
     }
 
