@@ -289,16 +289,16 @@ public class Ramp {
 
     public void seth() {
         // Task: Set the h values of all vertices.
-        // Note! fgh values are set to queue and exit vertices as well. Some of these might technically have
+        // Note! h values are set to queue and exit vertices as well. Some of these might technically have
         // incorrect values, but they do not matter for the program to work. E.g. a surface queue's vertex's
-        // upgoing fgh values are nonsensical since only downgoing agents will occupy such a vertex
+        // upgoing h values are nonsensical since only downgoing agents will occupy such a vertex
 
         // First, get costs of all vertices (= their generation)
         // Keep track of each vertex's generation
         HashMap<Integer, Integer> vertexGenerationSurfaceSource = getVerticesCosts(surfaceStart);
         HashMap<Integer, Integer> vertexGenerationUndergroundSource = getVerticesCosts(undergroundStart);
 
-        // With the generations set to each vertex, assign fgh values
+        // With the generations set to each vertex, assign h values
         for(Map.Entry<Integer, Integer> entry : vertexGenerationSurfaceSource.entrySet()) {
             int vertex = entry.getKey();
             assignh(vertex, vertexGenerationSurfaceSource, Constants.DOWN);
