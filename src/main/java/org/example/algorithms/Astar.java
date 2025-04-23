@@ -119,7 +119,12 @@ public class Astar implements MAPFAlgorithm {
 
             // For each agent actions combination, generate a new state and add to frontier if not in explored
 
-            // TODO: SOME TYPE OF FOR LOOP TO ITERATE THROUGH ALL COMBINATIONS
+            ArrayList<Integer> prohibitedVertices = new ArrayList<>();
+            ArrayList<int[]> prohibitedMoves = new ArrayList<>();
+
+            HashMap<Agent, Integer> agentLocations = currentState.getAgentLocations();
+
+            for
         }
 
         System.out.println("A* COULD NOT FIND A SOLUTION!");
