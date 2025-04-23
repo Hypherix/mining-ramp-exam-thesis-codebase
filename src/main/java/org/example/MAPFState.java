@@ -37,19 +37,27 @@ public class MAPFState {
     // Methods
     public int calculateCost() {
         // Task: Go through each agent's location and calculate the sum of their f values
+        /*
+        *   TODO when A*: MAPFState cannot calculate its cost, only h. g is equal to the agents'
+        *    total travel time. Thus, g and f are attained at simulation-time. THEREFORE:
+        *    calculateCost() is not to be called in the constructor. Change this method when A*
+        *    is progressed on to only work with h, and find a way to get g.
+        * */
+
 
         int cost = 0;
+        int h = 0;
 
         for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
             Agent agent = entry.getKey();
             int location = entry.getValue();
             if (agent.direction == Constants.DOWN) {
                 // If downgoing, add the agent location's downgoing f value to the cost
-                cost += ramp.fghDowngoing.get(location)[0];
+                h += ramp.hDowngoing.get(location);
             }
             else if (agent.direction == Constants.UP) {
                 // If upgoing, add upgoing f value
-                cost += ramp.fghUpgoing.get(location)[0];
+                h += ramp.hUpgoing.get(location);
             }
             else {
                 System.out.println("UNKNOWN DIRECTION WHEN CALCULATING STATE COST!");
