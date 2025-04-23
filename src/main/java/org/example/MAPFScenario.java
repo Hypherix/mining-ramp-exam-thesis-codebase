@@ -47,8 +47,13 @@ public class MAPFScenario {
 
     // Methods
 
-    private int getSurfaceQFree() {
+    private int getSurfaceQFree(int timeStep) {
         // Task: Get the first free vertex in the surface queue
+
+        // If start of scenario, the first free surface queue vertex is always surface start
+        if(timeStep == 0) {
+            return fetchSurfaceStart();
+        }
 
         HashMap<Agent, Integer> agentLocations = fetchAgentLocations();
         Collection<Integer> occupiedVertices = agentLocations.values();
@@ -70,8 +75,13 @@ public class MAPFScenario {
         }
     }
 
-    private int getUndergroundQFree() {
+    private int getUndergroundQFree(int timeStep) {
         // Task: Get the first free vertex in the underground queue
+
+        // If start of scenario, the first free underground queue vertex is always underground start
+        if(timeStep == 0) {
+            return fetchUndergroundStart();
+        }
 
         HashMap<Agent, Integer> agentLocations = fetchAgentLocations();
         Collection<Integer> occupiedVertices = agentLocations.values();
@@ -94,7 +104,7 @@ public class MAPFScenario {
     }
 
     public void putNewAgentsInQueue(Ramp ramp, ArrayList<Agent> newAgentsThisTimeStep,
-                                    HashMap<Agent, Integer> newAgentLocations) {
+                                    HashMap<Agent, Integer> newAgentLocations, int timeStep) {
         // Task: If multiple agents in the same start vertex, put them in queue instead
         // newAgentLocations is a hashmap of the agent id and its start vertex (either surface or underground)
         // of ONLY the new agents that are joining the ramp.
@@ -102,9 +112,8 @@ public class MAPFScenario {
         //  the queues get full when trying to add further agents. To make this method check it,
         //  make it call getSurface/UndergroundQFree() for each respective if-statement in the for loop
 
-
-        int surfaceQFree = getSurfaceQFree();
-        int undergroundQFree = getUndergroundQFree();
+        int surfaceQFree = getSurfaceQFree(timeStep);
+        int undergroundQFree = getUndergroundQFree(timeStep);
 
         // Put excessive starting agents in their corresponding queues
         for(Agent agent : newAgentsThisTimeStep) {
@@ -133,7 +142,7 @@ public class MAPFScenario {
         HashMap<Agent, Integer> newAgentLocations = new HashMap<>();
 
         // If multiple starting agents, they will occupy the same start vertex --> put in queue instead
-        putNewAgentsInQueue(this.ramp, newAgentsThisTimeStep, newAgentLocations);
+        putNewAgentsInQueue(this.ramp, newAgentsThisTimeStep, newAgentLocations, timeStep);
 
         // Get the number of new agents at this timeStep
         int nrOfNewAgentsThisTimeStep = entries.get(timeStep).size();
