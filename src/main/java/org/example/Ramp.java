@@ -71,10 +71,15 @@ public class Ramp {
     public void printAdjList() {
         // Task: Print the adjacency list
         System.out.print("{");
+
+        int currentKey = 0;
         for(Integer key : this.adjList.keySet()) {
             System.out.print(key + "=");
             adjList.get(key).printNeighbourLists();
-            System.out.print(", ");
+
+            if(++currentKey != this.adjList.keySet().size()) {
+                System.out.print(", ");
+            }
         }
         System.out.println("}");
     }
@@ -107,6 +112,7 @@ public class Ramp {
         for (int i = 1; i < surfaceQLength; i++) {
             addVertexToRamp(verticesInRamp);
             addDownEdge(verticesInRamp - 1, verticesInRamp);
+            addDownEdge(verticesInRamp, verticesInRamp);    // Agents must be able to wait in its queue vertex
             verticesInRamp++;
         }
 
@@ -124,6 +130,7 @@ public class Ramp {
         for (int i = 0; i < undergroundQLength; i++) {
             addVertexToRamp(verticesInRamp);
             addUpEdge(verticesInRamp, verticesInRamp - 1);
+            addDownEdge(verticesInRamp, verticesInRamp);    // Agents must be able to wait in its queue vertex
             verticesInRamp++;
         }
 
@@ -154,8 +161,9 @@ public class Ramp {
         verticesInRamp++;
 
         // Set first free slot in surface queue and underground queue
-        surfaceQFree = surfaceStart;
-        undergroundQFree = undergroundStart;
+        // Agents always start in queue before entering the ramp
+        surfaceQFree = surfaceStart - 1;
+        undergroundQFree = undergroundStart + 1;
     }
 
 

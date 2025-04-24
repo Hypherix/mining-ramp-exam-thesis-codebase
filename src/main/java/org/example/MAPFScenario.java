@@ -52,27 +52,36 @@ public class MAPFScenario {
 
         // If start of scenario, the first free surface queue vertex is always surface start
         if(timeStep == 0) {
-            return fetchSurfaceStart();
+            return fetchSurfaceStart() - 1;
         }
 
         HashMap<Agent, Integer> agentLocations = fetchAgentLocations();
         Collection<Integer> occupiedVertices = agentLocations.values();
 
         int surfaceStart = ramp.getSurfaceStart();
-        ArrayList<Integer> verticesInSurfaceQ = ramp.getVerticesInSurfaceQ();
 
-        if(occupiedVertices.contains(surfaceStart)) {
-            return surfaceStart;
-        }
-        else {
-            for(Integer vertex : verticesInSurfaceQ) {
-                if(occupiedVertices.contains(vertex)) {
-                    return vertex;
-                }
+        ArrayList<Integer> verticesInSurfaceQ = ramp.getVerticesInSurfaceQ();
+        for(Integer vertex : verticesInSurfaceQ) {
+            if(occupiedVertices.contains(vertex)) {
+                return vertex;
             }
-            System.out.println("MAPFScenario->getSurfaceQFree: SURFACE QUEUE IS FULL!");
-            return -1;
         }
+        System.out.println("MAPFScenario->getSurfaceQFree: SURFACE QUEUE IS FULL!");
+        return -1;
+
+//        if(occupiedVertices.contains(surfaceStart)) {
+//            return surfaceStart;
+//        }
+//        else {
+//            ArrayList<Integer> verticesInSurfaceQ = ramp.getVerticesInSurfaceQ();
+//            for(Integer vertex : verticesInSurfaceQ) {
+//                if(occupiedVertices.contains(vertex)) {
+//                    return vertex;
+//                }
+//            }
+//            System.out.println("MAPFScenario->getSurfaceQFree: SURFACE QUEUE IS FULL!");
+//            return -1;
+//        }
     }
 
     private int getUndergroundQFree(int timeStep) {
@@ -80,27 +89,36 @@ public class MAPFScenario {
 
         // If start of scenario, the first free underground queue vertex is always underground start
         if(timeStep == 0) {
-            return fetchUndergroundStart();
+            return fetchUndergroundStart() + 1;
         }
 
         HashMap<Agent, Integer> agentLocations = fetchAgentLocations();
         Collection<Integer> occupiedVertices = agentLocations.values();
 
         int undergroundStart = ramp.getUndergroundStart();
-        ArrayList<Integer> verticesInUndergroundQ = ramp.getVerticesInUndergroundQ();
 
-        if(occupiedVertices.contains(undergroundStart)) {
-            return undergroundStart;
-        }
-        else {
-            for(Integer vertex : verticesInUndergroundQ) {
-                if(occupiedVertices.contains(vertex)) {
-                    return vertex;
-                }
+        ArrayList<Integer> verticesInUndergroundQ = ramp.getVerticesInUndergroundQ();
+        for(Integer vertex : verticesInUndergroundQ) {
+            if(occupiedVertices.contains(vertex)) {
+                return vertex;
             }
-            System.out.println("MAPFScenario->getUndergroundQFree: UNDERGROUND QUEUE IS FULL!");
-            return -1;
         }
+        System.out.println("MAPFScenario->getUndergroundQFree: UNDERGROUND QUEUE IS FULL!");
+        return -1;
+
+//        if(occupiedVertices.contains(undergroundStart)) {
+//            return undergroundStart;
+//        }
+//        else {
+//            ArrayList<Integer> verticesInUndergroundQ = ramp.getVerticesInUndergroundQ();
+//            for(Integer vertex : verticesInUndergroundQ) {
+//                if(occupiedVertices.contains(vertex)) {
+//                    return vertex;
+//                }
+//            }
+//            System.out.println("MAPFScenario->getUndergroundQFree: UNDERGROUND QUEUE IS FULL!");
+//            return -1;
+//        }
     }
 
     public void putNewAgentsInQueue(Ramp ramp, ArrayList<Agent> newAgentsThisTimeStep,

@@ -5,6 +5,7 @@ import org.example.algorithms.MAPFAlgorithm;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 
 /*
@@ -35,6 +36,34 @@ public class MAPFSolver {
     }
 
     // Methods
+    
+    private void printSolution() {
+        // Task: Print the paths of each agent
+
+        HashMap<Agent, ArrayList<Integer>> agentPaths = new HashMap<>();
+
+        for (MAPFState state : this.solution) {
+            HashMap<Agent, Integer> agentLocations = state.getAgentLocations();
+
+            for (Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
+                Agent agent = entry.getKey();
+                Integer location = entry.getValue();
+
+                if(!agentPaths.containsKey(agent)) {
+                    agentPaths.put(agent, new ArrayList<>());
+                }
+                agentPaths.get(agent).add(location);
+            }
+        }
+
+        for (Map.Entry<Agent, ArrayList<Integer>> entry : agentPaths.entrySet()) {
+            Agent agent = entry.getKey();
+            ArrayList<Integer> path = entry.getValue();
+
+            System.out.println("a" + agent.id + ": " + path);
+        }
+    }
+
     public void solve() {
         // Task: Prompts the algorithm to solve the MAPF scenario
         // As of now, the solve methods return void. When A* is implemented,
@@ -74,5 +103,7 @@ public class MAPFSolver {
         }
 
         this.solution = currentSolution;
+
+        printSolution();
     }
 }

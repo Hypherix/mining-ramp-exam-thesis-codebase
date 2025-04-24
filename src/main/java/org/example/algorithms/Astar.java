@@ -131,6 +131,18 @@ public class Astar implements MAPFAlgorithm {
                 moves.add(undergroundExit);
                 agentMoves.put(agent, moves);
             }
+            // If in surface exit, stay there indefinitely
+            else if(vertex == surfaceExit) {
+                moves = new ArrayList<>();
+                moves.add(surfaceExit);
+                agentMoves.put(agent, moves);
+            }
+            // If in underground exit, stay there indefinitely
+            else if(vertex == undergroundExit) {
+                moves = new ArrayList<>();
+                moves.add(undergroundExit);
+                agentMoves.put(agent, moves);
+            }
             // If the agent is not in a start vertex, retrieve neighbours as usual
             else if(agent.direction == Constants.DOWN) {
                 moves = adjList.get(vertex).getDownNeighbours();
@@ -181,7 +193,8 @@ public class Astar implements MAPFAlgorithm {
     private static boolean isStateAllowed(
             HashMap<Agent, Integer> moveCombination, ArrayList<Integer> prohibitedVertices,
             ArrayList<ArrayList<Integer>> prohibitedMoves,
-            HashMap<Agent, Integer> currentStateAgentLocations) {
+            HashMap<Agent, Integer> currentStateAgentLocations,
+            int surfaceExit, int undergroundExit) {
         // Task: Check if the state is allowed in the frontier
 
         boolean stateAllowed = true;
@@ -197,7 +210,10 @@ public class Astar implements MAPFAlgorithm {
                 stateAllowed = false;
             }
 
-            prohibitedVertices.add(newLocation);
+            // Exit vertices are never prohibited to enter, assuming direction is correct
+            if(newLocation != surfaceExit && newLocation != undergroundExit) {
+                prohibitedVertices.add(newLocation);
+            }
 
             prohibitedMoves.add(prohibitedMove);
         }
@@ -238,6 +254,7 @@ public class Astar implements MAPFAlgorithm {
 
             if(isGoal(currentState)) {
                 buildSolution(currentState, solution);
+                System.out.println(solution);
                 return solution;
             }
 
@@ -316,7 +333,7 @@ public class Astar implements MAPFAlgorithm {
 //                }
 
                 boolean stateAllowed = isStateAllowed(moveCombination, prohibitedVertices,
-                        prohibitedMoves, currentStateAgentLocations);
+                        prohibitedMoves, currentStateAgentLocations, surfaceExit, undergroundExit);
 
                 // If state is allowed, generate it
                 if (stateAllowed) {
