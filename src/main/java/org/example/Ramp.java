@@ -76,7 +76,7 @@ public class Ramp {
             adjList.get(key).printNeighbourLists();
             System.out.print(", ");
         }
-        System.out.print("}");
+        System.out.println("}");
     }
 
     private void addVertexToRamp(int vertexId) {

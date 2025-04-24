@@ -24,7 +24,7 @@ public class Astar implements MAPFAlgorithm {
 
     // Methods
 
-   private static boolean isGoal(MAPFState state) {
+    private static boolean isGoal(MAPFState state) {
         // Task: Check if state is a goal state, i.e. if all agents have reached the exits
 
         // Get agent locations and exit locations
@@ -42,7 +42,7 @@ public class Astar implements MAPFAlgorithm {
         return true;
     }
 
-   private static void buildSolution(MAPFState currentState, ArrayList<MAPFState> solution) {
+    private static void buildSolution(MAPFState currentState, ArrayList<MAPFState> solution) {
         // Task: Starting from the currentState, add parent states to the stack to build a solution
 
         Stack<MAPFState> solutionStack = new Stack<>();
@@ -58,7 +58,7 @@ public class Astar implements MAPFAlgorithm {
         }
     }
 
-   private static boolean isStateEqual(MAPFState state1, MAPFState state2) {
+    private static boolean isStateEqual(MAPFState state1, MAPFState state2) {
         // Task: Check if two states are equal in terms of the identical agents occupying the identical vertices
         // Thus, only compare their agentLocations
         // Agent class overrides equals() by comparing their id:s
@@ -69,7 +69,41 @@ public class Astar implements MAPFAlgorithm {
         return agentLocations1.equals(agentLocations2);
     }
 
-   private static HashMap<Agent, ArrayList<Integer>> getPossibleMoves(
+    private static void generateCartesianProductHelper(
+            ArrayList<HashMap.Entry<Agent, ArrayList<Integer>>> entries,    // List of all agents possible moves (neighbours)
+            int index,      // Tracks what agent we're currently at
+            HashMap<Agent, Integer> current,    // Current recursion branch move combinations
+            ArrayList<HashMap<Agent, Integer>> result) {
+        // Task: Perform the actual recursion
+
+        // Base case, if we have reached the final agent for this recursion branch
+        if(index == entries.size()) {
+            result.add(new HashMap<>(current));
+            return;
+        }
+
+        // Get the current agent and its possible moves (neighbours)
+        HashMap.Entry<Agent, ArrayList<Integer>> entry = entries.get(index);
+        Agent agent = entry.getKey();
+        ArrayList<Integer> possibleMoves = entry.getValue();
+
+        for (Integer move : possibleMoves) {
+            current.put(agent, move);
+            generateCartesianProductHelper(entries, index + 1, current, result);
+            current.remove(agent);
+        }
+    }
+
+    private static ArrayList<HashMap<Agent, Integer>> generateCartesianProduct(
+            ArrayList<HashMap.Entry<Agent, ArrayList<Integer>>> entries) {
+        // Task: Generate the cartesian product of all agent moves with recursion
+
+        ArrayList<HashMap<Agent, Integer>> result = new ArrayList<>();
+        generateCartesianProductHelper(entries, 0, new HashMap<>(), result);
+        return result;
+    }
+
+    private static HashMap<Agent, ArrayList<Integer>> getPossibleMoves(
             HashMap<Agent, Integer> agentLocations,
             HashMap<Integer, UpDownNeighbourList> adjList) {
         // Task: With agents and their locations, get all possible agent moves
@@ -99,7 +133,7 @@ public class Astar implements MAPFAlgorithm {
     }
 
     @Override
-   public ArrayList<MAPFState> solve(MAPFScenario scenario) {
+    public ArrayList<MAPFState> solve(MAPFScenario scenario) {
         /*
         * Notes to self
         * - For each neighbour state, the g cost is that of the current state's g + num of all active agents (each action is g++)
@@ -149,7 +183,7 @@ public class Astar implements MAPFAlgorithm {
             ArrayList<int[]> prohibitedMoves = new ArrayList<>();
 
             HashMap<Agent, Integer> agentLocations = currentState.getAgentLocations();
-            HashMap<Agent, Integer> neighbourAgentLocations;
+            HashMap<Agent, Integer> agentNeighbourLocations;
             // TODO: ITERATE THROUGH ALL ACTION COMBINATIONS
 
             // Get all possible agent moves
@@ -163,6 +197,12 @@ public class Astar implements MAPFAlgorithm {
             // NOTE! Make sure to update prohibitedVertices+Moves and do NOT generate
             // MAPFStates that violate these prohibitions.
 
+            ArrayList<HashMap<Agent, Integer>> moveCombinations =
+                    generateCartesianProduct(new ArrayList<>(agentMoves.entrySet()));
+            System.out.println("All movement combinations: " + moveCombinations);
+
+            // Generate new states from the moveCombinations
+            
         }
 
         System.out.println("A* COULD NOT FIND A SOLUTION!");
