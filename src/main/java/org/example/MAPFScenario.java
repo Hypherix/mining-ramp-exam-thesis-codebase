@@ -151,15 +151,17 @@ public class MAPFScenario {
 
         if(timeStep == 0) {
             // If scenario is new, newAgentLocations are the only ones existing
-            setInitialState(new MAPFState(ramp, newAgentLocations));
+            setInitialState(new MAPFState(ramp, newAgentLocations, 0));
         }
         else {
             // Add new newAgentLocations to the already existing newAgentLocations if scenario is not new
             HashMap<Agent, Integer> finalAgentLocations;
-            finalAgentLocations = fetchAgentLocations();
-            finalAgentLocations.putAll(newAgentLocations);
+            finalAgentLocations = fetchAgentLocations();    // agentLocations from before
+            finalAgentLocations.putAll(newAgentLocations);  // add the new agentLocations to those from before
 
-            setInitialState(new MAPFState(ramp, finalAgentLocations));
+            int newGcost = fetchNumOfActiveAgents();    // TODO CHECK: Correct gCost?
+
+            setInitialState(new MAPFState(ramp, finalAgentLocations, newGcost));
         }
     }
 
@@ -205,6 +207,14 @@ public class MAPFScenario {
         return this.ramp.getUndergroundStart();
     }
 
+    public int fetchSurfaceExit() {
+        return this.ramp.getSurfaceExit();
+    }
+
+    public int fetchUndergroundExit() {
+        return this.ramp.getUndergroundExit();
+    }
+
     public int fetchRampLength() {
         return this.ramp.getRampLength();
     }
@@ -219,5 +229,9 @@ public class MAPFScenario {
 
     public MAPFState getInitialState() {
         return this.initialState;
+    }
+
+    public int fetchNumOfActiveAgents() {
+        return this.initialState.getNumOfActiveAgents();
     }
 }

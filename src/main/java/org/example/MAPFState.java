@@ -1,8 +1,6 @@
 package org.example;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /*
 * - The purpose of MAPFState is to act as input for the MAPF algorithms. It only contains
@@ -28,11 +26,12 @@ public class MAPFState {
     public ArrayList<Agent> inactiveAgents;    // Agents in an exit
 
     // Constructors
-    public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations) {
+    public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost) {
         this.ramp = ramp;
         this.agentLocations = agentLocations;
-        this.fcost = calculateCost();
+        this.gcost = gcost;
         this.hcost = calculateHcost();
+        this.fcost = this.gcost + this.hcost;
         this.parent = null;
 
         // Categorise the agents as active or inactive
@@ -115,7 +114,28 @@ public class MAPFState {
         return cost;
     }
 
-    Ramp getRamp() {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        MAPFState otherState = (MAPFState) o;
+
+        return agentLocations.equals(otherState.agentLocations) && gcost == otherState.gcost;
+
+//        return agentLocations.equals(otherState.agentLocations);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(agentLocations, gcost);
+    }
+
+    public Ramp getRamp() {
         return this.ramp;
     }
 
@@ -155,12 +175,16 @@ public class MAPFState {
         return this.ramp.getUndergroundExit();
     }
 
-    public ArrayList<Agent> getActiveAgents() {
-        return this.activeAgents;
+    public int getNumOfActiveAgents() {
+        return this.activeAgents.size();
     }
 
-    public ArrayList<Agent> getInactiveAgents() {
-        return this.inactiveAgents;
+    public int getNumOfInactiveAgents() {
+        return this.inactiveAgents.size();
+    }
+
+    public void setParent(MAPFState parent) {
+        this.parent = parent;
     }
 }
 

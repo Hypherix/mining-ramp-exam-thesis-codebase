@@ -28,4 +28,9 @@ public class Agent {
 
         return id == otherAgent.id;
     }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(id);
+    }
 }

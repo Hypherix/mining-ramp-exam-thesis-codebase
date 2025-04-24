@@ -37,7 +37,7 @@ public class Main {
 //        list2.add(locationVelocity4);
 //        newAgentLocationVelocityDirection.put(2, list2);
 
-        MAPFScenario scenario = new MAPFScenario(myRamp, agentEntries, 5);
+        MAPFScenario scenario = new MAPFScenario(myRamp, agentEntries, 20);
         MAPFSolver solver = new MAPFSolver(scenario, "astar");
         solver.solve();
     }

@@ -105,7 +105,9 @@ public class Astar implements MAPFAlgorithm {
 
     private static HashMap<Agent, ArrayList<Integer>> getPossibleMoves(
             HashMap<Agent, Integer> agentLocations,
-            HashMap<Integer, UpDownNeighbourList> adjList) {
+            HashMap<Integer, UpDownNeighbourList> adjList,
+            int surfaceStart, int undergroundStart,
+            int surfaceExit, int undergroundExit) {
         // Task: With agents and their locations, get all possible agent moves
 
         HashMap<Agent, ArrayList<Integer>> agentMoves = new HashMap<>();
@@ -116,7 +118,21 @@ public class Astar implements MAPFAlgorithm {
             Integer vertex = entry.getValue();
 
             ArrayList<Integer> moves;
-            if(agent.direction == Constants.DOWN) {
+
+            // If an upgoing agent has reached the surface start vertex, force next move to be to surface exit
+            if(vertex == surfaceStart && agent.direction == Constants.UP) {
+                moves = new ArrayList<>();
+                moves.add(surfaceExit);
+                agentMoves.put(agent, moves);
+            }
+            // If a downgoing agent has reached underground start vertex, force next move to be to underground exit
+            else if(vertex == undergroundStart && agent.direction == Constants.DOWN) {
+                moves = new ArrayList<>();
+                moves.add(undergroundExit);
+                agentMoves.put(agent, moves);
+            }
+            // If the agent is not in a start vertex, retrieve neighbours as usual
+            else if(agent.direction == Constants.DOWN) {
                 moves = adjList.get(vertex).getDownNeighbours();
                 agentMoves.put(agent, moves);
             }
@@ -130,6 +146,63 @@ public class Astar implements MAPFAlgorithm {
         }
 
         return agentMoves;
+    }
+
+    public void printMoveCombinations(ArrayList<HashMap<Agent, Integer>> moveCombinations) {
+        // Task: Make a legible print of moveCombinations
+
+        System.out.println("\nAll movement combinations:");
+
+        int currentMoveCombination = 0;
+        for(HashMap<Agent, Integer> moveCombination : moveCombinations) {
+            System.out.print("{");
+
+            int currentEntry = 0;
+            for(Map.Entry<Agent, Integer> entry : moveCombination.entrySet()) {
+                Agent agent = entry.getKey();
+                int newLocation = entry.getValue();
+
+                System.out.print("a" + agent.id + " = " + newLocation);
+
+                if(++currentEntry != moveCombination.entrySet().size()) {
+                    System.out.print(", ");
+                }
+            }
+
+            System.out.println("}");
+//            if(++currentMoveCombination != moveCombinations.size()) {
+//                System.out.print(", ");
+//            }
+        }
+
+        System.out.println("");
+    }
+
+    private static boolean isStateAllowed(
+            HashMap<Agent, Integer> moveCombination, ArrayList<Integer> prohibitedVertices,
+            ArrayList<ArrayList<Integer>> prohibitedMoves,
+            HashMap<Agent, Integer> currentStateAgentLocations) {
+        // Task: Check if the state is allowed in the frontier
+
+        boolean stateAllowed = true;
+
+        for(Map.Entry<Agent, Integer> entry : moveCombination.entrySet()) {
+            Agent agent = entry.getKey();
+            int newLocation = entry.getValue();
+            int oldLocation = currentStateAgentLocations.get(agent);
+            ArrayList<Integer> prohibitedMove = new ArrayList<>(Arrays.asList(newLocation, oldLocation));
+
+            ArrayList<Integer> currentAgentMove = new ArrayList<>(Arrays.asList(oldLocation, newLocation));
+            if (prohibitedVertices.contains(newLocation) || prohibitedMove.contains(currentAgentMove)) {
+                stateAllowed = false;
+            }
+
+            prohibitedVertices.add(newLocation);
+
+            prohibitedMoves.add(prohibitedMove);
+        }
+
+        return stateAllowed;
     }
 
     @Override
@@ -146,6 +219,8 @@ public class Astar implements MAPFAlgorithm {
         HashMap<Integer, UpDownNeighbourList> adjList = scenario.fetchAdjList();
         int surfaceStart = scenario.fetchSurfaceStart();
         int undergroundStart = scenario.fetchUndergroundStart();
+        int surfaceExit = scenario.fetchSurfaceExit();
+        int undergroundExit = scenario.fetchUndergroundExit();
         int actualRampLength = scenario.fetchRampLength();
 
         // Get initialState and initialise its g and f cost to 0 (h is set in MAPFState constructor)
@@ -179,15 +254,26 @@ public class Astar implements MAPFAlgorithm {
 
             // For each agent actions combination, generate a new state and add to frontier if not in explored
 
-            ArrayList<Integer> prohibitedVertices = new ArrayList<>();
-            ArrayList<int[]> prohibitedMoves = new ArrayList<>();
+            HashMap<Agent, Integer> currentStateAgentLocations = currentState.getAgentLocations();
 
-            HashMap<Agent, Integer> agentLocations = currentState.getAgentLocations();
-            HashMap<Agent, Integer> agentNeighbourLocations;
+//            MAPFState testState = new MAPFState(currentState.getRamp(), currentStateAgentLocations, 0);
+//
+//            if(explored.contains(testState)) {
+//                System.out.println("testState already exists in explored! Thus, correct!");
+//            }
+//            else {
+//                explored.add(testState);
+//                System.out.println("testState was added to explored, which should not happen!");
+//            }
+
+
+
             // TODO: ITERATE THROUGH ALL ACTION COMBINATIONS
 
             // Get all possible agent moves
-            HashMap<Agent, ArrayList<Integer>> agentMoves = getPossibleMoves(agentLocations, adjList);
+            HashMap<Agent, ArrayList<Integer>> agentMoves =
+                    getPossibleMoves(currentStateAgentLocations, adjList,
+                            surfaceStart, undergroundStart, surfaceExit, undergroundExit);
 
             // Generate all move combinations
             // See https://www.baeldung.com/java-cartesian-product-sets and
@@ -199,10 +285,67 @@ public class Astar implements MAPFAlgorithm {
 
             ArrayList<HashMap<Agent, Integer>> moveCombinations =
                     generateCartesianProduct(new ArrayList<>(agentMoves.entrySet()));
-            System.out.println("All movement combinations: " + moveCombinations);
 
-            // Generate new states from the moveCombinations
-            
+            printMoveCombinations(moveCombinations);
+
+            // Generate new states from moveCombinations
+
+            ArrayList<Integer> prohibitedVertices;
+            ArrayList<ArrayList<Integer>> prohibitedMoves;
+
+            // Go through each move combination
+            for (HashMap<Agent, Integer> moveCombination : moveCombinations) {
+                prohibitedVertices = new ArrayList<>();
+                prohibitedMoves = new ArrayList<>();
+
+                // For each agent moveCombination, its new location can't be occupied by other agents
+                // Likewise, no agent can make the opposite moveCombination as another agent
+//                for(Map.Entry<Agent, Integer> entry : moveCombination.entrySet()) {
+//                    Agent agent = entry.getKey();
+//                    int newLocation = entry.getValue();
+//                    int oldLocation = currentStateAgentLocations.get(agent);
+//
+//                    prohibitedVertices.add(newLocation);
+//                    ArrayList<Integer> prohibitedMove = new ArrayList<>(Arrays.asList(newLocation, oldLocation));
+//                    prohibitedMoves.add(prohibitedMove);
+//
+//                    ArrayList<Integer> currentAgentMove = new ArrayList<>(Arrays.asList(oldLocation, newLocation));
+//                    if (prohibitedVertices.contains(newLocation) || prohibitedMove.contains(currentAgentMove)) {
+//                        stateAllowed = false;
+//                    }
+//                }
+
+                boolean stateAllowed = isStateAllowed(moveCombination, prohibitedVertices,
+                        prohibitedMoves, currentStateAgentLocations);
+
+                // If state is allowed, generate it
+                if (stateAllowed) {
+                    // This many agents have made an action --> gcost++ for each
+                    int numOfActiveAgents = currentState.getNumOfActiveAgents();
+                    int newGcost = currentState.getGcost() + numOfActiveAgents;
+
+                    // Create the neighbourState and assign currentState as its parent
+                    MAPFState neighbourState = new MAPFState(currentState.getRamp(), moveCombination, newGcost);
+                    neighbourState.setParent(currentState);
+
+                    // If neighbourState has not been encountered before, add to frontier
+                    if(!frontier.contains(neighbourState) && !explored.contains(neighbourState)) {
+                        frontier.add(neighbourState);
+                    }
+                    /*
+                    * If an identical state to neighbourState, but with more expensive path-cost (g),
+                    * replace with neighbourState.
+                     */
+                    else if(frontier.contains(neighbourState)) {
+                        for(MAPFState state : frontier) {
+                            if(state.equals(neighbourState) && neighbourState.getGcost() < state.getGcost()) {
+                                frontier.remove(state);
+                                frontier.add(neighbourState);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         System.out.println("A* COULD NOT FIND A SOLUTION!");
