@@ -191,13 +191,15 @@ public class Astar implements MAPFAlgorithm {
     }
 
     private static boolean isStateAllowed(
-            HashMap<Agent, Integer> moveCombination, ArrayList<Integer> prohibitedVertices,
-            ArrayList<ArrayList<Integer>> prohibitedMoves,
+            HashMap<Agent, Integer> moveCombination,
             HashMap<Agent, Integer> currentStateAgentLocations,
-            int surfaceExit, int undergroundExit) {
+            int surfaceExit, int undergroundExit,
+            ArrayList<Integer> verticesInPassingBays,
+            ArrayList<ArrayList<Integer>> passingBayVertices) {
         // Task: Check if the state is allowed in the frontier
 
-        boolean stateAllowed = true;
+        ArrayList<Integer> prohibitedVertices = new ArrayList<>();
+        ArrayList<ArrayList<Integer>> prohibitedMoves = new ArrayList<>();
 
         for(Map.Entry<Agent, Integer> entry : moveCombination.entrySet()) {
             Agent agent = entry.getKey();
@@ -205,20 +207,35 @@ public class Astar implements MAPFAlgorithm {
             int oldLocation = currentStateAgentLocations.get(agent);
             ArrayList<Integer> prohibitedMove = new ArrayList<>(Arrays.asList(newLocation, oldLocation));
 
+            // If an agent moves to an occupied vertex, or there is an edge conflict, state is not allowed
             ArrayList<Integer> currentAgentMove = new ArrayList<>(Arrays.asList(oldLocation, newLocation));
-            if (prohibitedVertices.contains(newLocation) || prohibitedMove.contains(currentAgentMove)) {
-                stateAllowed = false;
+            if (prohibitedVertices.contains(newLocation) || prohibitedMoves.contains(currentAgentMove)) {
+                return false;
+            }
+
+            // Upgoing agents are not allowed to enter passing bays
+            if(agent.direction == Constants.UP && verticesInPassingBays.contains(newLocation)) {
+                return false;
             }
 
             // Exit vertices are never prohibited to enter, assuming direction is correct
             if(newLocation != surfaceExit && newLocation != undergroundExit) {
                 prohibitedVertices.add(newLocation);
             }
+            // If the vertex is in a passing bay, prohibit the other vertex in the same passing bay from being occupied
+            if (verticesInPassingBays.contains(oldLocation) || verticesInPassingBays.contains(newLocation)) {
+                for(ArrayList<Integer> passingBay : passingBayVertices) {
+                    if (passingBay.contains(newLocation)) {
+                        prohibitedVertices.addAll(passingBay);
+                        break;
+                    }
+                }
+            }
 
             prohibitedMoves.add(prohibitedMove);
         }
 
-        return stateAllowed;
+        return true;
     }
 
     @Override
@@ -238,6 +255,8 @@ public class Astar implements MAPFAlgorithm {
         int surfaceExit = scenario.fetchSurfaceExit();
         int undergroundExit = scenario.fetchUndergroundExit();
         int actualRampLength = scenario.fetchRampLength();
+        ArrayList<Integer> verticesInPassingBays = scenario.fetchVerticesInPassingBays();
+        ArrayList<ArrayList<Integer>> passingBayVertices = scenario.fetchPassingBayVertices();
 
         // Get initialState and initialise its g and f cost to 0 (h is set in MAPFState constructor)
         MAPFState initialState = scenario.getInitialState();
@@ -307,13 +326,12 @@ public class Astar implements MAPFAlgorithm {
 
             // Generate new states from moveCombinations
 
-            ArrayList<Integer> prohibitedVertices;
-            ArrayList<ArrayList<Integer>> prohibitedMoves;
+
 
             // Go through each move combination
             for (HashMap<Agent, Integer> moveCombination : moveCombinations) {
-                prohibitedVertices = new ArrayList<>();
-                prohibitedMoves = new ArrayList<>();
+//                prohibitedVertices = new ArrayList<>();
+//                prohibitedMoves = new ArrayList<>();
 
                 // For each agent moveCombination, its new location can't be occupied by other agents
                 // Likewise, no agent can make the opposite moveCombination as another agent
@@ -332,8 +350,8 @@ public class Astar implements MAPFAlgorithm {
 //                    }
 //                }
 
-                boolean stateAllowed = isStateAllowed(moveCombination, prohibitedVertices,
-                        prohibitedMoves, currentStateAgentLocations, surfaceExit, undergroundExit);
+                boolean stateAllowed = isStateAllowed(moveCombination, currentStateAgentLocations,
+                        surfaceExit, undergroundExit, verticesInPassingBays, passingBayVertices);
 
                 // If state is allowed, generate it
                 if (stateAllowed) {

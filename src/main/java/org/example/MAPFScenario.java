@@ -252,4 +252,12 @@ public class MAPFScenario {
     public int fetchNumOfActiveAgents() {
         return this.initialState.getNumOfActiveAgents();
     }
+
+    public ArrayList<Integer> fetchVerticesInPassingBays() {
+        return this.ramp.getVerticesInPassingBays();
+    }
+
+    public ArrayList<ArrayList<Integer>> fetchPassingBayVertices() {
+        return this.ramp.getPassingBayVertices();
+    }
 }

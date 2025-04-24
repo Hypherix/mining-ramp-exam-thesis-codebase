@@ -36,11 +36,13 @@ public class MAPFSolver {
     }
 
     // Methods
-    
+
     private void printSolution() {
         // Task: Print the paths of each agent
 
         HashMap<Agent, ArrayList<Integer>> agentPaths = new HashMap<>();
+
+        int cost = 0;
 
         for (MAPFState state : this.solution) {
             HashMap<Agent, Integer> agentLocations = state.getAgentLocations();
@@ -61,7 +63,25 @@ public class MAPFSolver {
             ArrayList<Integer> path = entry.getValue();
 
             System.out.println("a" + agent.id + ": " + path);
+
+            // For each action, increment cost. The starting locations do not cost anything
+            // For each duplicate (hence cost++ in the end) surfaceExit or undergroundExit, decrement cost
+            cost += path.size() - 1;
+            for(Integer location : path) {
+                if(location == scenario.fetchSurfaceExit() || location == scenario.fetchUndergroundExit()) {
+                    cost--;
+                }
+            }
+            cost++;
         }
+        System.out.println("Solution cost: " + cost);
+    }
+
+    private void printSolutionCost() {
+        // Task: Print the cost of the solution
+        MAPFState finalState = solution.getLast();
+        System.out.println("Solution g cost: " + finalState.getGcost());
+        System.out.println("Solution f cost: " + finalState.getFcost());
     }
 
     public void solve() {

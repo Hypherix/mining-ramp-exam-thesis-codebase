@@ -27,7 +27,9 @@ public class Ramp {
     private ArrayList<Integer> verticesInSurfaceQ;
     private ArrayList<Integer> verticesInActualRamp;
     private ArrayList<Integer> verticesInUndergroundQ;
-    private ArrayList<Integer> passingBays;
+    private ArrayList<Integer> passingBays;         // number of passing bays
+    private ArrayList<Integer> verticesInPassingBays;   // ALL vertices that are in passing bays
+    private ArrayList<ArrayList<Integer>> passingBayVertices;   // all passing bays and their respective vertices
     private int surfaceStart;
     private int undergroundStart;
     private int surfaceExit;
@@ -51,6 +53,8 @@ public class Ramp {
         this.passBaysAdjVertex = passBays;
         this.surfaceStart = surfaceQLength;
         this.undergroundStart = surfaceQLength + rampLength - 1;
+        this.verticesInPassingBays = new ArrayList<>();
+        this.passingBayVertices = new ArrayList<>();
 
         // Initialise the adjacency list which represents the ramp
         this.adjList = new HashMap<>();
@@ -105,7 +109,8 @@ public class Ramp {
         verticesInRamp = 0;
 
         // Add the first vertex separately
-        addVertexToRamp(0);
+        addVertexToRamp(verticesInRamp);
+        addDownEdge(verticesInRamp, verticesInRamp);  // Agents must be able to wait in its queue vertex
         verticesInRamp++;
 
         // Add the surface queue to the adjacency list. Note: directed subgraph!
@@ -130,23 +135,54 @@ public class Ramp {
         for (int i = 0; i < undergroundQLength; i++) {
             addVertexToRamp(verticesInRamp);
             addUpEdge(verticesInRamp, verticesInRamp - 1);
-            addDownEdge(verticesInRamp, verticesInRamp);    // Agents must be able to wait in its queue vertex
+            addUpEdge(verticesInRamp, verticesInRamp);    // Agents must be able to wait in its queue vertex
             verticesInRamp++;
         }
 
         // Add passing bays. Add edge to corresponding edges in the ramp
+        // A passing bay consists of two nodes. The first node is the one closest to the surface
         int currentPassBay = 0;
-        for (int i = 0; i < passBays.length; i++) {
+        for(int i = 0; i< passBays.length; i++) {
+            // PassBay vertex closest to surface
             addVertexToRamp(verticesInRamp);
-            addDownEdge(surfaceQLength + passBays[currentPassBay] - 2, verticesInRamp);      // -2 needed for adjustment
-            addUpEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay] - 2);
-            addUpEdge(surfaceQLength + passBays[currentPassBay], verticesInRamp);
-            addDownEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay]);
-            addUpEdge(verticesInRamp, verticesInRamp);            // Agents can wait in the passing bay
-            addDownEdge(verticesInRamp, verticesInRamp);
+            addUpEdge(verticesInRamp, verticesInRamp);      // Agents can wait in the passing bay
+            addDownEdge(verticesInRamp, verticesInRamp);    // Agents can wait in the passing bay
+            addDownEdge(surfaceQLength + passBays[currentPassBay] - 1, verticesInRamp);     // -1 needed for adjustment
+            addUpEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay] - 1);
+
+            // PassBay vertex closest to underground
+            addVertexToRamp(verticesInRamp + 1);
+            addUpEdge(verticesInRamp + 1, verticesInRamp + 1);      // Agents can wait in the passing bay
+            addDownEdge(verticesInRamp + 1, verticesInRamp + 1);    // Agents can wait in the passing bay
+            addDownEdge(verticesInRamp, verticesInRamp + 1);
+            addUpEdge(verticesInRamp + 1, verticesInRamp);
+            addDownEdge(verticesInRamp + 1, surfaceQLength + passBays[currentPassBay]);
+            addUpEdge(surfaceQLength + passBays[currentPassBay], verticesInRamp + 1);
+
+            this.verticesInPassingBays.add(verticesInRamp);
+            this.verticesInPassingBays.add(verticesInRamp + 1);
+
+            ArrayList<Integer> thisPassingBay = new ArrayList<>();
+            thisPassingBay.add(verticesInRamp);
+            thisPassingBay.add(verticesInRamp + 1);
+            this.passingBayVertices.add(thisPassingBay);
+
             currentPassBay++;
-            verticesInRamp++;
+            verticesInRamp += 2;
         }
+
+//        for (int i = 0; i < passBays.length; i++) {
+//            addVertexToRamp(verticesInRamp);
+//            addDownEdge(surfaceQLength + passBays[currentPassBay] - 2, verticesInRamp);      // -1 needed for adjustment
+//            addUpEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay] - 2);
+//            addUpEdge(surfaceQLength + passBays[currentPassBay], verticesInRamp);
+//            addDownEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay]);
+//            addUpEdge(verticesInRamp, verticesInRamp);            // Agents can wait in the passing bay
+//            addDownEdge(verticesInRamp, verticesInRamp);
+//            currentPassBay++;
+//            verticesInRamp++;
+//        }
+
 
         // Add the surface exit vertex to the adjacency list
         addVertexToRamp(verticesInRamp);
@@ -161,7 +197,7 @@ public class Ramp {
         verticesInRamp++;
 
         // Set first free slot in surface queue and underground queue
-        // Agents always start in queue before entering the ramp
+        // Agents always start in queue before entering the ramp, hence +/- 1
         surfaceQFree = surfaceStart - 1;
         undergroundQFree = undergroundStart + 1;
     }
@@ -194,6 +230,7 @@ public class Ramp {
         // Passing bays
         passingBays = new ArrayList<>();
         for (int i = 0; i < passBaysAdjVertex.length; i++) {
+            passingBays.add(currentVertex++);
             passingBays.add(currentVertex++);
         }
 
@@ -379,4 +416,11 @@ public class Ramp {
         return this.undergroundExit;
     }
 
+    public ArrayList<Integer> getVerticesInPassingBays() {
+        return this.verticesInPassingBays;
+    }
+
+    public ArrayList<ArrayList<Integer>> getPassingBayVertices() {
+        return this.passingBayVertices;
+    }
 }
