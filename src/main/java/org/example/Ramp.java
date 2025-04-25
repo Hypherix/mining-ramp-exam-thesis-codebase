@@ -147,13 +147,11 @@ public class Ramp {
             // PassBay vertex closest to surface
             addVertexToRamp(verticesInRamp);
             addUpEdge(verticesInRamp, verticesInRamp);      // Agents can wait in the passing bay
-            addDownEdge(verticesInRamp, verticesInRamp);    // Agents can wait in the passing bay
             addDownEdge(surfaceQLength + passBays[currentPassBay] - 1, verticesInRamp);     // -1 needed for adjustment
             addUpEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay] - 1);
 
             // PassBay vertex closest to underground
             addVertexToRamp(verticesInRamp + 1);
-            addUpEdge(verticesInRamp + 1, verticesInRamp + 1);      // Agents can wait in the passing bay
             addDownEdge(verticesInRamp + 1, verticesInRamp + 1);    // Agents can wait in the passing bay
             addDownEdge(verticesInRamp, verticesInRamp + 1);
             addUpEdge(verticesInRamp + 1, verticesInRamp);
