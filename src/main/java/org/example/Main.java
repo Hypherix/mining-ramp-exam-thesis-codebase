@@ -4,6 +4,8 @@ package org.example;
 * TODO LATER: Increase passing bay node count to simulate it being more costly
 * */
 
+import java.util.HashMap;
+
 public class Main {
     public static void main(String[] args) {
         int[] passBays = {2};
@@ -13,15 +15,23 @@ public class Main {
         // This section should be equivalent to the section after (now commented)
         // Add initial agents
         // Every other agent goes the same direction
+        HashMap<Integer, Agent> agentList = new HashMap<>();
         AgentEntries agentEntries = new AgentEntries();
         for(int i = 0; i < 3; i++) {
+            Agent agent;
             if(i % 2 == 0) {
-                agentEntries.addEntry(0, new Agent(i, 1, Constants.DOWN));
+                agent = new Agent(i, 1, Constants.DOWN);
+                agentList.put(agent.id, agent);
+                agentEntries.addEntry(0, agent);
             }
             else {
-                agentEntries.addEntry(0, new Agent(i, 1, Constants.UP));
+                agent = new Agent(i, 1, Constants.UP);
+                agentList.put(agent.id, agent);
+                agentEntries.addEntry(0, agent);
             }
         }
+        agentList.get(2).higherPrio = true;
+
 
 //        HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocityDirection = new HashMap<Integer, ArrayList<int[]>>();
 //        int[] locationVelocity1 = new int[]{3, 1, 0};

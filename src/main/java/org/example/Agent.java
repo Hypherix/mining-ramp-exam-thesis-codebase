@@ -5,6 +5,7 @@ public class Agent {
     public int id;
     public int velocity;
     public int direction;
+    public boolean higherPrio;
 
 
     // Constructors
@@ -12,6 +13,11 @@ public class Agent {
         this.id = id;
         this.velocity = velocity;
         this.direction = direction;
+        this.higherPrio = false;
+
+        if (direction == Constants.UP) {
+            this.higherPrio = true;
+        }
     }
 
     // Methods

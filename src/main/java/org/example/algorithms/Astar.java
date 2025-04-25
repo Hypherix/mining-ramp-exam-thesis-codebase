@@ -160,7 +160,40 @@ public class Astar implements MAPFAlgorithm {
         return agentMoves;
     }
 
-    public void printMoveCombinations(ArrayList<HashMap<Agent, Integer>> moveCombinations) {
+    private void sortMoveCombinations(ArrayList<HashMap<Agent, Integer>> moveCombinations) {
+        // Task: Sort the moveCombinations by agent properties. Upgoing agents first, then downgoing
+        // agents with higher priority. Last downgoing agents without priority
+
+        for (int i = 0; i < moveCombinations.size(); i++) {
+            HashMap<Agent, Integer> originalHashMap = moveCombinations.get(i);
+
+            // Sort the move combinations
+            ArrayList<Map.Entry<Agent, Integer>> sortedEntries = new ArrayList<>(originalHashMap.entrySet());
+            sortedEntries.sort(Comparator.comparingInt((Map.Entry<Agent, Integer> entry) -> {
+                Agent agent = entry.getKey();
+                if(agent.direction == 1) {
+                    return 0;
+                }
+                else if(agent.direction == 0 && agent.higherPrio) {
+                    return 1;
+                }
+                else {
+                    return 2;
+                }
+            }));
+
+            // LinkedHashMap preserves the order
+            LinkedHashMap<Agent, Integer> orderedHashMap = new LinkedHashMap<>();
+            for(Map.Entry<Agent, Integer> entry : sortedEntries) {
+                orderedHashMap.put(entry.getKey(), entry.getValue());
+            }
+
+            // Replace the unordered with the ordered
+            moveCombinations.set(i, orderedHashMap);
+        }
+    }
+
+    private void printMoveCombinations(ArrayList<HashMap<Agent, Integer>> moveCombinations) {
         // Task: Make a legible print of moveCombinations
 
         System.out.println("\nAll movement combinations:");
@@ -321,6 +354,8 @@ public class Astar implements MAPFAlgorithm {
 
             ArrayList<HashMap<Agent, Integer>> moveCombinations =
                     generateCartesianProduct(new ArrayList<>(agentMoves.entrySet()));
+
+            sortMoveCombinations(moveCombinations);
 
             printMoveCombinations(moveCombinations);
 
