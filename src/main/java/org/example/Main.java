@@ -8,8 +8,10 @@ import java.util.HashMap;
 
 public class Main {
     public static void main(String[] args) {
+        long startTime = System.nanoTime();
+
         int[] passBays = {2};
-        Ramp myRamp = new Ramp(5, 3, 3, passBays);
+        Ramp myRamp = new Ramp(11, 6, 3, passBays);
         myRamp.printAdjList();
 
         // This section should be equivalent to the section after (now commented)
@@ -17,9 +19,9 @@ public class Main {
         // Every other agent goes the same direction
         HashMap<Integer, Agent> agentList = new HashMap<>();
         AgentEntries agentEntries = new AgentEntries();
-        for(int i = 0; i < 3; i++) {
+        for(int i = 0; i < 6; i++) {
             Agent agent;
-            if(i % 2 == 0) {
+            if(i != 5) {
                 agent = new Agent(i, 1, Constants.DOWN);
                 agentList.put(agent.id, agent);
                 agentEntries.addEntry(0, agent);
@@ -30,7 +32,6 @@ public class Main {
                 agentEntries.addEntry(0, agent);
             }
         }
-        agentList.get(2).higherPrio = true;
 
 
 //        HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocityDirection = new HashMap<Integer, ArrayList<int[]>>();
@@ -47,8 +48,13 @@ public class Main {
 //        list2.add(locationVelocity4);
 //        newAgentLocationVelocityDirection.put(2, list2);
 
+        // Duration specifies the latest timeStep at which new agents can enter
         MAPFScenario scenario = new MAPFScenario(myRamp, agentEntries, 20);
         MAPFSolver solver = new MAPFSolver(scenario, "astar");
         solver.solve();
+
+        long endTime = System.nanoTime();
+        long duration = endTime - startTime;
+        System.out.println("\nExecution time: " + (duration / 1000000.0) + " ms");
     }
 }

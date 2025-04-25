@@ -5,7 +5,6 @@ import org.example.algorithms.MAPFAlgorithm;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 
 /*
@@ -22,8 +21,11 @@ public class MAPFSolver {
     // Data members
     private MAPFScenario scenario;
     private MAPFAlgorithm algorithm;
-    private ArrayList<MAPFState> solution;
+    private Solution solution;
     private int timeStep;
+    private int solutionCost;
+    private int solutionGeneratedStates;
+    private int solutionExpandedStates;
 
 
     // Constructors
@@ -37,53 +39,6 @@ public class MAPFSolver {
 
     // Methods
 
-    private void printSolution() {
-        // Task: Print the paths of each agent
-
-        HashMap<Agent, ArrayList<Integer>> agentPaths = new HashMap<>();
-
-        int cost = 0;
-
-        for (MAPFState state : this.solution) {
-            HashMap<Agent, Integer> agentLocations = state.getAgentLocations();
-
-            for (Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
-                Agent agent = entry.getKey();
-                Integer location = entry.getValue();
-
-                if(!agentPaths.containsKey(agent)) {
-                    agentPaths.put(agent, new ArrayList<>());
-                }
-                agentPaths.get(agent).add(location);
-            }
-        }
-
-        for (Map.Entry<Agent, ArrayList<Integer>> entry : agentPaths.entrySet()) {
-            Agent agent = entry.getKey();
-            ArrayList<Integer> path = entry.getValue();
-
-            System.out.println("a" + agent.id + ": " + path);
-
-            // For each action, increment cost. The starting locations do not cost anything
-            // For each duplicate (hence cost++ in the end) surfaceExit or undergroundExit, decrement cost
-            cost += path.size() - 1;
-            for(Integer location : path) {
-                if(location == scenario.fetchSurfaceExit() || location == scenario.fetchUndergroundExit()) {
-                    cost--;
-                }
-            }
-            cost++;
-        }
-        System.out.println("Solution cost: " + cost);
-    }
-
-    private void printSolutionCost() {
-        // Task: Print the cost of the solution
-        MAPFState finalState = solution.getLast();
-        System.out.println("Solution g cost: " + finalState.getGcost());
-        System.out.println("Solution f cost: " + finalState.getFcost());
-    }
-
     public void solve() {
         // Task: Prompts the algorithm to solve the MAPF scenario
         // As of now, the solve methods return void. When A* is implemented,
@@ -91,7 +46,7 @@ public class MAPFSolver {
 
         HashMap<Integer, ArrayList<Agent>> agentEntries = scenario.fetchAgentEntries();
         int endTime = this.scenario.getDuration();
-        ArrayList<MAPFState> currentSolution;
+        Solution currentSolution;
 
         // Need to implement so that for every time step, MAPFSolver checks its scenario if
         // new agents enter. In that case, run t
@@ -101,12 +56,15 @@ public class MAPFSolver {
         for(timeStep = 1; timeStep < endTime; timeStep++) {
             if (agentEntries.containsKey(timeStep)) {   // If there are new agents entering this timeStep
                 // Remove from solution states those states that are now invalid
-                this.solution.subList(timeStep, this.solution.size()).clear();
+
+                ArrayList<MAPFState> solutionSet = currentSolution.getSolutionSet();
+
+                solutionSet.subList(timeStep, solutionSet.size()).clear();
 
                 // Generate a new initialState and update MAPFScenario
 
                 // Get the state we want to revert to
-                MAPFState newCurrentState = this.solution.get(timeStep - 1);
+                MAPFState newCurrentState = solutionSet.get(timeStep - 1);
                 // Assign the scenario newCurrentState
                 scenario.setInitialState(newCurrentState);
                 // Update totalAgentCount to reflect currentState's
@@ -124,6 +82,18 @@ public class MAPFSolver {
 
         this.solution = currentSolution;
 
-        printSolution();
+        this.solution.printSolution();
+    }
+
+    public void setSolutionGeneratedStates(int generatedStates) {
+        this.solutionGeneratedStates = generatedStates;
+    }
+
+    public void setSolutionExpandedStates(int expandedStates) {
+        this.solutionExpandedStates = expandedStates;
+    }
+
+    public ArrayList<MAPFState> fetchSolutionSet() {
+        return this.solution.getSolutionSet();
     }
 }

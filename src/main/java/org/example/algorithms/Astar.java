@@ -2,7 +2,9 @@ package org.example.algorithms;
 
 import org.example.*;
 
+import java.lang.reflect.Array;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /*
 * NOTES!
@@ -69,6 +71,36 @@ public class Astar implements MAPFAlgorithm {
         return agentLocations1.equals(agentLocations2);
     }
 
+    private LinkedHashMap<Agent, Integer> sortAgentLocationsInQueue(HashMap<Agent, Integer> agentLocationsInQueue, String queue) {
+        // Task: Sort the agentLocationsInQueue, depending on if in surface queue or underground queue
+
+        LinkedHashMap<Agent, Integer> sortedAgentLocationsInQueue = new LinkedHashMap<>();
+
+        if(queue.equals("surface")) {
+            sortedAgentLocationsInQueue = agentLocationsInQueue.entrySet()
+                    .stream()
+                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue,
+                            (e1, e2) -> e1,
+                            LinkedHashMap::new
+                    ));
+        }
+        else if(queue.equals("underground")) {
+            sortedAgentLocationsInQueue = agentLocationsInQueue.entrySet()
+                    .stream()
+                    .sorted(Map.Entry.comparingByValue())
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue,
+                            (e1, e2) -> e1,
+                            LinkedHashMap::new
+                    ));
+        }
+        return sortedAgentLocationsInQueue;
+    }
+
     private static void generateCartesianProductHelper(
             ArrayList<HashMap.Entry<Agent, ArrayList<Integer>>> entries,    // List of all agents possible moves (neighbours)
             int index,      // Tracks what agent we're currently at
@@ -103,17 +135,47 @@ public class Astar implements MAPFAlgorithm {
         return result;
     }
 
-    private static HashMap<Agent, ArrayList<Integer>> getPossibleMoves(
+    private HashMap<Agent, ArrayList<Integer>> getPossibleMoves(
             HashMap<Agent, Integer> agentLocations,
             HashMap<Integer, UpDownNeighbourList> adjList,
             int surfaceStart, int undergroundStart,
-            int surfaceExit, int undergroundExit) {
+            int surfaceExit, int undergroundExit,
+            ArrayList<Integer> verticesInSurfaceQ,
+            ArrayList<Integer> verticesInUndergroundQ) {
         // Task: With agents and their locations, get all possible agent moves
+
+        HashMap<Agent, Integer> agentLocationsInRamp = new HashMap<>();
+        HashMap<Agent, Integer> agentLocationsInSurfaceQueue = new HashMap<>();
+        HashMap<Agent, Integer> agentLocationsInUndergroundQueue = new HashMap<>();
+
+        // Only agents in vertices that are not the first in either queue will be treated as if in queue
+        // Agents first in queue will be treated as an agent in the ramp when generating possible moves
+        // TODO: TA BORT KOMMENTERAT NEDAN OM QUEUES HANTERAS KORREKT
+//        if(!verticesInSurfaceQ.isEmpty()) {
+//            verticesInSurfaceQ.removeLast();
+//        }
+//        if(!verticesInUndergroundQ.isEmpty()) {
+//            verticesInUndergroundQ.removeFirst();
+//        }
+
+        // TODO: TA BORT KOMMENTERAT NEDAN OM QUEUES HANTERAS KORREKT
+        // Sort the agents in correct agentLocations map depending on if in queue or ramp
+//        for (Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
+//            if(verticesInSurfaceQ.contains(entry.getValue())) {
+//                agentLocationsInSurfaceQueue.put(entry.getKey(), entry.getValue());
+//            }
+//            else if(verticesInUndergroundQ.contains(entry.getValue())) {
+//                agentLocationsInUndergroundQueue.put(entry.getKey(), entry.getValue());
+//            }
+//            else {
+//                agentLocationsInRamp.put(entry.getKey(), entry.getValue());
+//            }
+//        }
 
         HashMap<Agent, ArrayList<Integer>> agentMoves = new HashMap<>();
 
-        // Go through each agent, its location, and get all neighbours from adjList
-        for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
+        // Go through each agent, its location, and get all neighbours from adjList IN THE RAMP
+        for(Map.Entry<Agent, Integer> entry : agentLocations/*InRamp*/.entrySet()) {    // TODO: TA BORT KOMMENTERAT OM QUEUES HANTERAS KORREKT
             Agent agent = entry.getKey();
             Integer vertex = entry.getValue();
 
@@ -143,6 +205,28 @@ public class Astar implements MAPFAlgorithm {
                 moves.add(undergroundExit);
                 agentMoves.put(agent, moves);
             }
+            // If in surface queue, stay in place if next vertex is occupied
+//            else if(verticesInSurfaceQ.contains(vertex)) {
+//                moves = new ArrayList<>();
+//                if (agentLocations.containsValue(vertex + 1)) {
+//                    moves.add(vertex);
+//                }
+//                else {
+//                    moves.add(vertex + 1);
+//                }
+//                agentMoves.put(agent, moves);
+//            }
+//            // If in underground queue, stay in place if next vertex is occupied
+//            else if(verticesInUndergroundQ.contains(vertex)) {
+//                moves = new ArrayList<>();
+//                if (agentLocations.containsValue(vertex - 1)) {
+//                    moves.add(vertex);
+//                }
+//                else {
+//                    moves.add(vertex - 1);
+//                }
+//                agentMoves.put(agent, moves);
+//            }   // TODO: CHECK THAT THE TWO ELSE IFS ARE CORRECT. IF SO, REMOVE EDGE TO SAME VERTEX IN QUEUES IN initialiseAdjList!!
             // If the agent is not in a start vertex, retrieve neighbours as usual
             else if(agent.direction == Constants.DOWN) {
                 moves = adjList.get(vertex).getDownNeighbours();
@@ -157,7 +241,181 @@ public class Astar implements MAPFAlgorithm {
             }
         }
 
+        // Sort the agentLocation in queue TODO
+
+
+        // Now go through the agents in the surface queue and handle them specially
+        // First get the agentLocationsInSurfaceQueue sorted from first  in queue to last
+
+        // TODO: KOMMENTERADE AVSNITTET NEDAN FYLLER FÖRMODLIGEN INGEN EFFEKT. TA BORT NÄR QUEUES HANTERAS KORREKT
+//        boolean canMoveForward = true;
+//
+//        if(!agentLocationsInSurfaceQueue.isEmpty()) {
+//
+//            LinkedHashMap<Agent, Integer> sortedAgentLocationsInSurfaceQueue
+//                    = sortAgentLocationsInQueue(agentLocationsInSurfaceQueue, "surface");
+//
+//            // Then, for each agent in the surface queue, starting from the first in queue, check if vertex ahead is free.
+//            // If so, move forward. Else, stay
+//
+//            for(Map.Entry<Agent, Integer> entry : sortedAgentLocationsInSurfaceQueue.entrySet()) {
+//                Agent agent = entry.getKey();
+//                Integer vertex = entry.getValue();
+//
+//                ArrayList<Integer> moves;
+//                if(!canMoveForward) {
+//                    moves = new ArrayList<>();
+//                    moves.add(vertex);
+//                    agentMoves.put(agent, moves);
+//                }
+//                else if(!agentLocations.containsValue(vertex + 1)) {
+//                    moves = new ArrayList<>();
+//                    moves.add(vertex + 1);
+//                    agentMoves.put(agent, moves);
+//                }
+//                else {
+//                    moves = new ArrayList<>();
+//                    moves.add(vertex);
+//                    agentMoves.put(agent, moves);
+//                    canMoveForward = false;
+//                }
+//            }
+//        }
+//
+//
+//        if(!agentLocationsInUndergroundQueue.isEmpty()) {
+//
+//            LinkedHashMap<Agent, Integer> sortedAgentLocationsInUndergroundQueue
+//                    = sortAgentLocationsInQueue(agentLocationsInUndergroundQueue, "underground");
+//
+//            // Then, for each agent in the underground queue, starting from the first in queue, check if vertex ahead is free.
+//            // If so, move forward. Else, stay
+//            canMoveForward = true;
+//            for(Map.Entry<Agent, Integer> entry : sortedAgentLocationsInUndergroundQueue.entrySet()) {
+//                Agent agent = entry.getKey();
+//                Integer vertex = entry.getValue();
+//
+//                ArrayList<Integer> moves;
+//                if(!canMoveForward) {
+//                    moves = new ArrayList<>();
+//                    moves.add(vertex);
+//                    agentMoves.put(agent, moves);
+//                }
+//                else if(!agentLocations.containsValue(vertex - 1)) {
+//                    moves = new ArrayList<>();
+//                    moves.add(vertex - 1);
+//                    agentMoves.put(agent, moves);
+//                }
+//                else {
+//                    moves = new ArrayList<>();
+//                    moves.add(vertex);
+//                    agentMoves.put(agent, moves);
+//                    canMoveForward = false;
+//                }
+//            }
+//        }
+
+
         return agentMoves;
+    }
+
+    // TODO: CURRENT PROBLEM: All agents in queue are checked, if an agent is in the first queue vertex, it should not be
+    //  included. It should instead be treated as a normal vertex! Thus, exclude that agent from special treatment
+
+    private ArrayList<HashMap<Agent, Integer>> removeInvalidMoveCombinations(ArrayList<HashMap<Agent, Integer>> moveCombinations,
+                                               HashMap<Agent, Integer> agentLocations,
+                                               ArrayList<Integer> verticesInSurfaceQ,
+                                               ArrayList<Integer> verticesInUndergroundQ) {
+        // Task: Remove all combinations where if, in a queue, an agent in front moves but the agent behind stays.
+        // If two agents are in a queue and the one in front moves, the one behind should always also move.
+        // Note that this does not concern the first agent in either queue, since this agent must be allowed to stay
+        // even though the vertex ahead is free. This is because an agent should only leave the queue when appropriate
+        // (when in the ramp, it cannot stay in place or go back). Therefore, verticesInQ will exclude the first vertex
+
+//        if(!verticesInSurfaceQ.isEmpty()) {
+//            verticesInSurfaceQ.removeLast();
+//        }
+//        if(!verticesInUndergroundQ.isEmpty()) {
+//            verticesInUndergroundQ.removeFirst();
+//        }
+
+        ArrayList<HashMap<Agent, Integer>> validCombinations = new ArrayList<>();
+
+        for(HashMap<Agent, Integer> moveCombination : moveCombinations) {
+            boolean isValid = true;
+            boolean inSurfaceQ = true;
+
+            for(ArrayList<Integer> queue : List.of(verticesInSurfaceQ, verticesInUndergroundQ)) {
+
+                HashMap<Integer, Agent> queuePositionToAgent = new HashMap<>();
+
+                for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
+                    Agent agent = entry.getKey();
+                    int location = entry.getValue();
+
+                    if(queue.contains(location)) {
+                        queuePositionToAgent.put(location, agent);
+                    }
+                }
+
+                if(inSurfaceQ && queue.size() >= 2) {
+                    inSurfaceQ = false;
+                    for(int i = queue.size() - 1; i > 0; i--) {
+                        int frontVertex = queue.get(i);
+                        int backVertex = queue.get(i - 1);
+
+                        Agent frontAgent = queuePositionToAgent.get(frontVertex);
+                        Agent backAgent = queuePositionToAgent.get(backVertex);
+
+                        if (frontAgent != null && backAgent != null) {
+                            Integer frontMove = moveCombination.get(frontAgent);
+                            Integer backMove = moveCombination.get(backAgent);
+
+                            if(frontMove != null && backMove != null) {
+                                // If front agent moves but back agent stays, the move combination is invalid
+                                if(!frontMove.equals(frontVertex) && backMove.equals(backVertex)) {
+                                    isValid = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if(!isValid) {
+                        break;
+                    }
+                }
+
+                else if(!inSurfaceQ && queue.size() >= 2) {
+                    for(int i = 0; i < queue.size() - 1; i++) {
+                        int frontVertex = queue.get(i);
+                        int backVertex = queue.get(i + 1);
+
+                        Agent frontAgent = queuePositionToAgent.get(frontVertex);
+                        Agent backAgent = queuePositionToAgent.get(backVertex);
+
+                        if (frontAgent != null && backAgent != null) {
+                            Integer frontMove = moveCombination.get(frontAgent);
+                            Integer backMove = moveCombination.get(backAgent);
+
+                            if(frontMove != null && backMove != null) {
+                                // If front agent moves but back agent stays, the move combination is invalid
+                                if(!frontMove.equals(frontVertex) && backMove.equals(backVertex)) {
+                                    isValid = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(isValid) {
+                validCombinations.add(moveCombination);
+            }
+        }
+
+        return validCombinations;
     }
 
     private void sortMoveCombinations(ArrayList<HashMap<Agent, Integer>> moveCombinations) {
@@ -265,14 +523,21 @@ public class Astar implements MAPFAlgorithm {
                 }
             }
 
-            prohibitedMoves.add(prohibitedMove);
+            // If an agent has reached an exit, it will keep "moving" to the same exit.
+            // If another agent reaches the same exit it will make the same move, which must not then be prohibited
+            if(oldLocation == newLocation && (oldLocation == surfaceExit || oldLocation == undergroundExit)) {
+                // Do nothing
+            }
+            else {
+                prohibitedMoves.add(prohibitedMove);
+            }
         }
 
         return true;
     }
 
     @Override
-    public ArrayList<MAPFState> solve(MAPFScenario scenario) {
+    public Solution solve(MAPFScenario scenario) {
         /*
         * Notes to self
         * - For each neighbour state, the g cost is that of the current state's g + num of all active agents (each action is g++)
@@ -281,6 +546,9 @@ public class Astar implements MAPFAlgorithm {
 
         ArrayList<MAPFState> solution = new ArrayList<>();
 
+        int generatedStates = 0;
+        int expandedStates = 0;
+
         // Fetch the scenario adjacency list and other key numbers
         HashMap<Integer, UpDownNeighbourList> adjList = scenario.fetchAdjList();
         int surfaceStart = scenario.fetchSurfaceStart();
@@ -288,6 +556,8 @@ public class Astar implements MAPFAlgorithm {
         int surfaceExit = scenario.fetchSurfaceExit();
         int undergroundExit = scenario.fetchUndergroundExit();
         int actualRampLength = scenario.fetchRampLength();
+        ArrayList<Integer> verticesInSurfaceQ = scenario.fetchVerticesInSurfaceQ();
+        ArrayList<Integer> verticesInUndergroundQ = scenario.fetchVerticesInUndergroundQ();
         ArrayList<Integer> verticesInPassingBays = scenario.fetchVerticesInPassingBays();
         ArrayList<ArrayList<Integer>> passingBayVertices = scenario.fetchPassingBayVertices();
 
@@ -303,11 +573,12 @@ public class Astar implements MAPFAlgorithm {
 
         while(!frontier.isEmpty()) {
             MAPFState currentState = frontier.poll();
+            expandedStates++;
 
             if(isGoal(currentState)) {
                 buildSolution(currentState, solution);
-                System.out.println(solution);
-                return solution;
+
+                return new Solution(solution, generatedStates, expandedStates);
             }
 
             explored.add(currentState);
@@ -342,7 +613,8 @@ public class Astar implements MAPFAlgorithm {
             // Get all possible agent moves
             HashMap<Agent, ArrayList<Integer>> agentMoves =
                     getPossibleMoves(currentStateAgentLocations, adjList,
-                            surfaceStart, undergroundStart, surfaceExit, undergroundExit);
+                            surfaceStart, undergroundStart, surfaceExit, undergroundExit,
+                            verticesInSurfaceQ, verticesInUndergroundQ);
 
             // Generate all move combinations
             // See https://www.baeldung.com/java-cartesian-product-sets and
@@ -355,9 +627,13 @@ public class Astar implements MAPFAlgorithm {
             ArrayList<HashMap<Agent, Integer>> moveCombinations =
                     generateCartesianProduct(new ArrayList<>(agentMoves.entrySet()));
 
+            moveCombinations = removeInvalidMoveCombinations(moveCombinations, currentStateAgentLocations,
+                    verticesInSurfaceQ, verticesInUndergroundQ);
+
+            // TODO NOTE: This does not seem to do anything. It does not result in higher priority agents from going first
             sortMoveCombinations(moveCombinations);
 
-            printMoveCombinations(moveCombinations);
+//            printMoveCombinations(moveCombinations);
 
             // Generate new states from moveCombinations
 
@@ -401,11 +677,12 @@ public class Astar implements MAPFAlgorithm {
                     // If neighbourState has not been encountered before, add to frontier
                     if(!frontier.contains(neighbourState) && !explored.contains(neighbourState)) {
                         frontier.add(neighbourState);
+                        generatedStates++;
                     }
                     /*
                     * If an identical state to neighbourState, but with more expensive path-cost (g),
                     * replace with neighbourState.
-                     */
+                    */
                     else if(frontier.contains(neighbourState)) {
                         for(MAPFState state : frontier) {
                             if(state.equals(neighbourState) && neighbourState.getGcost() < state.getGcost()) {

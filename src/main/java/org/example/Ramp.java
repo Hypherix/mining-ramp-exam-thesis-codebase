@@ -74,6 +74,7 @@ public class Ramp {
     // Methods
     public void printAdjList() {
         // Task: Print the adjacency list
+        System.out.println("Ramp adjacency list:");
         System.out.print("{");
 
         int currentKey = 0;
@@ -81,7 +82,7 @@ public class Ramp {
             System.out.print(key + "=");
             adjList.get(key).printNeighbourLists();
 
-            if(++currentKey != this.adjList.keySet().size()) {
+            if(++currentKey != this.adjList.size()) {
                 System.out.print(", ");
             }
         }
@@ -314,14 +315,32 @@ public class Ramp {
 //                fghDowngoing.get(vertex)[1] = 0;        // g is always 0 for surface queue vertices
 //                fghDowngoing.get(vertex)[2] = undergroundStart - vertex;   // h is the distance from the vertex to underground start
 //                fghDowngoing.get(vertex)[0] = fghDowngoing.get(vertex)[1] + fghDowngoing.get(vertex)[2];    // f = g + h
-                hDowngoing.put(vertex, undergroundStart - vertex); // h is the distance from the vertex to underground start
+                hDowngoing.put(vertex, undergroundStart - vertex + 1); // h is the distance from the vertex to underground start + 1
             }
+            // If any ramp vertex
             else {
                 int gDowngoing = vertexGeneration.get(vertex);       // Get current vertex's downgoing g
 //                fghDowngoing.get(vertex)[1] = gDowngoing;            // g is the second value array element
 //                fghDowngoing.get(vertex)[2] = rampLength - 1 - gDowngoing;  // from g we can get h
 //                fghDowngoing.get(vertex)[0] = fghDowngoing.get(vertex)[1] + fghDowngoing.get(vertex)[2];    // f = g + h
-                hDowngoing.put(vertex, rampLength - 1 - gDowngoing);
+                hDowngoing.put(vertex, rampLength - 1 - gDowngoing + 1);
+            }
+            // Passing bay vertices must have their h costs corrected since they are detours
+            if(verticesInPassingBays.contains(vertex)) {
+                // Go through every passing bay
+                int passingBayNr = 0;
+                for(ArrayList<Integer> passingBay : passingBayVertices) {
+                    // Adjust the h value of each passing bay's vertices accordingly
+                    if(passingBay.getFirst() == vertex) {
+                        int adjVertex = this.passBaysAdjVertex[passingBayNr] + this.surfaceQLength - 1;
+                        hDowngoing.put(vertex, hDowngoing.get(adjVertex - 1));
+                    }
+                    else if(passingBay.getLast() == vertex) {
+                        int adjVertex = this.passBaysAdjVertex[passingBayNr] + this.surfaceQLength;
+                        hDowngoing.put(vertex, hDowngoing.get(adjVertex - 1));
+                    }
+                    passingBayNr++;
+                }
             }
         }
         // If an underground queue vertex, g is always 0, h is h, and f = h, since each of these could be the start vertex
@@ -332,14 +351,31 @@ public class Ramp {
 //                fghUpgoing.get(vertex)[1] = 0;      // g is always 0 for underground queue vertices
 //                fghUpgoing.get(vertex)[2] = vertex - surfaceStart;     // h is the distance from the vertex to surface start
 //                fghUpgoing.get(vertex)[0] = fghUpgoing.get(vertex)[1] + fghUpgoing.get(vertex)[2];    // f = g + h
-                hUpgoing.put(vertex, vertex - surfaceStart);    // h is the distance from the vertex to surface start
+                hUpgoing.put(vertex, vertex - surfaceStart + 1);    // h is the distance from the vertex to surface start
             }
             else {
                 int gUpgoing = vertexGeneration.get(vertex);       // Get current vertex's downgoing g
 //                fghUpgoing.get(vertex)[1] = gUpgoing;            // g is the second value array element
 //                fghUpgoing.get(vertex)[2] = rampLength - 1 - gUpgoing;  // from g we can get h
 //                fghUpgoing.get(vertex)[0] = fghUpgoing.get(vertex)[1] + fghUpgoing.get(vertex)[2];    // f = g + h
-                hUpgoing.put(vertex, rampLength - 1 - gUpgoing);
+                hUpgoing.put(vertex, rampLength - 1 - gUpgoing + 1);
+            }
+            // Passing bay vertices must have their h costs corrected since they are detours
+            if(verticesInPassingBays.contains(vertex)) {
+                // Go through every passing bay
+                int passingBayNr = 0;
+                for(ArrayList<Integer> passingBay : passingBayVertices) {
+                    // Adjust the h value of each passing bay's vertices accordingly
+                    if(passingBay.getFirst() == vertex) {
+                        int adjVertex = this.passBaysAdjVertex[passingBayNr] + this.surfaceQLength - 1;
+                        hUpgoing.put(vertex, hUpgoing.get(adjVertex + 1));
+                    }
+                    else if(passingBay.getLast() == vertex) {
+                        int adjVertex = this.passBaysAdjVertex[passingBayNr] + this.surfaceQLength;
+                        hUpgoing.put(vertex, hUpgoing.get(adjVertex + 1));
+                    }
+                    passingBayNr++;
+                }
             }
         }
         else {

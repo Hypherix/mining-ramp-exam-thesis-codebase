@@ -20,7 +20,7 @@ public class MAPFScenario {
     // Data members
     private Ramp ramp;
     private MAPFState initialState;
-    private int duration;
+    private int duration;       // Specifies the latest timeStep at which new agents can enter
     private int totalAgentCount;
 
     // Key = timeStep where the agents are entering the scenario
@@ -259,5 +259,13 @@ public class MAPFScenario {
 
     public ArrayList<ArrayList<Integer>> fetchPassingBayVertices() {
         return this.ramp.getPassingBayVertices();
+    }
+
+    public ArrayList<Integer> fetchVerticesInSurfaceQ() {
+        return this.ramp.getVerticesInSurfaceQ();
+    }
+
+    public ArrayList<Integer> fetchVerticesInUndergroundQ() {
+        return this.ramp.getVerticesInUndergroundQ();
     }
 }
