@@ -61,11 +61,14 @@ public class MAPFScenario {
         int surfaceStart = ramp.getSurfaceStart();
 
         ArrayList<Integer> verticesInSurfaceQ = ramp.getVerticesInSurfaceQ();
-        for(Integer vertex : verticesInSurfaceQ) {
-            if(occupiedVertices.contains(vertex)) {
+
+        for(int i = verticesInSurfaceQ.size() - 1; i >= 0; i--) {
+            Integer vertex = verticesInSurfaceQ.get(i);
+            if(!occupiedVertices.contains(vertex)) {
                 return vertex;
             }
         }
+
         System.out.println("MAPFScenario->getSurfaceQFree: SURFACE QUEUE IS FULL!");
         return -1;
 
@@ -99,7 +102,7 @@ public class MAPFScenario {
 
         ArrayList<Integer> verticesInUndergroundQ = ramp.getVerticesInUndergroundQ();
         for(Integer vertex : verticesInUndergroundQ) {
-            if(occupiedVertices.contains(vertex)) {
+            if(!occupiedVertices.contains(vertex)) {
                 return vertex;
             }
         }
@@ -176,6 +179,9 @@ public class MAPFScenario {
             HashMap<Agent, Integer> finalAgentLocations;
             finalAgentLocations = fetchAgentLocations();    // agentLocations from before
             finalAgentLocations.putAll(newAgentLocations);  // add the new agentLocations to those from before
+
+            // Update scenario's activeAgents
+            this.initialState.addActiveAgents(newAgentsThisTimeStep);
 
             int newGcost = fetchNumOfActiveAgents();    // TODO CHECK: Correct gCost?
 

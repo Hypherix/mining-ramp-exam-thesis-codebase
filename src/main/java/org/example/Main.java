@@ -1,7 +1,8 @@
 package org.example;
 
 /*
-* TODO LATER: Increase passing bay node count to simulate it being more costly
+* TODO NEXT: With new agents entering later, check that solution is correct. Seems to print incorrect sort of
+*  Check also that new gcost of the new initialState is correct
 * */
 
 import java.util.HashMap;
@@ -11,7 +12,7 @@ public class Main {
         long startTime = System.nanoTime();
 
         int[] passBays = {2};
-        Ramp myRamp = new Ramp(11, 6, 3, passBays);
+        Ramp myRamp = new Ramp(5, 3, 3, passBays);
         myRamp.printAdjList();
 
         // This section should be equivalent to the section after (now commented)
@@ -19,19 +20,31 @@ public class Main {
         // Every other agent goes the same direction
         HashMap<Integer, Agent> agentList = new HashMap<>();
         AgentEntries agentEntries = new AgentEntries();
-        for(int i = 0; i < 6; i++) {
+        for(int i = 0; i < 4; i++) {
             Agent agent;
-            if(i != 5) {
+            if(i == 0) {
                 agent = new Agent(i, 1, Constants.DOWN);
                 agentList.put(agent.id, agent);
                 agentEntries.addEntry(0, agent);
             }
-            else {
+            else if (i == 1) {
                 agent = new Agent(i, 1, Constants.UP);
                 agentList.put(agent.id, agent);
                 agentEntries.addEntry(0, agent);
             }
+            else if (i == 2) {
+                agent = new Agent(i, 1, Constants.UP);
+                agentList.put(agent.id, agent);
+                agentEntries.addEntry(2, agent);
+            }
+            else if (i == 3) {
+                agent = new Agent(i, 1, Constants.UP);
+                agentList.put(agent.id, agent);
+                agentEntries.addEntry(2, agent);
+            }
         }
+
+
 
 
 //        HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocityDirection = new HashMap<Integer, ArrayList<int[]>>();

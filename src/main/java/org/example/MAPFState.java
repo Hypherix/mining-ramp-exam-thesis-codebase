@@ -186,5 +186,9 @@ public class MAPFState {
     public void setParent(MAPFState parent) {
         this.parent = parent;
     }
+
+    public void addActiveAgents(ArrayList<Agent> newActiveAgents) {
+        this.activeAgents.addAll(newActiveAgents);
+    }
 }
 
