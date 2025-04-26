@@ -3,6 +3,8 @@ package org.example;
 /*
 * TODO NEXT: With new agents entering later, check that solution is correct. Seems to print incorrect sort of
 *  Check also that new gcost of the new initialState is correct
+* TODO NEW: Are new agents added one step too early? If new enter at timeStep 2, time steps 0 and 1 should be
+*  free from these new agents --> the first two time steps should only have the original agents
 * */
 
 import java.util.HashMap;

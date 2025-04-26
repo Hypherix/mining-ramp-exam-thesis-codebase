@@ -67,4 +67,8 @@ public class Solution {
     public ArrayList<MAPFState> getSolutionSet() {
         return this.solutionSet;
     }
+
+    public void setSolutionSet(ArrayList<MAPFState> solutionSet) {
+        this.solutionSet = solutionSet;
+    }
 }

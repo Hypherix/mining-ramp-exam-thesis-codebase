@@ -47,6 +47,7 @@ public class MAPFSolver {
         HashMap<Integer, ArrayList<Agent>> agentEntries = scenario.fetchAgentEntries();
         int endTime = this.scenario.getDuration();
         Solution currentSolution;
+        Solution newSolution;
 
         // Need to implement so that for every time step, MAPFSolver checks its scenario if
         // new agents enter. In that case, run t
@@ -75,6 +76,12 @@ public class MAPFSolver {
 
                 // Invoke the algorithm anew
                 currentSolution = this.algorithm.solve(this.scenario);
+
+                newSolution = this.algorithm.solve(this.scenario);
+
+                solutionSet.addAll(newSolution.getSolutionSet());
+
+                currentSolution.setSolutionSet(solutionSet);
 
                 timeStep++;
             }
