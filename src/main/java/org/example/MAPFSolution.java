@@ -108,10 +108,25 @@ public class MAPFSolution {
         for (Map.Entry<Agent, ArrayList<String>> entry : agentPaths.entrySet()) {
             Agent agent = entry.getKey();
             ArrayList<String> path = entry.getValue();
-            
+
             System.out.print("a" + agent.id + ": ");
             for(String location : path) {
-                System.out.print(location + "\t");
+                if(!location.equals("-")) {
+                    if(agent.direction == Constants.DOWN && Integer.parseInt(location) == undergroundExit) {
+                        System.out.print(location + "\t");
+                        break;
+                    }
+                    else if(agent.direction == Constants.UP && Integer.parseInt(location) == surfaceExit) {
+                        System.out.print(location + "\t");
+                        break;
+                    }
+                    else {
+                        System.out.print(location + "\t");
+                    }
+                }
+                else {
+                    System.out.print(location + "\t");
+                }
             }
             System.out.println();
 
