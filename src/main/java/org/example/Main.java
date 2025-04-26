@@ -14,14 +14,14 @@ public class Main {
         long startTime = System.nanoTime();
 
         int[] passBays = {2, 6};
-        Ramp myRamp = new Ramp(10, 5, 5, passBays);
+        Ramp myRamp = new Ramp(10, 5, 10, passBays);
 
         // This section should be equivalent to the section after (now commented)
         // Add initial agents
         // Every other agent goes the same direction
         HashMap<Integer, Agent> agentList = new HashMap<>();
         AgentEntries agentEntries = new AgentEntries();
-        for(int i = 0; i < 6; i++) {
+        for(int i = 0; i < 4; i++) {
             Agent agent;
             if(i % 2 == 0) {
                 agent = new Agent(i, 1, Constants.DOWN);
@@ -34,8 +34,13 @@ public class Main {
                 agentEntries.addEntry(0, agent);
             }
         }
+        Agent agent = new Agent(4, 1, Constants.UP);
+        agentList.put(agent.id, agent);
+        agentEntries.addEntry(4, agent);
 
-
+        agent = new Agent(5, 1, Constants.DOWN);
+        agentList.put(agent.id, agent);
+        agentEntries.addEntry(4, agent);
 
 
 //        HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocityDirection = new HashMap<Integer, ArrayList<int[]>>();

@@ -71,9 +71,11 @@ public class Ramp {
         seth();
 
         // Print ramp information
-        printRampStructure();
+        printRampParts();
         System.out.println();
         printAdjList();
+        System.out.println();
+        printRampStructure();
     }
 
     // Methods
@@ -94,15 +96,76 @@ public class Ramp {
         System.out.println("}");
     }
 
-    private void printRampStructure() {
+    private void printRampParts() {
         // Task: Print out the ramp structure
         System.out.println("Surface queue: " + verticesInSurfaceQ);
         System.out.println("Ramp: " + verticesInActualRamp);
         System.out.println("Surface queue: " + verticesInSurfaceQ);
-        System.out.println("Surface start: " + surfaceStart);
         System.out.println("Underground queue: " + verticesInUndergroundQ);
+        System.out.println("Passing bays: " + passingBayVertices);
+        System.out.println("Surface start: " + surfaceStart);
+        System.out.println("Underground start: " + undergroundStart);
         System.out.println("Surface exit: " + surfaceExit);
         System.out.println("Underground exit: " + undergroundExit);
+    }
+
+    private void printRampStructure() {
+        // Task: Print the actual ramp
+
+        System.out.println("The ramp structure\n");
+
+        // Passing bays
+        for (int i = 0; i < this.passBaysAdjVertex.length; i++) {
+            if(i == 0) {
+                for (int j = 0; j < this.passBaysAdjVertex[i]; j++) {
+                    System.out.print("\t");
+                }
+                System.out.print(passingBayVertices.get(i).getFirst() + "\t" + passingBayVertices.get(i).getLast());
+            }
+            else {
+                for (int j = 0; j < (this.passBaysAdjVertex[i] - this.passBaysAdjVertex[i - 1] - 1); j++) {
+                    System.out.print("\t");
+                }
+                System.out.print(passingBayVertices.get(i).getFirst() + "\t" + passingBayVertices.get(i).getLast());
+            }
+        }
+        System.out.println();
+
+        // Ramp and exits
+        System.out.print(surfaceExit + "\t");
+        for (Integer vertex : verticesInActualRamp) {
+            System.out.print(vertex + "\t");
+        }
+        System.out.println(undergroundExit);
+
+        // Queues
+        int surfaceQLength = verticesInSurfaceQ.size();
+        int undergroundQLength = verticesInUndergroundQ.size();
+        ArrayList<Integer> longestQueue;
+        if(verticesInSurfaceQ.size() > verticesInUndergroundQ.size()) {
+            longestQueue = verticesInSurfaceQ;
+        }
+        else {
+            longestQueue = verticesInUndergroundQ;
+        }
+
+        ArrayList<Integer> verticesInSurfaceQReverse = new ArrayList<>(verticesInSurfaceQ);
+        Collections.reverse(verticesInSurfaceQReverse);
+
+        for (int i = 0; i < longestQueue.size(); i++) {
+            System.out.print("\t");
+
+            if(i < surfaceQLength) {
+                System.out.print(verticesInSurfaceQReverse.get(i));
+            }
+            for(int j = 0; j < rampLength - 1; j++) {
+                System.out.print("\t");
+            }
+            if(i < undergroundQLength) {
+                System.out.println(verticesInUndergroundQ.get(i));
+            }
+        }
+        System.out.println();
     }
 
     private void addVertexToRamp(int vertexId) {
