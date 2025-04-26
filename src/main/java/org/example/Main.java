@@ -13,36 +13,25 @@ public class Main {
     public static void main(String[] args) {
         long startTime = System.nanoTime();
 
-        int[] passBays = {2};
-        Ramp myRamp = new Ramp(5, 3, 3, passBays);
-        myRamp.printAdjList();
+        int[] passBays = {2, 6};
+        Ramp myRamp = new Ramp(10, 5, 5, passBays);
 
         // This section should be equivalent to the section after (now commented)
         // Add initial agents
         // Every other agent goes the same direction
         HashMap<Integer, Agent> agentList = new HashMap<>();
         AgentEntries agentEntries = new AgentEntries();
-        for(int i = 0; i < 4; i++) {
+        for(int i = 0; i < 6; i++) {
             Agent agent;
-            if(i == 0) {
+            if(i % 2 == 0) {
                 agent = new Agent(i, 1, Constants.DOWN);
                 agentList.put(agent.id, agent);
                 agentEntries.addEntry(0, agent);
             }
-            else if (i == 1) {
+            else {
                 agent = new Agent(i, 1, Constants.UP);
                 agentList.put(agent.id, agent);
                 agentEntries.addEntry(0, agent);
-            }
-            else if (i == 2) {
-                agent = new Agent(i, 1, Constants.UP);
-                agentList.put(agent.id, agent);
-                agentEntries.addEntry(2, agent);
-            }
-            else if (i == 3) {
-                agent = new Agent(i, 1, Constants.UP);
-                agentList.put(agent.id, agent);
-                agentEntries.addEntry(2, agent);
             }
         }
 

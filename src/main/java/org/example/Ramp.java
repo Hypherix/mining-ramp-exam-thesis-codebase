@@ -69,10 +69,15 @@ public class Ramp {
         hUpgoing = new HashMap<>();
         hDowngoing = new HashMap<>();
         seth();
+
+        // Print ramp information
+        printRampStructure();
+        System.out.println();
+        printAdjList();
     }
 
     // Methods
-    public void printAdjList() {
+    private void printAdjList() {
         // Task: Print the adjacency list
         System.out.println("Ramp adjacency list:");
         System.out.print("{");
@@ -87,6 +92,17 @@ public class Ramp {
             }
         }
         System.out.println("}");
+    }
+
+    private void printRampStructure() {
+        // Task: Print out the ramp structure
+        System.out.println("Surface queue: " + verticesInSurfaceQ);
+        System.out.println("Ramp: " + verticesInActualRamp);
+        System.out.println("Surface queue: " + verticesInSurfaceQ);
+        System.out.println("Surface start: " + surfaceStart);
+        System.out.println("Underground queue: " + verticesInUndergroundQ);
+        System.out.println("Surface exit: " + surfaceExit);
+        System.out.println("Underground exit: " + undergroundExit);
     }
 
     private void addVertexToRamp(int vertexId) {
