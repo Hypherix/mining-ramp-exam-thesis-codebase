@@ -2,7 +2,6 @@ package org.example.algorithms;
 
 import org.example.*;
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -537,7 +536,7 @@ public class Astar implements MAPFAlgorithm {
     }
 
     @Override
-    public Solution solve(MAPFScenario scenario) {
+    public MAPFSolution solve(MAPFScenario scenario) {
         /*
         * Notes to self
         * - For each neighbour state, the g cost is that of the current state's g + num of all active agents (each action is g++)
@@ -578,7 +577,7 @@ public class Astar implements MAPFAlgorithm {
             if(isGoal(currentState)) {
                 buildSolution(currentState, solution);
 
-                return new Solution(solution, generatedStates, expandedStates);
+                return new MAPFSolution(solution, generatedStates, expandedStates);
             }
 
             explored.add(currentState);

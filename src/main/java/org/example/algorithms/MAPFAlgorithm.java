@@ -7,12 +7,10 @@ package org.example.algorithms;
 * */
 
 import org.example.MAPFScenario;
-import org.example.Solution;
-
-import java.util.ArrayList;
+import org.example.MAPFSolution;
 
 public interface MAPFAlgorithm {
 
     // Methods
-    public Solution solve(MAPFScenario scenario);
+    public MAPFSolution solve(MAPFScenario scenario);
 }

@@ -21,7 +21,7 @@ public class MAPFSolver {
     // Data members
     private MAPFScenario scenario;
     private MAPFAlgorithm algorithm;
-    private Solution solution;
+    private MAPFSolution solution;
     private int timeStep;
     private int solutionCost;
     private int solutionGeneratedStates;
@@ -46,8 +46,8 @@ public class MAPFSolver {
 
         HashMap<Integer, ArrayList<Agent>> agentEntries = scenario.fetchAgentEntries();
         int endTime = this.scenario.getDuration();
-        Solution currentSolution;
-        Solution newSolution;
+        MAPFSolution currentSolution;
+        MAPFSolution newSolution;
 
         // Need to implement so that for every time step, MAPFSolver checks its scenario if
         // new agents enter. In that case, run t
@@ -58,14 +58,14 @@ public class MAPFSolver {
             if (agentEntries.containsKey(timeStep)) {   // If there are new agents entering this timeStep
                 // Remove from solution states those states that are now invalid
 
-                ArrayList<MAPFState> solutionSet = currentSolution.getSolutionSet();
+                ArrayList<MAPFState> currentSolutionStates = currentSolution.getSolutionSet();
 
-                solutionSet.subList(timeStep, solutionSet.size()).clear();
+                currentSolutionStates.subList(timeStep + 1, currentSolutionStates.size()).clear();
 
                 // Generate a new initialState and update MAPFScenario
 
                 // Get the state we want to revert to
-                MAPFState newCurrentState = solutionSet.get(timeStep - 1);
+                MAPFState newCurrentState = currentSolutionStates.get(timeStep);
                 // Assign the scenario newCurrentState
                 scenario.setInitialState(newCurrentState);
                 // Update totalAgentCount to reflect currentState's
@@ -77,11 +77,16 @@ public class MAPFSolver {
                 // Invoke the algorithm anew
                 currentSolution = this.algorithm.solve(this.scenario);
 
-                newSolution = this.algorithm.solve(this.scenario);
+                // Since currentSolution's initial solution set state is the same as the last state
+                // in currentSolutionStates, remove it from currentSolutionStates
+                currentSolutionStates.removeLast();
 
-                solutionSet.addAll(newSolution.getSolutionSet());
+                // Merge currentSolutionStates and currentSolution's solution set
+                ArrayList<MAPFState> newCurrentSolutionStates = currentSolutionStates;
+                newCurrentSolutionStates.addAll(currentSolution.getSolutionSet());
 
-                currentSolution.setSolutionSet(solutionSet);
+                // Set the solution set of newSolution as newCurrentSolutionStates
+                currentSolution.setSolutionSet(newCurrentSolutionStates);
 
                 timeStep++;
             }
@@ -89,7 +94,7 @@ public class MAPFSolver {
 
         this.solution = currentSolution;
 
-        this.solution.printSolution();
+        this.solution.printSolutionV2();
     }
 
     public void setSolutionGeneratedStates(int generatedStates) {

@@ -1,10 +1,7 @@
 package org.example.algorithms;
 
 import org.example.MAPFScenario;
-import org.example.MAPFState;
-import org.example.Solution;
-
-import java.util.ArrayList;
+import org.example.MAPFSolution;
 
 public class ICTS implements MAPFAlgorithm {
 
@@ -16,7 +13,7 @@ public class ICTS implements MAPFAlgorithm {
 
     // Methods
     @Override
-    public Solution solve(MAPFScenario scenario) {
+    public MAPFSolution solve(MAPFScenario scenario) {
         return null;
     }
 }
