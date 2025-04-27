@@ -8,11 +8,6 @@ import java.util.stream.Collectors;
 /*
 * NOTES!
 * Surface and underground exit nodes are not handled in a special way when assigning fgh values.
-* TODO: implement check for if an upgoing vehicle has reached the surface vertex, force it to move to
-*  surface exit, vice versa for downgoing vehicles and underground exit
-* TODO: Likewise as previous TODO, downgoing vehicles reaching surface start should not be allowed to
-*  move to surface exit! The same goes for upgoing vehicles and underground exit!!
-*
 * */
 
 public class Astar implements MAPFAlgorithm {
@@ -138,9 +133,7 @@ public class Astar implements MAPFAlgorithm {
             HashMap<Agent, Integer> agentLocations,
             HashMap<Integer, UpDownNeighbourList> adjList,
             int surfaceStart, int undergroundStart,
-            int surfaceExit, int undergroundExit,
-            ArrayList<Integer> verticesInSurfaceQ,
-            ArrayList<Integer> verticesInUndergroundQ) {
+            int surfaceExit, int undergroundExit) {
         // Task: With agents and their locations, get all possible agent moves
 
         HashMap<Agent, ArrayList<Integer>> agentMoves = new HashMap<>();
@@ -452,23 +445,12 @@ public class Astar implements MAPFAlgorithm {
 
             HashMap<Agent, Integer> currentStateAgentLocations = currentState.getAgentLocations();
 
-
-            // TODO: ITERATE THROUGH ALL ACTION COMBINATIONS
-
             // Get all possible agent moves
             HashMap<Agent, ArrayList<Integer>> agentMoves =
                     getPossibleMoves(currentStateAgentLocations, adjList,
-                            surfaceStart, undergroundStart, surfaceExit, undergroundExit,
-                            verticesInSurfaceQ, verticesInUndergroundQ);
+                            surfaceStart, undergroundStart, surfaceExit, undergroundExit);
 
             // Generate all move combinations
-            // See https://www.baeldung.com/java-cartesian-product-sets and
-            // https://chatgpt.com/c/68094965-3324-800b-9735-a243367c446f
-            // for cartesian product of sets. In this case, convert agentMoves to a list.
-            // Then do recursion.
-            // NOTE! Make sure to update prohibitedVertices+Moves and do NOT generate
-            // MAPFStates that violate these prohibitions.
-
             ArrayList<HashMap<Agent, Integer>> moveCombinations =
                     generateCartesianProduct(new ArrayList<>(agentMoves.entrySet()));
 
@@ -481,8 +463,6 @@ public class Astar implements MAPFAlgorithm {
 //            printMoveCombinations(moveCombinations);
 
             // Generate new states from moveCombinations
-
-
 
             // Go through each move combination
             for (HashMap<Agent, Integer> moveCombination : moveCombinations) {
