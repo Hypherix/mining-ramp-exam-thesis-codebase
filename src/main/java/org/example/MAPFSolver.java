@@ -87,8 +87,6 @@ public class MAPFSolver {
 
                 // Set the solution set of newSolution as newCurrentSolutionStates
                 currentSolution.setSolutionSet(newCurrentSolutionStates);
-
-                timeStep++;
             }
         }
 

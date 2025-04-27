@@ -36,12 +36,15 @@ public class Main {
         }
         Agent agent = new Agent(4, 1, Constants.UP);
         agentList.put(agent.id, agent);
-        agentEntries.addEntry(4, agent);
+        agentEntries.addEntry(1, agent);
 
         agent = new Agent(5, 1, Constants.DOWN);
         agentList.put(agent.id, agent);
-        agentEntries.addEntry(4, agent);
+        agentEntries.addEntry(3, agent);
 
+        agent = new Agent(6, 1, Constants.DOWN);
+        agentList.put(agent.id, agent);
+        agentEntries.addEntry(4, agent);
 
 //        HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocityDirection = new HashMap<Integer, ArrayList<int[]>>();
 //        int[] locationVelocity1 = new int[]{3, 1, 0};
