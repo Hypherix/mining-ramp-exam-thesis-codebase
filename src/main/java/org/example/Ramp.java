@@ -38,8 +38,6 @@ public class Ramp {
     private HashMap<Integer, UpDownNeighbourList> adjList;      // adjacency list to keep track of edges
 
     // Information about f, g and h values for each vertex in the ramp
-//    HashMap<Integer, int[]> fghUpgoing;
-//    HashMap<Integer, int[]> fghDowngoing;
     HashMap<Integer, Integer> hUpgoing;
     HashMap<Integer, Integer> hDowngoing;
 
@@ -249,18 +247,6 @@ public class Ramp {
             verticesInRamp += 2;
         }
 
-//        for (int i = 0; i < passBays.length; i++) {
-//            addVertexToRamp(verticesInRamp);
-//            addDownEdge(surfaceQLength + passBays[currentPassBay] - 2, verticesInRamp);      // -1 needed for adjustment
-//            addUpEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay] - 2);
-//            addUpEdge(surfaceQLength + passBays[currentPassBay], verticesInRamp);
-//            addDownEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay]);
-//            addUpEdge(verticesInRamp, verticesInRamp);            // Agents can wait in the passing bay
-//            addDownEdge(verticesInRamp, verticesInRamp);
-//            currentPassBay++;
-//            verticesInRamp++;
-//        }
-
 
         // Add the surface exit vertex to the adjacency list
         addVertexToRamp(verticesInRamp);
@@ -389,17 +375,11 @@ public class Ramp {
 
             // If a surface queue vertex, g is always 0, h is h, and f = h, since each of these could be the start vertex
             if(verticesInSurfaceQ.contains(vertex)) {
-//                fghDowngoing.get(vertex)[1] = 0;        // g is always 0 for surface queue vertices
-//                fghDowngoing.get(vertex)[2] = undergroundStart - vertex;   // h is the distance from the vertex to underground start
-//                fghDowngoing.get(vertex)[0] = fghDowngoing.get(vertex)[1] + fghDowngoing.get(vertex)[2];    // f = g + h
                 hDowngoing.put(vertex, undergroundStart - vertex + 1); // h is the distance from the vertex to underground start + 1
             }
             // If any ramp vertex
             else {
                 int gDowngoing = vertexGeneration.get(vertex);       // Get current vertex's downgoing g
-//                fghDowngoing.get(vertex)[1] = gDowngoing;            // g is the second value array element
-//                fghDowngoing.get(vertex)[2] = rampLength - 1 - gDowngoing;  // from g we can get h
-//                fghDowngoing.get(vertex)[0] = fghDowngoing.get(vertex)[1] + fghDowngoing.get(vertex)[2];    // f = g + h
                 hDowngoing.put(vertex, rampLength - 1 - gDowngoing + 1);
             }
             // Passing bay vertices must have their h costs corrected since they are detours
@@ -422,19 +402,12 @@ public class Ramp {
         }
         // If an underground queue vertex, g is always 0, h is h, and f = h, since each of these could be the start vertex
         else if (direction == Constants.UP) {
-//            fghUpgoing.put(vertex, new int[]{0, 0, 0});
 
             if(verticesInUndergroundQ.contains(vertex)) {
-//                fghUpgoing.get(vertex)[1] = 0;      // g is always 0 for underground queue vertices
-//                fghUpgoing.get(vertex)[2] = vertex - surfaceStart;     // h is the distance from the vertex to surface start
-//                fghUpgoing.get(vertex)[0] = fghUpgoing.get(vertex)[1] + fghUpgoing.get(vertex)[2];    // f = g + h
                 hUpgoing.put(vertex, vertex - surfaceStart + 1);    // h is the distance from the vertex to surface start
             }
             else {
                 int gUpgoing = vertexGeneration.get(vertex);       // Get current vertex's downgoing g
-//                fghUpgoing.get(vertex)[1] = gUpgoing;            // g is the second value array element
-//                fghUpgoing.get(vertex)[2] = rampLength - 1 - gUpgoing;  // from g we can get h
-//                fghUpgoing.get(vertex)[0] = fghUpgoing.get(vertex)[1] + fghUpgoing.get(vertex)[2];    // f = g + h
                 hUpgoing.put(vertex, rampLength - 1 - gUpgoing + 1);
             }
             // Passing bay vertices must have their h costs corrected since they are detours
@@ -496,22 +469,6 @@ public class Ramp {
     public int getRampLength() {
         return this.rampLength;
     }
-
-//    public int getSurfaceQFree() {
-//        return this.surfaceQFree;
-//    }
-//
-//    public void setSurfaceQFree(int vertex) {
-//        this.surfaceQFree = vertex;
-//    }
-//
-//    public int getUndergroundQFree() {
-//        return this.undergroundQFree;
-//    }
-//
-//    public void setUndergroundQFree(int vertex) {
-//        this.undergroundQFree = vertex;
-//    }
 
     public ArrayList<Integer> getVerticesInSurfaceQ() {
         return this.verticesInSurfaceQ;

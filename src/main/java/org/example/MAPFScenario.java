@@ -28,15 +28,6 @@ public class MAPFScenario {
     private AgentEntries agentEntries;
 
 
-    // Constructors
-//    public MAPFScenario(Ramp ramp, MAPFState initialState,
-//                        HashMap<Integer, ArrayList<int[]>> newAgentLocationVelocityDirection, int duration) {
-//        this.ramp = ramp;
-//        this.initialState = initialState;
-//        this.newAgentLocationVelocityDirection = newAgentLocationVelocityDirection;
-//        this.duration = duration;
-//    }
-
     public MAPFScenario(Ramp ramp, AgentEntries agentEntries, int duration) {
         this.ramp = ramp;
         this.agentEntries = agentEntries;
@@ -71,20 +62,6 @@ public class MAPFScenario {
 
         System.out.println("MAPFScenario->getSurfaceQFree: SURFACE QUEUE IS FULL!");
         return -1;
-
-//        if(occupiedVertices.contains(surfaceStart)) {
-//            return surfaceStart;
-//        }
-//        else {
-//            ArrayList<Integer> verticesInSurfaceQ = ramp.getVerticesInSurfaceQ();
-//            for(Integer vertex : verticesInSurfaceQ) {
-//                if(occupiedVertices.contains(vertex)) {
-//                    return vertex;
-//                }
-//            }
-//            System.out.println("MAPFScenario->getSurfaceQFree: SURFACE QUEUE IS FULL!");
-//            return -1;
-//        }
     }
 
     private int getUndergroundQFree(int timeStep) {
@@ -108,20 +85,6 @@ public class MAPFScenario {
         }
         System.out.println("MAPFScenario->getUndergroundQFree: UNDERGROUND QUEUE IS FULL!");
         return -1;
-
-//        if(occupiedVertices.contains(undergroundStart)) {
-//            return undergroundStart;
-//        }
-//        else {
-//            ArrayList<Integer> verticesInUndergroundQ = ramp.getVerticesInUndergroundQ();
-//            for(Integer vertex : verticesInUndergroundQ) {
-//                if(occupiedVertices.contains(vertex)) {
-//                    return vertex;
-//                }
-//            }
-//            System.out.println("MAPFScenario->getUndergroundQFree: UNDERGROUND QUEUE IS FULL!");
-//            return -1;
-//        }
     }
 
     public void putNewAgentsInQueue(Ramp ramp, ArrayList<Agent> newAgentsThisTimeStep,
@@ -140,7 +103,7 @@ public class MAPFScenario {
         for(Agent agent : newAgentsThisTimeStep) {
             // Agents starting from the surface (i.e. downgoing)
             if(agent.direction == Constants.DOWN) {
-                newAgentLocations.put(agent, surfaceQFree);     // TODO: Ska newAgentLocations ha Agent som key eller Agent.id?
+                newAgentLocations.put(agent, surfaceQFree);
                 surfaceQFree--;
             }
             // Agents starting from the underground

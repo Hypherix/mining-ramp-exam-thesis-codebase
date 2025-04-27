@@ -51,11 +51,6 @@ public class MAPFState {
         }
      }
 
-    public MAPFState(Ramp ramp) {
-        this.ramp = ramp;
-        this.agentLocations = new HashMap<Agent, Integer>();
-    }
-
     // Methods
     private int calculateHcost() {
         // Task: Calculate the total h of all agents

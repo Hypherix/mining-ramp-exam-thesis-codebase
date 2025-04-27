@@ -23,9 +23,6 @@ public class MAPFSolver {
     private MAPFAlgorithm algorithm;
     private MAPFSolution solution;
     private int timeStep;
-    private int solutionCost;
-    private int solutionGeneratedStates;
-    private int solutionExpandedStates;
 
 
     // Constructors
@@ -92,18 +89,6 @@ public class MAPFSolver {
 
         this.solution = currentSolution;
 
-        this.solution.printSolutionV2();
-    }
-
-    public void setSolutionGeneratedStates(int generatedStates) {
-        this.solutionGeneratedStates = generatedStates;
-    }
-
-    public void setSolutionExpandedStates(int expandedStates) {
-        this.solutionExpandedStates = expandedStates;
-    }
-
-    public ArrayList<MAPFState> fetchSolutionSet() {
-        return this.solution.getSolutionSet();
+        this.solution.printSolution();
     }
 }

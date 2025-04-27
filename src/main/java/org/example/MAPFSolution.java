@@ -21,55 +21,8 @@ public class MAPFSolution {
     }
 
     // Methods
+
     public void printSolution() {
-        // Task: Print the paths of each agent
-
-        HashMap<Agent, ArrayList<Integer>> agentPaths = new HashMap<>();
-
-        System.out.println("\nSolution:");
-
-        // Iterate through each state
-        for (MAPFState state : this.solutionSet) {
-            HashMap<Agent, Integer> agentLocations = state.getAgentLocations();
-
-            for (Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
-                Agent agent = entry.getKey();
-                Integer location = entry.getValue();
-
-                // Add the location of the path of this agent. Create a key-value entry if first location for the agent
-                if(!agentPaths.containsKey(agent)) {
-                    agentPaths.put(agent, new ArrayList<>());
-                }
-                agentPaths.get(agent).add(location);
-            }
-        }
-
-        int surfaceExit = solutionSet.getLast().fetchSurfaceExit();
-        int undergroundExit = solutionSet.getLast().fetchUndergroundExit();
-
-        // Print the path of each agent
-        for (Map.Entry<Agent, ArrayList<Integer>> entry : agentPaths.entrySet()) {
-            Agent agent = entry.getKey();
-            ArrayList<Integer> path = entry.getValue();
-
-            System.out.println("a" + agent.id + ": " + path);
-
-            // For each action, increment cost. The starting locations do not cost anything
-            // For each duplicate (hence cost++ in the end) surfaceExit or undergroundExit, decrement cost
-            cost += path.size() - 1;
-            for(Integer location : path) {
-                if(location == surfaceExit || location == undergroundExit) {
-                    cost--;
-                }
-            }
-            cost++;
-        }
-        System.out.println("Solution cost: " + cost);
-        System.out.println("Generated states (possibly added to frontier): " + generatedStates);
-        System.out.println("Expanded states (polled from frontier): " + expandedStates);
-    }
-
-    public void printSolutionV2() {
         // Task: Print the paths of each agent
 
         HashMap<Agent, ArrayList<String>> agentPaths = new HashMap<>();
