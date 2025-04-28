@@ -49,7 +49,42 @@ public class MAPFState {
                 this.activeAgents.add(agent);
             }
         }
-     }
+    }
+
+    // Copy constructor
+    public MAPFState(MAPFState other) {
+        // Deep copy the ramp
+        this.ramp = new Ramp(other.ramp);
+
+        // Deep copy agentLocations
+        this.agentLocations = new HashMap<>();
+        for (Map.Entry<Agent, Integer> entry : other.agentLocations.entrySet()) {
+            Agent copiedAgent = new Agent(entry.getKey());
+            Integer copiedLocation = entry.getValue();
+            this.agentLocations.put(copiedAgent, copiedLocation);
+        }
+
+        // Copy primitive fields
+        this.fcost = other.fcost;
+        this.gcost = other.gcost;
+        this.hcost = other.hcost;
+
+        this.parent = other.parent;
+
+        // Deep copy activeAgents list
+        this.activeAgents = new ArrayList<>();
+        for (Agent agent : other.activeAgents) {
+            this.activeAgents.add(new Agent(agent));
+        }
+
+        // Deep copy inactiveAgents list
+        this.inactiveAgents = new ArrayList<>();
+        for (Agent agent : other.inactiveAgents) {
+            this.inactiveAgents.add(new Agent(agent));
+        }
+    }
+
+
 
     // Methods
     private int calculateHcost() {

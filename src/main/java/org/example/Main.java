@@ -11,8 +11,8 @@ public class Main {
     public static void main(String[] args) {
         long startTime = System.nanoTime();
 
-        int[] passBays = {2, 6};
-        Ramp myRamp = new Ramp(10, 5, 10, passBays);
+        int[] passBays = {2};
+        Ramp myRamp = new Ramp(5, 5, 5, passBays);
 
         // This section should be equivalent to the section after (now commented)
         // Add initial agents
@@ -42,7 +42,7 @@ public class Main {
 
         agent = new Agent(6, 1, Constants.DOWN);
         agentList.put(agent.id, agent);
-        agentEntries.addEntry(4, agent);
+        agentEntries.addEntry(17, agent);
 
         // Duration specifies the latest timeStep at which new agents can enter
         MAPFScenario scenario = new MAPFScenario(myRamp, agentEntries, 20);

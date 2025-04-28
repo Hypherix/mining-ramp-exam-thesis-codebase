@@ -20,6 +20,15 @@ public class Agent {
         }
     }
 
+    // Copy constructor
+    public Agent(Agent other) {
+        this.id = other.id;
+        this.velocity = other.velocity;
+        this.direction = other.direction;
+        this.higherPrio = other.higherPrio;
+    }
+
+
     // Methods
     @Override
     public boolean equals(Object o) {

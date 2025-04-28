@@ -17,6 +17,14 @@ public class UpDownNeighbourList {
         this.DownNeighbours = new ArrayList<>();
     }
 
+    // Copy constructor
+    public UpDownNeighbourList(UpDownNeighbourList other) {
+        this.UpNeighbours = new ArrayList<>(other.UpNeighbours);
+        this.DownNeighbours = new ArrayList<>(other.DownNeighbours);
+        this.allNeighboursUnique = new ArrayList<>(other.allNeighboursUnique);
+    }
+
+
     // Methods
     public ArrayList<Integer> getUpNeighbours() {
         return this.UpNeighbours;

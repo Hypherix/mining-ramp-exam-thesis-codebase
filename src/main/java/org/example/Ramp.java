@@ -76,6 +76,47 @@ public class Ramp {
         printRampStructure();
     }
 
+    // Copy constructor
+    public Ramp(Ramp other) {
+        // Copy primitives
+        this.rampLength = other.rampLength;
+        this.surfaceQLength = other.surfaceQLength;
+        this.undergroundQLength = other.undergroundQLength;
+        this.verticesInRamp = other.verticesInRamp;
+        this.surfaceQFree = other.surfaceQFree;
+        this.undergroundQFree = other.undergroundQFree;
+        this.surfaceStart = other.surfaceStart;
+        this.undergroundStart = other.undergroundStart;
+        this.surfaceExit = other.surfaceExit;
+        this.undergroundExit = other.undergroundExit;
+
+        // Copy arrays
+        this.passBaysAdjVertex = Arrays.copyOf(other.passBaysAdjVertex, other.passBaysAdjVertex.length);
+
+        // Copy ArrayLists
+        this.verticesInSurfaceQ = new ArrayList<>(other.verticesInSurfaceQ);
+        this.verticesInActualRamp = new ArrayList<>(other.verticesInActualRamp);
+        this.verticesInUndergroundQ = new ArrayList<>(other.verticesInUndergroundQ);
+        this.passingBays = new ArrayList<>(other.passingBays);
+        this.verticesInPassingBays = new ArrayList<>(other.verticesInPassingBays);
+
+        // Special: ArrayList of ArrayLists
+        this.passingBayVertices = new ArrayList<>();
+        for (ArrayList<Integer> innerList : other.passingBayVertices) {
+            this.passingBayVertices.add(new ArrayList<>(innerList));
+        }
+
+        // Copy HashMaps
+        this.adjList = new HashMap<>();
+        for (Map.Entry<Integer, UpDownNeighbourList> entry : other.adjList.entrySet()) {
+            this.adjList.put(entry.getKey(), new UpDownNeighbourList(entry.getValue()));
+        }
+
+        this.hUpgoing = new HashMap<>(other.hUpgoing);
+        this.hDowngoing = new HashMap<>(other.hDowngoing);
+    }
+
+
     // Methods
     private void printAdjList() {
         // Task: Print the adjacency list

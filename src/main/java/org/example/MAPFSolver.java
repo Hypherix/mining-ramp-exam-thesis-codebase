@@ -57,6 +57,18 @@ public class MAPFSolver {
 
                 ArrayList<MAPFState> currentSolutionStates = currentSolution.getSolutionSet();
 
+                // TODO: Check if timeStep > currentSolutionStates.size(). If so, create as many identical states as the last
+                //  state until currentSolutionStates.size() == timeStep
+
+                int previousSolutionLength = currentSolutionStates.size();
+
+                if(timeStep >= currentSolutionStates.size()) {
+                    int difference = timeStep - currentSolutionStates.size() + 1;
+                    MAPFState lastSolutionState = currentSolutionStates.getLast();
+                    for (int i = 0; i < difference; i++) {
+                        currentSolutionStates.add(new MAPFState(lastSolutionState));
+                    }
+                }
                 currentSolutionStates.subList(timeStep + 1, currentSolutionStates.size()).clear();
 
                 // Generate a new initialState and update MAPFScenario
