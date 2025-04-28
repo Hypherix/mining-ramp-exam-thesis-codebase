@@ -19,9 +19,33 @@ public class ICTS implements MAPFAlgorithm {
     }
 
     // Methods
-    private MDD createMDD(MAPFSolution solution) {
+    private int getLocationFromAgentLocations(HashMap<Agent, Integer> agentLocations) {
+        // Task: From agentLocations with ONE entry, get the location
+
+        Collection<Integer> location = agentLocations.values();
+        return location.iterator().next();
+    }
+
+    private MDD createMDDFromPath(MAPFSolution solution) {
         // Task: From a solution path, generate an MDD from it
-        
+
+        // Get the start vertex location.
+        ArrayList<MAPFState> solutionSet = solution.getSolutionSet();
+        MAPFState startState = solutionSet.getFirst();
+        HashMap<Agent, Integer> agentLocations = startState.getAgentLocations();
+        int startVertex = getLocationFromAgentLocations(agentLocations);     // Works since startValue always only holds one value
+
+        MDDNode root = new MDDNode(startVertex);
+        MDDNode currentNode = root;
+
+        // Build the MDD by going through the solution path locations
+        for(int i = 1; i < solution.getSolutionSet().size(); i++) {
+            MAPFState currentState = solutionSet.get(i);
+            int location = getLocationFromAgentLocations(agentLocations);
+            currentNode.children.add(new MDDNode(location));
+
+            currentNode = currentNode.children.getFirst();
+        }
     }
 
     private void generateChildren(ICTNode parent) {
@@ -70,10 +94,10 @@ public class ICTS implements MAPFAlgorithm {
 
         // Generate MDDs from the independent solutions
         for(MAPFSolution initialSolution : initialSolutions) {
-            root.agentPaths.addLast(createMDD(initialSolution));
+            root.agentPaths.addLast(createMDDFromPath(initialSolution));
         }
 
-        // Create children
+        // Create ICT child nodes
         generateChildren(root);
 
         return null;
