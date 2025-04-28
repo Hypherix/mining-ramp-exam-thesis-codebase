@@ -23,8 +23,6 @@ public class MAPFScenario {
     private int duration;       // Specifies the latest timeStep at which new agents can enter
     private int totalAgentCount;
 
-    // Key = timeStep where the agents are entering the scenario
-    // Value = [start location, velocity] for each of the entering agents
     private AgentEntries agentEntries;
 
 

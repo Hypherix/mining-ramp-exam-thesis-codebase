@@ -8,7 +8,7 @@ package org.example;
 public class ICT {
 
     // Data members
-    ICTNode root;
+    private ICTNode root;
 
 
     // Constructors
@@ -16,6 +16,16 @@ public class ICT {
         this.root = root;
     }
 
-    // Methods
+    public ICT() {
+        root = new ICTNode();
+    }
 
+    // Methods
+    public ICTNode getRoot() {
+        return this.root;
+    }
+
+    public void setRoot(ICTNode root) {
+        this.root = root;
+    }
 }

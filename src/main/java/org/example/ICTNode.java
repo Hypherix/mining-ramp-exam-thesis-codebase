@@ -12,13 +12,14 @@ import java.util.ArrayList;
 public class ICTNode {
 
     // Data members
-    ArrayList<Integer> costVector;
-    ArrayList<MDD> agentPaths;
-    ArrayList<ICTNode> children;
+    // Change to private?
+    public ArrayList<Integer> costVector;
+    public ArrayList<MDD> agentPaths;
+    public ArrayList<ICTNode> children;
 
 
     // Constructors
-
+    public ICTNode() { }
 
     // Methods
 

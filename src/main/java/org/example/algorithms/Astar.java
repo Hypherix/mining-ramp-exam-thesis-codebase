@@ -413,7 +413,6 @@ public class Astar implements MAPFAlgorithm {
         int undergroundStart = scenario.fetchUndergroundStart();
         int surfaceExit = scenario.fetchSurfaceExit();
         int undergroundExit = scenario.fetchUndergroundExit();
-        int actualRampLength = scenario.fetchRampLength();
         ArrayList<Integer> verticesInSurfaceQ = scenario.fetchVerticesInSurfaceQ();
         ArrayList<Integer> verticesInUndergroundQ = scenario.fetchVerticesInUndergroundQ();
         ArrayList<Integer> verticesInPassingBays = scenario.fetchVerticesInPassingBays();

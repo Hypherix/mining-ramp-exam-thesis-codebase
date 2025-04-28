@@ -46,11 +46,42 @@ public class Main {
 
         // Duration specifies the latest timeStep at which new agents can enter
         MAPFScenario scenario = new MAPFScenario(myRamp, agentEntries, 20);
-        MAPFSolver solver = new MAPFSolver(scenario, "astar");
-        solver.solve();
 
-        long endTime = System.nanoTime();
-        long duration = endTime - startTime;
+        // A*
+        /*
+        MAPFSolver solverAStar = new MAPFSolver(scenario, "astar");
+        solverAStar.solve();
+
+        long endTimeAStar = System.nanoTime();
+        long duration = endTimeAStar - startTime;
         System.out.println("\nExecution time: " + (duration / 1000000.0) + " ms");
+        */
+
+        // ICTS
+        HashMap<Integer, Agent> agentList2 = new HashMap<>();
+        AgentEntries agentEntries2 = new AgentEntries();
+        for(int i = 0; i < 4; i++) {
+            Agent agent2;
+            if(i % 2 == 0) {
+                agent2 = new Agent(i, 1, Constants.DOWN);
+            }
+            else {
+                agent2 = new Agent(i, 1, Constants.UP);
+            }
+            agentList2.put(agent2.id, agent2);
+            agentEntries2.addEntry(0, agent2);
+        }
+
+        MAPFScenario scenario2 = new MAPFScenario(myRamp, agentEntries2, 20);
+
+
+        MAPFSolver solverICTS = new MAPFSolver(scenario2, "ICTS");
+        solverICTS.solve();
+
+        long endTimeICTS = System.nanoTime();
+        long duration = endTimeICTS - startTime;
+        System.out.println("\nExecution time: " + (duration / 1000000.0) + " ms");
+
+
     }
 }

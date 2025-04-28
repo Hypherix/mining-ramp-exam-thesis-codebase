@@ -22,7 +22,7 @@ public class MAPFSolution {
 
     // Methods
 
-    public void printSolution() {
+    public void printSolution(boolean initial) {
         // Task: Print the paths of each agent
 
         HashMap<Agent, ArrayList<String>> agentPaths = new HashMap<>();
@@ -101,9 +101,11 @@ public class MAPFSolution {
             cost++;
         }
 
-        System.out.println("Solution cost: " + cost);
-        System.out.println("Generated states (possibly added to frontier): " + generatedStates);
-        System.out.println("Expanded states (polled from frontier): " + expandedStates);
+        if(!initial) {
+            System.out.println("Solution cost: " + cost);
+            System.out.println("Generated states (possibly added to frontier): " + generatedStates);
+            System.out.println("Expanded states (polled from frontier): " + expandedStates);
+        }
     }
 
     public ArrayList<MAPFState> getSolutionSet() {
@@ -112,5 +114,9 @@ public class MAPFSolution {
 
     public void setSolutionSet(ArrayList<MAPFState> solutionSet) {
         this.solutionSet = solutionSet;
+    }
+
+    public int getCost() {
+        return this.cost;
     }
 }
