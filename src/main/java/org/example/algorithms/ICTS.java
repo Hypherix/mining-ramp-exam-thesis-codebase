@@ -19,13 +19,32 @@ public class ICTS implements MAPFAlgorithm {
     }
 
     // Methods
-    private ArrayList<Integer> generateInitialSolutionCosts(
-            MAPFState initialState, HashMap<Agent, Integer> agentLocations) {
-        // Task: Given the initial agent locations, generate independent optimal paths
-        // and return their costs
+    private MDD createMDD(MAPFSolution solution) {
+        // Task: From a solution path, generate an MDD from it
+        
+    }
 
+    private void generateChildren(ICTNode parent) {
+        // Task: Given a parent node, generate child nodes
+
+        // TODO: https://chatgpt.com/c/680f84ab-e578-800b-9db8-7c3913d06f51
+    }
+
+    @Override
+    public MAPFSolution solve(MAPFScenario scenario) {
+
+        ArrayList<MAPFState> solution = new ArrayList<>();
+        ICTNode root = this.tree.getRoot();
+
+        // Run A* on each agent as if they were alone in the scenario
+        MAPFState initialState = scenario.getInitialState();
+        HashMap<Agent, Integer> agentLocations = initialState.getAgentLocations();
         ArrayList<Integer> initialOptimalCosts = new ArrayList<>();
+        ArrayList<MAPFSolution> initialSolutions = new ArrayList<>();
 
+        System.out.println("Initial independent solution paths:");
+
+        // Create a scenario for each initial agent and get their independent optimal solutions
         for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
             Agent agent = entry.getKey();
             Integer location = entry.getValue();
@@ -42,35 +61,17 @@ public class ICTS implements MAPFAlgorithm {
                     initialState.getRamp(), initialAgentEntries, 1);
             MAPFAlgorithm aStarSingle = AlgorithmFactory.getAlgorithm("astar");
             MAPFSolution initialSolution = aStarSingle.solve(initialScenario);
-            initialSolution.printSolution(true);
+            initialSolutions.add(initialSolution);
             initialOptimalCosts.add(initialSolution.getCost());
+            initialSolution.printSolution(true);
         }
-        return initialOptimalCosts;
-    }
 
-    private void generateChildren(ICTNode parent) {
-        // Task: Given a parent node, generate child nodes
+        root.costVector = initialOptimalCosts;
 
-        // TODO
-    }
-
-    @Override
-    public MAPFSolution solve(MAPFScenario scenario) {
-
-        ArrayList<MAPFState> solution = new ArrayList<>();
-        ICTNode root = this.tree.getRoot();
-
-        // Run A* on each agent as if they were alone in the scenario
-        MAPFState initialState = scenario.getInitialState();
-        HashMap<Agent, Integer> agentLocations = initialState.getAgentLocations();
-
-        System.out.println("Initial independent solution paths:");
-
-        // Create a scenario for each initial agent and get their independent optimal solutions
-        root.costVector = generateInitialSolutionCosts(initialState, agentLocations);
-
-        // Generate MDDs for each initial independent solution
-
+        // Generate MDDs from the independent solutions
+        for(MAPFSolution initialSolution : initialSolutions) {
+            root.agentPaths.addLast(createMDD(initialSolution));
+        }
 
         // Create children
         generateChildren(root);

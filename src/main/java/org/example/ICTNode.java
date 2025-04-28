@@ -19,7 +19,10 @@ public class ICTNode {
 
 
     // Constructors
-    public ICTNode() { }
+    public ICTNode() {
+        this.agentPaths = new ArrayList<>();
+        this.children = new ArrayList<>();
+    }
 
     // Methods
 
