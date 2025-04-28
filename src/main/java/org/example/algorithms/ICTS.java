@@ -39,13 +39,23 @@ public class ICTS implements MAPFAlgorithm {
         MDDNode currentNode = root;
 
         // Build the MDD by going through the solution path locations
-        for(int i = 1; i < solution.getSolutionSet().size(); i++) {
+        for(int i = 1; i < solutionSet.size(); i++) {
             MAPFState currentState = solutionSet.get(i);
+            agentLocations = currentState.getAgentLocations();
             int location = getLocationFromAgentLocations(agentLocations);
             currentNode.children.add(new MDDNode(location));
 
             currentNode = currentNode.children.getFirst();
         }
+
+        return new MDD(root);
+    }
+
+    private boolean isGoalNode(ICTNode node) {
+        // Task: Given an ICT node, check its agent MDDs for a solution
+
+        // Create joint MDD. Use JointMDD and JointMDDNode classes. Read ICTS paper
+        return false;
     }
 
     private void generateChildren(ICTNode parent) {
@@ -73,21 +83,23 @@ public class ICTS implements MAPFAlgorithm {
             Agent agent = entry.getKey();
             Integer location = entry.getValue();
 
-            // Create agentLocations for the scenario
+            // Create initialState for the scenario
             HashMap<Agent, Integer> initialAgentLocation = new HashMap<>();
             initialAgentLocation.put(agent, location);
+            MAPFState singleInitialState = new MAPFState(
+                    initialState.getRamp(), initialAgentLocation, 0);
 
             // Create agentEntries for the scenario
-            AgentEntries initialAgentEntries = new AgentEntries();
-            initialAgentEntries.addEntry(0, agent);
+//            AgentEntries initialAgentEntries = new AgentEntries();
+//            initialAgentEntries.addEntry(0, agent);
 
             MAPFScenario initialScenario = new MAPFScenario(
-                    initialState.getRamp(), initialAgentEntries, 1);
+                    initialState.getRamp(), singleInitialState, 1);
             MAPFAlgorithm aStarSingle = AlgorithmFactory.getAlgorithm("astar");
             MAPFSolution initialSolution = aStarSingle.solve(initialScenario);
+            initialSolution.printSolution(true);
             initialSolutions.add(initialSolution);
             initialOptimalCosts.add(initialSolution.getCost());
-            initialSolution.printSolution(true);
         }
 
         root.costVector = initialOptimalCosts;
@@ -97,7 +109,16 @@ public class ICTS implements MAPFAlgorithm {
             root.agentPaths.addLast(createMDDFromPath(initialSolution));
         }
 
-        // Create ICT child nodes
+        // Check if root is goal node, i.e. if a join solution can be found from MDDs
+        if(isGoalNode(root)) {
+            // TODO NEXT: As it stands now, isGoalNode() returns true/false. However, as it determines this
+            //  it must generate joint solutions if they exist. We want to retrieve these solutions.
+            //  Thus: perhaps change the return type of isGoalNode(). But having it as a boolean looks good
+            //  so that the if check can be made
+            // Return solution etc (see Astar)
+        }
+
+        // If not a goal node, create ICT child nodes
         generateChildren(root);
 
         return null;

@@ -33,6 +33,17 @@ public class MAPFScenario {
         generateInitialState(0);
     }
 
+    public MAPFScenario(Ramp ramp, MAPFState initialState, int duration) {
+        // Used in ICTS since initialState is provided with known agentLocations
+        // This constructor is only used for the ICTS root ICT node
+
+        this.ramp = ramp;
+        this.initialState = initialState;
+        this.agentEntries = null;
+        this.duration = duration;
+        this.totalAgentCount = initialState.getAgentLocations().size();
+    }
+
 
     // Methods
 
