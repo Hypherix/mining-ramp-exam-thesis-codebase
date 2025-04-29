@@ -3,7 +3,7 @@ package org.example;
 public class MDD {
 
     // Data members
-    private MDDNode root;
+    public MDDNode root;
 
     // Constructors
     public MDD(MDDNode root) {
@@ -11,5 +11,8 @@ public class MDD {
     }
 
     // Methods
+    public int getRootVertex() {
+        return this.root.vertex;
+    }
 
 }

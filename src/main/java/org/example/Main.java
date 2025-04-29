@@ -60,7 +60,7 @@ public class Main {
         // ICTS
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
         AgentEntries agentEntries2 = new AgentEntries();
-        for(int i = 0; i < 4; i++) {
+        for(int i = 0; i < 1; i++) {
             Agent agent2;
             if(i % 2 == 0) {
                 agent2 = new Agent(i, 1, Constants.DOWN);
