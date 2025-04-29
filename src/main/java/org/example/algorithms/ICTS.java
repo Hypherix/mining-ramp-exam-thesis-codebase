@@ -12,7 +12,8 @@ import java.util.stream.Collectors;
 public class ICTS implements MAPFAlgorithm {
 
     // Data members
-    ICT tree;
+    private ICT tree;
+    private int numOfAgents;
 
     // Constructors
     public ICTS() {
@@ -119,11 +120,11 @@ public class ICTS implements MAPFAlgorithm {
         for (MDDNode child : childrenLists.get(depth)) {    // For the current agent, try next child
             partial.add(child);
             generateJointChildren(childrenLists, depth + 1, partial, previous, queue, visited, parentMap);
-            partial.remove(partial.size() - 1);     // Remove latest child to backtrack and continue
+            partial.removeLast();     // Remove latest child to backtrack and continue
         }
     }
 
-    private ArrayList<ArrayList<Integer>> isGoalNode(ICTNode ictNode, int surfaceExit, int undergroundExit) {
+    private ArrayList<ArrayList<Integer>> MDDToSolutionPaths(ICTNode ictNode, int surfaceExit, int undergroundExit) {
         // Task: Given an ICT node, check its agent MDDs for a solution
 
         ArrayList<MDD> rootMDDs = ictNode.agentPaths;
@@ -155,6 +156,7 @@ public class ICTS implements MAPFAlgorithm {
                     break;
                 }
             }
+
             if(goalNode) {      // Could be moved to the if statement in the for each loop above
 
                 // Reconstruct the solution path
@@ -162,7 +164,7 @@ public class ICTS implements MAPFAlgorithm {
                 String key = encodeVertexList(currentNodes.stream().map(n -> n.vertex).collect(Collectors.toList()));
                 
                 while(key != null) {
-                    solutionPath.add(0, currentNodes);
+                    solutionPath.addFirst(currentNodes);
                     ArrayList<MDDNode> parent = parentMap.get(key);
                     if (parent == null) {
                         break;
@@ -198,7 +200,6 @@ public class ICTS implements MAPFAlgorithm {
             // built on (which for that iteration is the current)
             generateJointChildren(childrenLists, 0, new ArrayList<>(), currentNodes, queue, visited, parentMap);
         }
-
 
         // If no goal node is found, return null as the agentPaths
         return null;
@@ -251,13 +252,30 @@ public class ICTS implements MAPFAlgorithm {
     private void generateChildren(ICTNode parent) {
         // Task: Given a parent node, generate child nodes
 
-        // TODO: https://chatgpt.com/c/680f84ab-e578-800b-9db8-7c3913d06f51
+        ArrayList<Integer> costVector = parent.costVector;
+        for (int i = 0; i < costVector.size(); i++) {
+            ArrayList<Integer> childCostVector = new ArrayList<>(costVector);
+            childCostVector.set(i, childCostVector.get(i) + 1);
+
+            if(!this.tree.getAllCostVectors().contains(childCostVector)) {
+                ICTNode child = new ICTNode();
+                child.costVector = childCostVector;
+
+                parent.children.add(child);
+
+                this.tree.addCostVector(childCostVector);
+
+                continue;
+            }
+
+            System.out.println("ICT child node with cost vector " + childCostVector + " was pruned");
+        }
     }
 
     @Override
     public MAPFSolution solve(MAPFScenario scenario) {
 
-        ICTNode root = this.tree.getRoot();
+        ICTNode root = new ICTNode();
 
         int accumulatedGeneratedStates = 0;
         int accumulatedExpandedStates = 0;
@@ -293,6 +311,9 @@ public class ICTS implements MAPFAlgorithm {
         }
 
         root.costVector = initialOptimalCosts;
+        this.tree.addCostVector(root.costVector);
+        this.tree.setRoot(root);
+
 
         // Generate MDDs from the independent solutions
         for(MAPFSolution initialSolution : initialSolutions) {
@@ -303,27 +324,40 @@ public class ICTS implements MAPFAlgorithm {
         int undergroundExit = initialState.getRamp().getUndergroundExit();
 
         // Check if root is goal node, i.e. if a join solution can be found from MDDs
-        ArrayList<ArrayList<Integer>> solutionPaths = isGoalNode(root, surfaceExit, undergroundExit);
+        ArrayList<ArrayList<Integer>> solutionPaths = MDDToSolutionPaths(root, surfaceExit, undergroundExit);
 
         if(solutionPaths != null) {
-            // TODO NEXT: As it stands now, isGoalNode() returns true/false. However, as it determines this
-            //  it must generate joint solutions if they exist. We want to retrieve these solutions.
-            //  Thus: perhaps change the return type of isGoalNode(). But having it as a boolean looks good
-            //  so that the if check can be made
-            // Return solution etc (see Astar)
-
             ArrayList<MAPFState> solution = buildSolution(scenario, solutionPaths);
 
-            MAPFSolution completeSiluation = new MAPFSolution(solution, accumulatedGeneratedStates, accumulatedExpandedStates);
+            MAPFSolution completeSolution = new MAPFSolution(solution, accumulatedGeneratedStates, accumulatedExpandedStates);
 
             System.out.println("Goal node found!");
 
-            return completeSiluation;
+            return completeSolution;
         }
-        System.out.println("Current node is not a goal node");
 
         // If not a goal node, create ICT child nodes
         generateChildren(root);
+
+        // Create an ICT queue from which nodes up for checking are retrieved
+        Queue<ICTNode> queue = new LinkedList<>(root.children);
+
+        // Search through the ICT until a goal node is found
+        while(!queue.isEmpty()) {
+            ICTNode currentNode = queue.poll();
+
+            // Generate an MDD for each agent i, imposing all costVector.get(i) possible actions
+            // Run BFS for x moves only and return the solution. Then call createMDDFromPath() to get MDD
+            for (int i = 0; i < currentNode.costVector.size(); i++) {
+                /*
+                *   TODO NEXT: Create a BFS method. It takes the ramp, agent start location, and goal location.
+                *    Try all x action combinations and record the end location. If end location == goal location
+                *    save the path, create a MAPFSolution for it, and run createMDDFromPath() to get MDD
+                */
+
+
+            }
+        }
 
         return null;
     }

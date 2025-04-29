@@ -139,7 +139,7 @@ public class Astar implements MAPFAlgorithm {
         HashMap<Agent, ArrayList<Integer>> agentMoves = new HashMap<>();
 
         // Go through each agent, its location, and get all neighbours from adjList IN THE RAMP
-        for(Map.Entry<Agent, Integer> entry : agentLocations/*InRamp*/.entrySet()) {    // TODO: TA BORT KOMMENTERAT OM QUEUES HANTERAS KORREKT
+        for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
             Agent agent = entry.getKey();
             Integer vertex = entry.getValue();
 
