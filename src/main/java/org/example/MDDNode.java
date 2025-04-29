@@ -7,6 +7,7 @@ public class MDDNode {
     // Data members
     public int vertex;
     public ArrayList<MDDNode> children;
+    public MDDNode parent;
 
     // Constructors
     public MDDNode(int vertex) {

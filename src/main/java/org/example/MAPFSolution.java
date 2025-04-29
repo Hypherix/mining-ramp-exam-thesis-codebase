@@ -119,4 +119,12 @@ public class MAPFSolution {
     public int getCost() {
         return this.cost;
     }
+
+    public int getGeneratedStates() {
+        return this.generatedStates;
+    }
+
+    public int getExpandedStates() {
+        return this.expandedStates;
+    }
 }
