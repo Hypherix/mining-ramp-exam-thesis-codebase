@@ -6,7 +6,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /*
-*
+* TODO CURRENT: Run main and compare ICTS solution to A*. a0 in ICTS does not end up in goal for some reason.
+*  Debug and find out why. Cost of the solution does not align either.
 * */
 
 public class ICTS implements MAPFAlgorithm {
@@ -29,7 +30,7 @@ public class ICTS implements MAPFAlgorithm {
     }
 
     private MDD createMDDFromPath(MAPFSolution solution) {
-        // Task: From a solution path, generate an MDD from it
+        // Task: From a solution path, generate an MDD of it
 
         // Get the start vertex location.
         ArrayList<MAPFState> solutionSet = solution.getSolutionSet();
@@ -54,6 +55,23 @@ public class ICTS implements MAPFAlgorithm {
         }
 
         return new MDD(root);
+    }
+
+    private void generateMDDCombinations(
+            ArrayList<ArrayList<MDD>> mddOptionsPerAgent, int depth,
+            ArrayList<MDD> current, ArrayList<ArrayList<MDD>> result) {
+        // Task: From multiple arrayLists of MDDs, generate all MDD combinations
+
+        if(depth == mddOptionsPerAgent.size()) {
+            result.add(new ArrayList<>(current));
+            return;
+        }
+
+        for (MDD mdd : mddOptionsPerAgent.get(depth)) {
+            current.add(mdd);
+            generateMDDCombinations(mddOptionsPerAgent, depth + 1, current, result);
+            current.removeLast();
+        }
     }
 
     private String encodeVertexList(List<Integer> vertices) {
@@ -127,79 +145,87 @@ public class ICTS implements MAPFAlgorithm {
     private ArrayList<ArrayList<Integer>> MDDToSolutionPaths(ICTNode ictNode, int surfaceExit, int undergroundExit) {
         // Task: Given an ICT node, check its agent MDDs for a solution
 
-        ArrayList<MDD> rootMDDs = ictNode.agentPaths;
+        ArrayList<ArrayList<MDD>> rootMDDs = ictNode.agentPaths;
         int numOfAgents = rootMDDs.size();
 
-        // Initial joint MDD states
-        ArrayList<MDDNode> rootNodes = new ArrayList<>();       // Used to access children
-        ArrayList<Integer> rootVertices = new ArrayList<>();    // Used to encode visited joint MDD states
-        for(MDD mdd : rootMDDs) {
-            rootNodes.add(mdd.root);
-            rootVertices.add(mdd.root.vertex);
-        }
+        // Generate all MDD combinations (one MDD per agent in each combination)
+        ArrayList<ArrayList<MDD>> mddCombinations = new ArrayList<>();
+        generateMDDCombinations(rootMDDs, 0, new ArrayList<>(), mddCombinations);
 
-        // Initialise and add first entries to queue and visited
-        Queue<ArrayList<MDDNode>> queue = new LinkedList<>();
-        HashSet<String> visited = new HashSet<>();
-        HashMap<String, ArrayList<MDDNode>> parentMap = new HashMap<>();
-        queue.add(rootNodes);
-        visited.add(encodeVertexList(rootVertices));
-
-        while(!queue.isEmpty()) {
-            ArrayList<MDDNode> currentNodes = queue.poll();
-
-            // Check if all MDDNodes are in exit vertices --> goal node
-            boolean goalNode = false;
-            for(MDDNode mddNode : currentNodes) {
-                if(mddNode.vertex == surfaceExit || mddNode.vertex == undergroundExit) {
-                    goalNode = true;
-                    break;
-                }
+        for(ArrayList<MDD> currentCombination : mddCombinations) {
+            // Initial joint MDD states
+            ArrayList<MDDNode> rootNodes = new ArrayList<>();       // Used to access children
+            ArrayList<Integer> rootVertices = new ArrayList<>();    // Used to encode visited joint MDD states
+            for(MDD mdd : currentCombination) {
+                rootNodes.add(mdd.root);
+                rootVertices.add(mdd.root.vertex);
             }
 
-            if(goalNode) {      // Could be moved to the if statement in the for each loop above
+            // Initialise and add first entries to queue and visited
+            Queue<ArrayList<MDDNode>> queue = new LinkedList<>();
+            HashSet<String> visited = new HashSet<>();
+            HashMap<String, ArrayList<MDDNode>> parentMap = new HashMap<>();
+            queue.add(rootNodes);
+            visited.add(encodeVertexList(rootVertices));
 
-                // Reconstruct the solution path
-                ArrayList<ArrayList<MDDNode>> solutionPath = new ArrayList<>();
-                String key = encodeVertexList(currentNodes.stream().map(n -> n.vertex).collect(Collectors.toList()));
-                
-                while(key != null) {
-                    solutionPath.addFirst(currentNodes);
-                    ArrayList<MDDNode> parent = parentMap.get(key);
-                    if (parent == null) {
+            while(!queue.isEmpty()) {
+                ArrayList<MDDNode> currentNodes = queue.poll();
+
+                // Check if all MDDNodes are in exit vertices --> goal node
+                boolean goalNode = false;
+                for(MDDNode mddNode : currentNodes) {
+                    if(mddNode.vertex == surfaceExit || mddNode.vertex == undergroundExit) {
+                        goalNode = true;
                         break;
                     }
-                    currentNodes = parent;
-                    key = encodeVertexList(currentNodes.stream().map(n -> n.vertex).collect(Collectors.toList()));
                 }
 
-                // Convert the solutionPath to agentPaths
-                ArrayList<ArrayList<Integer>> agentPaths = new ArrayList<>();
-                for (int i = 0; i < numOfAgents; i++) {
-                    agentPaths.add(new ArrayList<>());
-                }
+                if(goalNode) {      // Could be moved to the if statement in the for each loop above
 
-                for(ArrayList<MDDNode> path : solutionPath) {
-                    for (int i = 0; i < path.size(); i++) {
-                        agentPaths.get(i).add(path.get(i).vertex);
+                    // Reconstruct the solution path
+                    ArrayList<ArrayList<MDDNode>> solutionPath = new ArrayList<>();
+                    String key = encodeVertexList(currentNodes.stream().map(n -> n.vertex).collect(Collectors.toList()));
+
+                    while(key != null) {
+                        solutionPath.addFirst(currentNodes);
+                        ArrayList<MDDNode> parent = parentMap.get(key);
+                        if (parent == null) {
+                            break;
+                        }
+                        currentNodes = parent;
+                        key = encodeVertexList(currentNodes.stream().map(n -> n.vertex).collect(Collectors.toList()));
                     }
+
+                    // Convert the solutionPath to agentPaths
+                    ArrayList<ArrayList<Integer>> agentPaths = new ArrayList<>();
+                    for (int i = 0; i < numOfAgents; i++) {
+                        agentPaths.add(new ArrayList<>());
+                    }
+
+                    for(ArrayList<MDDNode> path : solutionPath) {
+                        for (int i = 0; i < path.size(); i++) {
+                            agentPaths.get(i).add(path.get(i).vertex);
+                        }
+                    }
+                    return agentPaths;
                 }
-                return agentPaths;
-            }
 
-            // Generate child combinations
-            ArrayList<ArrayList<MDDNode>> childrenLists = new ArrayList<>();
-            for(MDDNode mddNode : currentNodes) {
-                childrenLists.add(mddNode.children);
-            }
+                // Generate child combinations
+                ArrayList<ArrayList<MDDNode>> childrenLists = new ArrayList<>();
+                for(MDDNode mddNode : currentNodes) {
+                    childrenLists.add(mddNode.children);
+                }
 
-            // Get the cartesian/cross product of the children
-            // currentNodes is input as previous, so inside the method, previous will be the current
-            // an empty arrayList is input as partial, so partial is empty and will be built on
-            // this repeats for each recursive call where previous becomes current, and partial is empty and is
-            // built on (which for that iteration is the current)
-            generateJointChildren(childrenLists, 0, new ArrayList<>(), currentNodes, queue, visited, parentMap);
+                // Get the cartesian/cross product of the children
+                // currentNodes is input as previous, so inside the method, previous will be the current
+                // an empty arrayList is input as partial, so partial is empty and will be built on
+                // this repeats for each recursive call where previous becomes current, and partial is empty and is
+                // built on (which for that iteration is the current)
+                generateJointChildren(childrenLists, 0, new ArrayList<>(), currentNodes, queue, visited, parentMap);
+            }
         }
+
+
 
         // If no goal node is found, return null as the agentPaths
         return null;
@@ -278,7 +304,13 @@ public class ICTS implements MAPFAlgorithm {
         ArrayList<Integer> neighbours = new ArrayList<>();
         HashMap<Integer, UpDownNeighbourList> adjList = ramp.getAdjList();
 
-        if(agent.direction == Constants.DOWN) {
+        // If location is an exit, let it be able to stay there (we are happy with paths that get to the goal in
+        // fewer actions specified by the cost
+        if(location == ramp.getSurfaceExit() || location == ramp.getUndergroundExit())
+        {
+            neighbours.add(location);
+        }
+        else if(agent.direction == Constants.DOWN) {
             neighbours = adjList.get(location).getDownNeighbours();
         }
         else {
@@ -307,7 +339,7 @@ public class ICTS implements MAPFAlgorithm {
         }
 
         // Repeat for children for cost number of moves
-        for (int i = 1; i < cost + 1; i++) {
+        for (int i = 1; i < cost; i++) {
             nextLeafGen.clear();
 
             for(BFSTreeNode leaf : leafGen) {
@@ -322,7 +354,7 @@ public class ICTS implements MAPFAlgorithm {
                 }
             }
 
-            leafGen.addAll(nextLeafGen);
+            leafGen = new LinkedList<>(nextLeafGen);
         }
 
         // Get the leaf nodes after cost number of moves
@@ -426,7 +458,9 @@ public class ICTS implements MAPFAlgorithm {
 
         // Generate MDDs from the independent solutions
         for(MAPFSolution initialSolution : initialSolutions) {
-            root.agentPaths.addLast(createMDDFromPath(initialSolution));
+            ArrayList<MDD> agentPath = new ArrayList<>();
+            agentPath.add(createMDDFromPath(initialSolution));
+            root.agentPaths.add(agentPath);
         }
 
         int surfaceExit = initialState.getRamp().getSurfaceExit();
@@ -468,8 +502,10 @@ public class ICTS implements MAPFAlgorithm {
                 save the path, create a MAPFSolution for it, and run createMDDFromPath() to get MDD
             * */
 
-            ArrayList<MAPFSolution> childSolutions;
+            ArrayList<ArrayList<MAPFSolution>> childSolutions = new ArrayList<>();
 
+            // For each agent, get all independent solution paths with a cost specified in
+            // the currentNode costVector
             int iteration = 0;
             for(Map.Entry<Agent, Integer> entry : initialState.getAgentLocations().entrySet()) {
                 Agent agent = entry.getKey();
@@ -478,31 +514,45 @@ public class ICTS implements MAPFAlgorithm {
                 Ramp ramp = initialState.getRamp();
                 int cost = currentNode.costVector.get(iteration);
 
-                childSolutions = getValidSolutions(ramp, agent, location, cost);
-
-                for(MAPFSolution solution : childSolutions) {
-                    currentNode.agentPaths.addLast(createMDDFromPath(solution));
-                }
-
-                // Check if currentNode is a goal node, i.e. if a joint solution can be found from the MDDs
-                solutionPaths = MDDToSolutionPaths(root, surfaceExit, undergroundExit);
-                numOfExploredICTNodes++;
-
-                // Return solution if goal node was found
-                if(solutionPaths != null) {
-                    ArrayList<MAPFState> solution = buildSolution(scenario, solutionPaths);
-
-                    MAPFSolution completeSolution = new MAPFSolution(solution, accumulatedGeneratedStates, accumulatedExpandedStates);
-
-                    System.out.println("Goal node found after " + numOfExploredICTNodes + " ICTNodes were explored!");
-
-                    return completeSolution;
-                }
-
-                // Generate children to the non-goal node and enqueue to ictQueue
-                generateChildren(currentNode);
-                ictQueue.addAll(currentNode.children);
+                // childSolution is added, in one of its elements, all possible solution paths for this agent
+                childSolutions.add(getValidSolutions(ramp, agent, location, cost));
             }
+
+
+            // Add the agent's solutions as an arraylist as one element in the currentNode agentPaths
+
+
+            // Each agent may have multiple possible solution paths. For each set of agent solutions, generate an MDD
+            // and store that MDD in an arrayList. That arrayList is then stored, together with arrayLists of other
+            // agents, in currentNode.agentPaths
+            for(ArrayList<MAPFSolution> solutionsOfOneAgent : childSolutions) {
+                ArrayList<MDD> pathsOfOneAgent = new ArrayList<>();
+
+                for(MAPFSolution solution : solutionsOfOneAgent) {
+                    pathsOfOneAgent.add(createMDDFromPath(solution));
+                }
+
+                currentNode.agentPaths.add(pathsOfOneAgent);
+            }
+
+            // Check if currentNode is a goal node, i.e. if a joint solution can be found from the MDDs
+            solutionPaths = MDDToSolutionPaths(currentNode, surfaceExit, undergroundExit);
+            numOfExploredICTNodes++;
+
+            // Return solution if goal node was found
+            if(solutionPaths != null) {
+                ArrayList<MAPFState> solution = buildSolution(scenario, solutionPaths);
+
+                MAPFSolution completeSolution = new MAPFSolution(solution, accumulatedGeneratedStates, accumulatedExpandedStates);
+
+                System.out.println("Goal node found after " + numOfExploredICTNodes + " ICTNodes were explored!");
+
+                return completeSolution;
+            }
+
+            // Generate children to the non-goal node and enqueue to ictQueue
+            generateChildren(currentNode);
+            ictQueue.addAll(currentNode.children);
         }
 
         return null;

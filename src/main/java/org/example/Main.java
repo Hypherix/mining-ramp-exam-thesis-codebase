@@ -78,6 +78,9 @@ public class Main {
         MAPFSolver solverICTS = new MAPFSolver(scenario2, "ICTS");
         solverICTS.solve();
 
+        MAPFSolver solverAstar = new MAPFSolver(scenario2, "astar");
+        solverAstar.solve();
+
         long endTimeICTS = System.nanoTime();
         long duration = endTimeICTS - startTime;
         System.out.println("\nExecution time: " + (duration / 1000000.0) + " ms");

@@ -187,9 +187,6 @@ public class Astar implements MAPFAlgorithm {
         return agentMoves;
     }
 
-    // TODO: CURRENT PROBLEM: All agents in queue are checked, if an agent is in the first queue vertex, it should not be
-    //  included. It should instead be treated as a normal vertex! Thus, exclude that agent from special treatment
-
     private ArrayList<HashMap<Agent, Integer>> removeInvalidMoveCombinations(ArrayList<HashMap<Agent, Integer>> moveCombinations,
                                                HashMap<Agent, Integer> agentLocations,
                                                ArrayList<Integer> verticesInSurfaceQ,

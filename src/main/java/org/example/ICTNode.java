@@ -14,7 +14,7 @@ public class ICTNode {
     // Data members
     // Change to private?
     public ArrayList<Integer> costVector;
-    public ArrayList<MDD> agentPaths;
+    public ArrayList<ArrayList<MDD>> agentPaths;
     public ArrayList<ICTNode> children;
 
 

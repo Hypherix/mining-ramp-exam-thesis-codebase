@@ -274,7 +274,6 @@ public class Ramp {
             addDownEdge(verticesInRamp, verticesInRamp + 1);
             addUpEdge(verticesInRamp + 1, verticesInRamp);
             addDownEdge(verticesInRamp + 1, surfaceQLength + passBays[currentPassBay]);
-            addUpEdge(surfaceQLength + passBays[currentPassBay], verticesInRamp + 1);
 
             this.verticesInPassingBays.add(verticesInRamp);
             this.verticesInPassingBays.add(verticesInRamp + 1);
