@@ -495,7 +495,7 @@ public class Ramp {
     }
 
 
-    HashMap<Integer, UpDownNeighbourList> getAdjList() {
+    public HashMap<Integer, UpDownNeighbourList> getAdjList() {
         return this.adjList;
     }
 

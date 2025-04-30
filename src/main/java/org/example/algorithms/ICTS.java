@@ -272,6 +272,114 @@ public class ICTS implements MAPFAlgorithm {
         }
     }
 
+    private ArrayList<Integer> getNeighbours(Ramp ramp, Agent agent, int location) {
+        // Task: Return all eligible neighbour locations for a location/vertex
+
+        ArrayList<Integer> neighbours = new ArrayList<>();
+        HashMap<Integer, UpDownNeighbourList> adjList = ramp.getAdjList();
+
+        if(agent.direction == Constants.DOWN) {
+            neighbours = adjList.get(location).getDownNeighbours();
+        }
+        else {
+            neighbours = adjList.get(location).getUpNeighbours();
+        }
+
+        return neighbours;
+    }
+
+    private ArrayList<MAPFSolution> getValidSolutions(Ramp ramp, Agent agent, int startLocation, int cost) {
+        // Return all paths with the specified cost that leads to goal
+
+        // Initialise with root
+        BFSTreeNode root = new BFSTreeNode(startLocation);
+        ArrayList<Integer> possibleLocations = new ArrayList<>();
+        possibleLocations = getNeighbours(ramp, agent, startLocation);
+
+        Queue<BFSTreeNode> leafGen = new LinkedList<>();
+        ArrayList<BFSTreeNode> nextLeafGen = new ArrayList<>();
+
+        for(Integer location : possibleLocations) {
+            BFSTreeNode child = new BFSTreeNode(location);
+            child.parent = root;
+            root.children.add(child);
+            leafGen.add(child);
+        }
+
+        // Repeat for children for cost number of moves
+        for (int i = 1; i < cost + 1; i++) {
+            nextLeafGen.clear();
+
+            for(BFSTreeNode leaf : leafGen) {
+                possibleLocations = getNeighbours(ramp, agent, leaf.location);
+
+                for (Integer location : possibleLocations) {
+                    BFSTreeNode child = new BFSTreeNode(location);
+                    child.parent = leaf;
+                    leaf.children.add(child);
+
+                    nextLeafGen.add(child);
+                }
+            }
+
+            leafGen.addAll(nextLeafGen);
+        }
+
+        // Get the leaf nodes after cost number of moves
+        ArrayList<BFSTreeNode> finalLeafGen = new ArrayList<>(leafGen);
+
+        // Get the goal location
+        int goalLocation;
+        if(agent.direction == Constants.DOWN) {
+            goalLocation = ramp.getUndergroundExit();
+        }
+        else {
+            goalLocation = ramp.getSurfaceExit();
+        }
+
+        // Remove all who do not end up in the goal location
+        for (int i = finalLeafGen.size() - 1; i >= 0; i--) {
+            if (finalLeafGen.get(i).location != goalLocation) {
+                finalLeafGen.remove(i);
+            }
+        }
+
+        // Generate a MAPFSolution for each path to goal found
+        ArrayList<MAPFSolution> allSolutions = new ArrayList<>();
+
+        for(int i = 0; i < finalLeafGen.size(); i++) {
+            ArrayList<MAPFState> solutionStates = new ArrayList<>();
+
+            BFSTreeNode current = finalLeafGen.get(i);
+
+            int depth = cost;
+            while(current != null) {
+                // Create a MAPFState of the current situation
+                HashMap<Agent, Integer> agentLocations = new HashMap<>();
+                agentLocations.put(agent, current.location);
+                int gcost = depth--;
+                MAPFState state = new MAPFState(ramp, agentLocations, gcost);
+
+                // Add the state to the solution set
+                solutionStates.add(state);
+
+                // Keep climbing
+                current = current.parent;
+            }
+
+            // Reverse the solution set to get it from root to leaf
+            Collections.reverse(solutionStates);
+
+            // Create a MAPFSolution from the solutionStates
+            MAPFSolution oneSolution = new MAPFSolution(solutionStates, 0, 0);
+
+            // Add the solution to allSolutions
+            allSolutions.add(oneSolution);
+        }
+
+        return allSolutions;
+    }
+
     @Override
     public MAPFSolution solve(MAPFScenario scenario) {
 
@@ -279,6 +387,7 @@ public class ICTS implements MAPFAlgorithm {
 
         int accumulatedGeneratedStates = 0;
         int accumulatedExpandedStates = 0;
+        int numOfExploredICTNodes = 0;
 
         // Run A* on each agent as if they were alone in the scenario
         MAPFState initialState = scenario.getInitialState();
@@ -323,15 +432,19 @@ public class ICTS implements MAPFAlgorithm {
         int surfaceExit = initialState.getRamp().getSurfaceExit();
         int undergroundExit = initialState.getRamp().getUndergroundExit();
 
-        // Check if root is goal node, i.e. if a join solution can be found from MDDs
+        // TODO Optimisation? Run MDDToSolutionPaths() on each pair of agents. If one of them do not return
+        //  a solution, dont bother with generating a solution for the whole ICTNode
+
+        // Check if root is goal node, i.e. if a joint solution can be found from the MDDs
         ArrayList<ArrayList<Integer>> solutionPaths = MDDToSolutionPaths(root, surfaceExit, undergroundExit);
+        numOfExploredICTNodes++;
 
         if(solutionPaths != null) {
             ArrayList<MAPFState> solution = buildSolution(scenario, solutionPaths);
 
             MAPFSolution completeSolution = new MAPFSolution(solution, accumulatedGeneratedStates, accumulatedExpandedStates);
 
-            System.out.println("Goal node found!");
+            System.out.println("Goal node found after " + numOfExploredICTNodes + " ICTNodes were explored!");
 
             return completeSolution;
         }
@@ -339,23 +452,56 @@ public class ICTS implements MAPFAlgorithm {
         // If not a goal node, create ICT child nodes
         generateChildren(root);
 
-        // Create an ICT queue from which nodes up for checking are retrieved
-        Queue<ICTNode> queue = new LinkedList<>(root.children);
+        // Create an ICT ictQueue from which nodes up for checking are retrieved
+        Queue<ICTNode> ictQueue = new LinkedList<>(root.children);
 
         // Search through the ICT until a goal node is found
-        while(!queue.isEmpty()) {
-            ICTNode currentNode = queue.poll();
+        while(!ictQueue.isEmpty()) {
+            ICTNode currentNode = ictQueue.poll();
+            int numOfAgents = currentNode.costVector.size();
 
             // Generate an MDD for each agent i, imposing all costVector.get(i) possible actions
             // Run BFS for x moves only and return the solution. Then call createMDDFromPath() to get MDD
-            for (int i = 0; i < currentNode.costVector.size(); i++) {
-                /*
-                *   TODO NEXT: Create a BFS method. It takes the ramp, agent start location, and goal location.
-                *    Try all x action combinations and record the end location. If end location == goal location
-                *    save the path, create a MAPFSolution for it, and run createMDDFromPath() to get MDD
-                */
+            /*
+            * TODO NEXT: Create a BFS method. It takes the ramp, agent start location, and goal location.
+                Try all x action combinations and record the end location. If end location == goal location
+                save the path, create a MAPFSolution for it, and run createMDDFromPath() to get MDD
+            * */
 
+            ArrayList<MAPFSolution> childSolutions;
 
+            int iteration = 0;
+            for(Map.Entry<Agent, Integer> entry : initialState.getAgentLocations().entrySet()) {
+                Agent agent = entry.getKey();
+                int location = entry.getValue();
+
+                Ramp ramp = initialState.getRamp();
+                int cost = currentNode.costVector.get(iteration);
+
+                childSolutions = getValidSolutions(ramp, agent, location, cost);
+
+                for(MAPFSolution solution : childSolutions) {
+                    currentNode.agentPaths.addLast(createMDDFromPath(solution));
+                }
+
+                // Check if currentNode is a goal node, i.e. if a joint solution can be found from the MDDs
+                solutionPaths = MDDToSolutionPaths(root, surfaceExit, undergroundExit);
+                numOfExploredICTNodes++;
+
+                // Return solution if goal node was found
+                if(solutionPaths != null) {
+                    ArrayList<MAPFState> solution = buildSolution(scenario, solutionPaths);
+
+                    MAPFSolution completeSolution = new MAPFSolution(solution, accumulatedGeneratedStates, accumulatedExpandedStates);
+
+                    System.out.println("Goal node found after " + numOfExploredICTNodes + " ICTNodes were explored!");
+
+                    return completeSolution;
+                }
+
+                // Generate children to the non-goal node and enqueue to ictQueue
+                generateChildren(currentNode);
+                ictQueue.addAll(currentNode.children);
             }
         }
 
