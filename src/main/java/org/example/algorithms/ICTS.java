@@ -6,17 +6,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /*
-* TODO CURRENT: ICTS does not find a solution whenever there are more than 3 agents for some reason.
-*  I have even tried with having all of them go in the same direction.
-*  Debug with having all 4 go in the same direction (solution should be found relatively early in the ICT) and resolve the issue.
-*  IF I KNOW VECTOR COST OF SOLUTION, USE IF(VECTORCOSTS == ...) TO IMMEDIATELY GET THERE WITH BREAKPOINTS!!!!!!!!!!!!!!
-*
-* TODO ALSO: Many mddCombinations have invalid paths, specifically not moving in the surface/underground queues
-*  if the queue vertex in front is free. Copy A* removeInvalidMoveCombinations. This should be used as a final
-*  check before trying to return a mddCombination solution.
-*
-* TODO WHEN ABOVE DONE: ICTS finds multiple different solutions. Include all? Prob not since they only
-* */
+ * TODO WHEN ABOVE DONE: ICTS finds multiple different solutions. Include all? Prob not since they only
+ * */
 
 public class ICTS implements MAPFAlgorithm {
 
@@ -113,8 +104,8 @@ public class ICTS implements MAPFAlgorithm {
         for(int i = 0; i < nodeSize; i++) {
             for (int j = i + 1; j < nodeSize; j++) {
                 if (nodes.get(i).vertex == previousNodes.get(j).vertex &&
-                    nodes.get(j).vertex == previousNodes.get(i).vertex &&
-                    (nodes.get(i).vertex != surfaceExit && nodes.get(i).vertex != undergroundExit)) {
+                        nodes.get(j).vertex == previousNodes.get(i).vertex &&
+                        (nodes.get(i).vertex != surfaceExit && nodes.get(i).vertex != undergroundExit)) {
                     return true;
                 }
             }
@@ -181,6 +172,55 @@ public class ICTS implements MAPFAlgorithm {
             generateJointChildren(childrenLists, depth + 1, partial, previous, queue, visited, parentMap, ramp);
             partial.removeLast();     // Remove latest child to backtrack and continue
         }
+    }
+
+    private boolean hasIllogicalQueueBehavior(ArrayList<ArrayList<Integer>> agentPaths,
+                                              ArrayList<Integer> surfaceQ,
+                                              ArrayList<Integer> undergroundQ) {
+
+        int numAgents = agentPaths.size();
+        int pathLength = agentPaths.getFirst().size(); // Assumes all paths are same length
+
+        for (ArrayList<Integer> queue : List.of(surfaceQ, undergroundQ)) {
+            if (queue.size() < 2) {
+                continue;
+            }
+
+            for (int t = 1; t < pathLength; t++) {
+
+                // Map to find which the vertex position of each agent at time t - 1
+                // <Vertex, AgentId>
+                HashMap<Integer, Integer> vertexToAgentIdx = new HashMap<>();
+
+                for (int i = 0; i < numAgents; i++) {
+                    int previousPosition = agentPaths.get(i).get(t - 1);
+                    vertexToAgentIdx.put(previousPosition, i);
+                }
+
+                for (int i = 0; i < queue.size() - 1; i++) {
+                    // Go through all queue vertex pairs
+                    int backVertex = queue.get(i);
+                    int frontVertex = queue.get(i + 1);
+
+                    // Get agents that were in the vertex pair
+                    Integer backAgent = vertexToAgentIdx.get(backVertex);
+                    Integer frontAgent = vertexToAgentIdx.get(frontVertex);
+
+                    if (backAgent != null && frontAgent != null) {
+                        // Get positions at time t, i.e. where they moved to
+                        int backMove = agentPaths.get(backAgent).get(t);
+                        int frontMove = agentPaths.get(frontAgent).get(t);
+
+                        // If fron agent moves but back agent stays, illogical behaviour
+                        if (frontMove != frontVertex && backMove == backVertex) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     private ArrayList<ArrayList<Integer>> MDDToSolutionPaths(ICTNode ictNode, Ramp ramp) {
@@ -254,6 +294,12 @@ public class ICTS implements MAPFAlgorithm {
                             agentPaths.get(i).add(path.get(i).vertex);
                         }
                     }
+
+                    // Final check for illogical queue behaviour
+                    if (hasIllogicalQueueBehavior(agentPaths, ramp.getVerticesInSurfaceQ(), ramp.getVerticesInUndergroundQ())) {
+                        continue; // Skip this invalid solution
+                    }
+
                     return agentPaths;
                 }
 
@@ -318,7 +364,7 @@ public class ICTS implements MAPFAlgorithm {
                     cost++;
                 }
             }
-            
+
             MAPFState state = new MAPFState(ramp, agentLocations, cost);
             solutionSet.addLast(state);
         }
