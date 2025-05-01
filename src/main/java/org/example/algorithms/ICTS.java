@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 /*
 * TODO CURRENT: ICTS does not find a solution whenever there are more than 3 agents for some reason.
 *  I have even tried with having all of them go in the same direction.
-*  Debug with having all 3 go in the same direction (solution should be found relatively early in the ICT) and resolve the issue.
+*  Debug with having all 4 go in the same direction (solution should be found relatively early in the ICT) and resolve the issue.
 *  IF I KNOW VECTOR COST OF SOLUTION, USE IF(VECTORCOSTS == ...) TO IMMEDIATELY GET THERE WITH BREAKPOINTS!!!!!!!!!!!!!!
 *
 * TODO ALSO: Many mddCombinations have invalid paths, specifically not moving in the surface/underground queues
@@ -113,7 +113,8 @@ public class ICTS implements MAPFAlgorithm {
         for(int i = 0; i < nodeSize; i++) {
             for (int j = i + 1; j < nodeSize; j++) {
                 if (nodes.get(i).vertex == previousNodes.get(j).vertex &&
-                    nodes.get(j).vertex == previousNodes.get(i).vertex) {
+                    nodes.get(j).vertex == previousNodes.get(i).vertex &&
+                    (nodes.get(i).vertex != surfaceExit && nodes.get(i).vertex != undergroundExit)) {
                     return true;
                 }
             }
@@ -263,6 +264,7 @@ public class ICTS implements MAPFAlgorithm {
                     // If mddNode is of a goal location, it won't have children. To make the method work,
                     // simply add an identical MDDNode to mddNode as its child.
                     if(mddNode.vertex == surfaceExit || mddNode.vertex == undergroundExit) {
+                        mddNode.children.clear();       // Prevent an exit mddNode to get multiple identical children
                         mddNode.children.add(new MDDNode(mddNode));
                     }
 

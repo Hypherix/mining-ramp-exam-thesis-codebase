@@ -66,7 +66,7 @@ public class Main {
                 agent2 = new Agent(i, 1, Constants.DOWN);
             }
             else {
-                agent2 = new Agent(i, 1, Constants.DOWN);
+                agent2 = new Agent(i, 1, Constants.UP);
             }
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
