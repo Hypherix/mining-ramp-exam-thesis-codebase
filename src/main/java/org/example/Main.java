@@ -60,17 +60,20 @@ public class Main {
         // ICTS
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
         AgentEntries agentEntries2 = new AgentEntries();
-        for(int i = 0; i < 2; i++) {
+        for(int i = 0; i < 4; i++) {
             Agent agent2;
             if(i % 2 == 0) {
                 agent2 = new Agent(i, 1, Constants.DOWN);
             }
             else {
-                agent2 = new Agent(i, 1, Constants.UP);
+                agent2 = new Agent(i, 1, Constants.DOWN);
             }
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
+//        Agent agent2 = new Agent(4, 1, Constants.UP);
+//        agentList2.put(agent2.id, agent);
+//        agentEntries2.addEntry(5, agent2);
 
         MAPFScenario scenario2 = new MAPFScenario(myRamp, agentEntries2, 20);
 

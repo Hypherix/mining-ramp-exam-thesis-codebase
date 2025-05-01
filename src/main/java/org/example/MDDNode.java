@@ -15,6 +15,12 @@ public class MDDNode {
         this.children = new ArrayList<>();
     }
 
+    // Copy constructor
+    public MDDNode(MDDNode other) {
+        this.vertex = other.vertex;
+        this.children = other.children;
+    }
+
     // Methods
 
 }

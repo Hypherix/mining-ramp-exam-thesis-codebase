@@ -6,8 +6,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /*
-* TODO CURRENT: Run main and compare ICTS solution to A*. a0 in ICTS does not end up in goal for some reason.
-*  Debug and find out why. Cost of the solution does not align either.
+* TODO CURRENT: ICTS does not find a solution whenever there are more than 3 agents for some reason.
+*  I have even tried with having all of them go in the same direction.
+*  Debug with having all 3 go in the same direction (solution should be found relatively early in the ICT) and resolve the issue.
+*  IF I KNOW VECTOR COST OF SOLUTION, USE IF(VECTORCOSTS == ...) TO IMMEDIATELY GET THERE WITH BREAKPOINTS!!!!!!!!!!!!!!
+*
+* TODO ALSO: Many mddCombinations have invalid paths, specifically not moving in the surface/underground queues
+*  if the queue vertex in front is free. Copy A* removeInvalidMoveCombinations. This should be used as a final
+*  check before trying to return a mddCombination solution.
+*
+* TODO WHEN ABOVE DONE: ICTS finds multiple different solutions. Include all? Prob not since they only
 * */
 
 public class ICTS implements MAPFAlgorithm {
@@ -79,15 +87,19 @@ public class ICTS implements MAPFAlgorithm {
         return vertices.stream().map(Object::toString).collect(Collectors.joining(","));
     }
 
-    private boolean hasConflict(ArrayList<MDDNode> nodes, ArrayList<MDDNode> previousNodes) {
+    private boolean hasConflict(ArrayList<MDDNode> nodes, ArrayList<MDDNode> previousNodes, Ramp ramp) {
         int nodeSize = nodes.size();
+
+        int surfaceExit = ramp.getSurfaceExit();
+        int undergroundExit = ramp.getUndergroundExit();
 
         // Check if vertex conflict
         // If seenVertices already contains the vertex of the current mddNode, that means that another agent
         // has already occupied it --> vertex conflict
         HashSet<Integer> seenVertices = new HashSet<>();
         for (MDDNode mddNode : nodes) {
-            if(seenVertices.contains(mddNode.vertex)) {
+            if(seenVertices.contains(mddNode.vertex) &&
+                    mddNode.vertex != surfaceExit && mddNode.vertex != undergroundExit) {
                 return true;
             }
             else {
@@ -107,6 +119,33 @@ public class ICTS implements MAPFAlgorithm {
             }
         }
 
+        // Check if passing bay conflict
+        // Map from passing bay index to how many agents are in it
+        HashMap<Integer, Integer> passingBayOccupancy = new HashMap<>();
+
+        for (MDDNode mddNode : nodes) {
+            int vertex = mddNode.vertex;
+
+            // Skip if not in a passing bay
+            if (!ramp.getVerticesInPassingBays().contains(vertex)) {
+                continue;
+            }
+
+            // Find which passing bay this vertex belongs to
+            ArrayList<ArrayList<Integer>> bays = ramp.getPassingBayVertices();
+            for (int i = 0; i < bays.size(); i++) {
+                if (bays.get(i).contains(vertex)) {
+                    passingBayOccupancy.put(i, passingBayOccupancy.getOrDefault(i, 0) + 1);
+
+                    // Conflict if more than one agent in the same passing bay
+                    if (passingBayOccupancy.get(i) > 1) {
+                        return true;
+                    }
+                    break; // Stop after finding the bay
+                }
+            }
+        }
+
         return false;
     }
 
@@ -116,13 +155,14 @@ public class ICTS implements MAPFAlgorithm {
                                        ArrayList<MDDNode> previous,     // The previous joint node for checking edge conflicts
                                        Queue<ArrayList<MDDNode>> queue,
                                        HashSet<String> visited,
-                                       HashMap<String, ArrayList<MDDNode>> parentMap) {
+                                       HashMap<String, ArrayList<MDDNode>> parentMap,
+                                       Ramp ramp) {
         // Task: Generate every combination of child MDDNodes (one from each agent) and add to the queue
         // if they are conflict-free and not visited
 
         // Base case: our childrenLists size is full
         if(depth == childrenLists.size()) {             // If one child per agent has been chosen, base case is fulfilled
-            if(!hasConflict(partial, previous)) {
+            if(!hasConflict(partial, previous, ramp)) {
                 List<Integer> vertices = partial.stream().map(n -> n.vertex).collect(Collectors.toList());
                 String key = encodeVertexList(vertices);
                 if(!visited.contains(key)) {
@@ -137,12 +177,12 @@ public class ICTS implements MAPFAlgorithm {
 
         for (MDDNode child : childrenLists.get(depth)) {    // For the current agent, try next child
             partial.add(child);
-            generateJointChildren(childrenLists, depth + 1, partial, previous, queue, visited, parentMap);
+            generateJointChildren(childrenLists, depth + 1, partial, previous, queue, visited, parentMap, ramp);
             partial.removeLast();     // Remove latest child to backtrack and continue
         }
     }
 
-    private ArrayList<ArrayList<Integer>> MDDToSolutionPaths(ICTNode ictNode, int surfaceExit, int undergroundExit) {
+    private ArrayList<ArrayList<Integer>> MDDToSolutionPaths(ICTNode ictNode, Ramp ramp) {
         // Task: Given an ICT node, check its agent MDDs for a solution
 
         ArrayList<ArrayList<MDD>> rootMDDs = ictNode.agentPaths;
@@ -171,11 +211,17 @@ public class ICTS implements MAPFAlgorithm {
             while(!queue.isEmpty()) {
                 ArrayList<MDDNode> currentNodes = queue.poll();
 
+                int surfaceExit = ramp.getSurfaceExit();
+                int undergroundExit = ramp.getUndergroundExit();
+
                 // Check if all MDDNodes are in exit vertices --> goal node
-                boolean goalNode = false;
+                boolean goalNode = true;
                 for(MDDNode mddNode : currentNodes) {
                     if(mddNode.vertex == surfaceExit || mddNode.vertex == undergroundExit) {
-                        goalNode = true;
+                        // Do nothing, check the next mddNode
+                    }
+                    else {
+                        goalNode = false;
                         break;
                     }
                 }
@@ -213,7 +259,14 @@ public class ICTS implements MAPFAlgorithm {
                 // Generate child combinations
                 ArrayList<ArrayList<MDDNode>> childrenLists = new ArrayList<>();
                 for(MDDNode mddNode : currentNodes) {
-                    childrenLists.add(mddNode.children);
+
+                    // If mddNode is of a goal location, it won't have children. To make the method work,
+                    // simply add an identical MDDNode to mddNode as its child.
+                    if(mddNode.vertex == surfaceExit || mddNode.vertex == undergroundExit) {
+                        mddNode.children.add(new MDDNode(mddNode));
+                    }
+
+                    childrenLists.add(mddNode.children);    // TODO PROBLEM: if mddNode is of a goal location, it has no children --> no jointChildren --> queue is empty --> no solution found
                 }
 
                 // Get the cartesian/cross product of the children
@@ -221,11 +274,9 @@ public class ICTS implements MAPFAlgorithm {
                 // an empty arrayList is input as partial, so partial is empty and will be built on
                 // this repeats for each recursive call where previous becomes current, and partial is empty and is
                 // built on (which for that iteration is the current)
-                generateJointChildren(childrenLists, 0, new ArrayList<>(), currentNodes, queue, visited, parentMap);
+                generateJointChildren(childrenLists, 0, new ArrayList<>(), currentNodes, queue, visited, parentMap, ramp);
             }
         }
-
-
 
         // If no goal node is found, return null as the agentPaths
         return null;
@@ -470,7 +521,7 @@ public class ICTS implements MAPFAlgorithm {
         //  a solution, dont bother with generating a solution for the whole ICTNode
 
         // Check if root is goal node, i.e. if a joint solution can be found from the MDDs
-        ArrayList<ArrayList<Integer>> solutionPaths = MDDToSolutionPaths(root, surfaceExit, undergroundExit);
+        ArrayList<ArrayList<Integer>> solutionPaths = MDDToSolutionPaths(root, initialState.getRamp());
         numOfExploredICTNodes++;
 
         if(solutionPaths != null) {
@@ -512,7 +563,7 @@ public class ICTS implements MAPFAlgorithm {
                 int location = entry.getValue();
 
                 Ramp ramp = initialState.getRamp();
-                int cost = currentNode.costVector.get(iteration);
+                int cost = currentNode.costVector.get(iteration++);
 
                 // childSolution is added, in one of its elements, all possible solution paths for this agent
                 childSolutions.add(getValidSolutions(ramp, agent, location, cost));
@@ -536,7 +587,7 @@ public class ICTS implements MAPFAlgorithm {
             }
 
             // Check if currentNode is a goal node, i.e. if a joint solution can be found from the MDDs
-            solutionPaths = MDDToSolutionPaths(currentNode, surfaceExit, undergroundExit);
+            solutionPaths = MDDToSolutionPaths(currentNode, initialState.getRamp());
             numOfExploredICTNodes++;
 
             // Return solution if goal node was found
