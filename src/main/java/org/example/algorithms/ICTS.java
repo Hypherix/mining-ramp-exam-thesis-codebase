@@ -1,6 +1,7 @@
 package org.example.algorithms;
 
 import org.example.*;
+import org.example.ICTSclasses.*;
 
 import java.util.*;
 import java.util.stream.Collectors;

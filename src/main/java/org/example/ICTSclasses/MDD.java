@@ -1,4 +1,4 @@
-package org.example;
+package org.example.ICTSclasses;
 
 public class MDD {
 
