@@ -396,7 +396,7 @@ public class ICTS implements MAPFAlgorithm {
                 continue;
             }
 
-            System.out.println("ICT child node with cost vector " + childCostVector + " was pruned");
+            //System.out.println("ICT child node with cost vector " + childCostVector + " was pruned");
         }
     }
 

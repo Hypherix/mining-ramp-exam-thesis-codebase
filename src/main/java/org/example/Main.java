@@ -70,9 +70,9 @@ public class Main {
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
-        Agent agent2 = new Agent(5, 1, Constants.UP, true);
-        agentList2.put(agent2.id, agent);
-        agentEntries2.addEntry(5, agent2);
+//        Agent agent2 = new Agent(5, 1, Constants.UP, true);
+//        agentList2.put(agent2.id, agent);
+//        agentEntries2.addEntry(5, agent2);
 
         MAPFScenario scenario2 = new MAPFScenario(myRamp, agentEntries2, 20);
         MAPFScenario scenario3 = new MAPFScenario(myRamp, agentEntries2, 20);
