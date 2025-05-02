@@ -6,10 +6,11 @@ public class Agent {
     public int velocity;
     public int direction;
     public boolean higherPrio;
+    public boolean passBayAble;
 
 
     // Constructors
-    public Agent(int id, int velocity, int direction) {
+    public Agent(int id, int velocity, int direction, boolean passBayAble) {
         this.id = id;
         this.velocity = velocity;
         this.direction = direction;
@@ -17,7 +18,18 @@ public class Agent {
 
         if (direction == Constants.UP) {
             this.higherPrio = true;
+
+            if(passBayAble) {
+                this.passBayAble = true;
+            }
+            else {
+                this.passBayAble = false;
+            }
         }
+        else if (direction == Constants.DOWN) {
+            this.passBayAble = true;
+        }
+
     }
 
     // Copy constructor
@@ -26,6 +38,7 @@ public class Agent {
         this.velocity = other.velocity;
         this.direction = other.direction;
         this.higherPrio = other.higherPrio;
+        this.passBayAble = other.passBayAble;
     }
 
 

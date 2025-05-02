@@ -6,7 +6,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /*
- * TODO WHEN ABOVE DONE: ICTS finds multiple different solutions. Include all? Prob not since they only
+ * TODO WHEN ABOVE DONE: ICTS finds multiple different solutions. Include all?
+ *  Might be interesting to have a set of equal solutions and compare as new initial state
+ *  if new agent arrives.
  * */
 
 public class ICTS implements MAPFAlgorithm {
@@ -414,6 +416,17 @@ public class ICTS implements MAPFAlgorithm {
         }
         else {
             neighbours = adjList.get(location).getUpNeighbours();
+
+            // If upgoing agent can't enter passing bays, remove the move entering a passing bay
+            if(!agent.passBayAble) {
+                for(Integer neighbour : neighbours) {
+                    if(ramp.getSecondPassBayVertices().contains(neighbour)) {
+                        neighbours.remove(neighbour);
+                    }
+                }
+            }
+
+            // TODO: Check if able to enter passing bays
         }
 
         return neighbours;

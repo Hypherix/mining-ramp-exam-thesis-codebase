@@ -131,10 +131,15 @@ public class Astar implements MAPFAlgorithm {
 
     private HashMap<Agent, ArrayList<Integer>> getPossibleMoves(
             HashMap<Agent, Integer> agentLocations,
-            HashMap<Integer, UpDownNeighbourList> adjList,
-            int surfaceStart, int undergroundStart,
-            int surfaceExit, int undergroundExit) {
+            Ramp ramp) {
         // Task: With agents and their locations, get all possible agent moves
+
+        int surfaceStart = ramp.getSurfaceStart();
+        int surfaceExit = ramp.getSurfaceExit();
+        int undergroundStart = ramp.getUndergroundStart();
+        int undergroundExit = ramp.getUndergroundExit();
+        HashMap<Integer, UpDownNeighbourList> adjList = ramp.getAdjList();
+        ArrayList<Integer> secondPassBayVertices = ramp.getSecondPassBayVertices();
 
         HashMap<Agent, ArrayList<Integer>> agentMoves = new HashMap<>();
 
@@ -177,6 +182,17 @@ public class Astar implements MAPFAlgorithm {
             }
             else if(agent.direction == Constants.UP) {
                 moves = adjList.get(vertex).getUpNeighbours();
+
+                // If upgoing agent can't enter passing bays, remove the move entering a passing bay
+                if(!agent.passBayAble) {
+                    ArrayList<Integer> tempMoves = new ArrayList<>(moves);
+                    for(Integer move : tempMoves) {
+                        if(secondPassBayVertices.contains(move)) {
+                            moves.remove(move);
+                        }
+                    }
+                }
+
                 agentMoves.put(agent, moves);
             }
             else {
@@ -360,7 +376,8 @@ public class Astar implements MAPFAlgorithm {
             }
 
             // Upgoing agents are not allowed to enter passing bays
-            if(agent.direction == Constants.UP && verticesInPassingBays.contains(newLocation)) {
+            if(agent.direction == Constants.UP && verticesInPassingBays.contains(newLocation)
+                && !agent.passBayAble) {
                 return false;
             }
 
@@ -443,8 +460,7 @@ public class Astar implements MAPFAlgorithm {
 
             // Get all possible agent moves
             HashMap<Agent, ArrayList<Integer>> agentMoves =
-                    getPossibleMoves(currentStateAgentLocations, adjList,
-                            surfaceStart, undergroundStart, surfaceExit, undergroundExit);
+                    getPossibleMoves(currentStateAgentLocations, currentState.getRamp());
 
             // Generate all move combinations
             ArrayList<HashMap<Agent, Integer>> moveCombinations =

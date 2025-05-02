@@ -30,6 +30,7 @@ public class Ramp {
     private ArrayList<Integer> passingBays;         // number of passing bays
     private ArrayList<Integer> verticesInPassingBays;   // ALL vertices that are in passing bays
     private ArrayList<ArrayList<Integer>> passingBayVertices;   // all passing bays and their respective vertices
+    private ArrayList<Integer> secondPassBayVertices;       // all vertices closest to the underground in passing bays
     private int surfaceStart;
     private int undergroundStart;
     private int surfaceExit;
@@ -53,6 +54,8 @@ public class Ramp {
         this.undergroundStart = surfaceQLength + rampLength - 1;
         this.verticesInPassingBays = new ArrayList<>();
         this.passingBayVertices = new ArrayList<>();
+        this.secondPassBayVertices = new ArrayList<>();
+
 
         // Initialise the adjacency list which represents the ramp
         this.adjList = new HashMap<>();
@@ -274,9 +277,11 @@ public class Ramp {
             addDownEdge(verticesInRamp, verticesInRamp + 1);
             addUpEdge(verticesInRamp + 1, verticesInRamp);
             addDownEdge(verticesInRamp + 1, surfaceQLength + passBays[currentPassBay]);
+            addUpEdge(surfaceQLength + passBays[currentPassBay], verticesInRamp + 1);   // Only used by upgoing agents able to enter passing bays
 
             this.verticesInPassingBays.add(verticesInRamp);
             this.verticesInPassingBays.add(verticesInRamp + 1);
+            this.secondPassBayVertices.add(verticesInRamp + 1);
 
             ArrayList<Integer> thisPassingBay = new ArrayList<>();
             thisPassingBay.add(verticesInRamp);
@@ -532,5 +537,9 @@ public class Ramp {
 
     public ArrayList<ArrayList<Integer>> getPassingBayVertices() {
         return this.passingBayVertices;
+    }
+
+    public ArrayList<Integer> getSecondPassBayVertices() {
+        return this.secondPassBayVertices;
     }
 }
