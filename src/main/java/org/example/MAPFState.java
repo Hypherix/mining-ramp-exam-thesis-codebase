@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.ICTSclasses.ICTNode;
+
 import java.util.*;
 
 /*
@@ -25,8 +27,9 @@ public class MAPFState {
     public MAPFState parent;
     public ArrayList<Agent> activeAgents;      // Agents not in an exit
     public ArrayList<Agent> inactiveAgents;    // Agents in an exit
-    private PriorityQueue<MAPFState> concurrentStatesInFrontier;    // Needed for rollback to MAPFState
-    private PriorityQueue<MAPFState> concurrentStatesInExplored;    // Needed for rollback to MAPFState
+    private PriorityQueue<MAPFState> concurrentStatesInFrontier;    // Needed for A* rollback to MAPFState
+    private PriorityQueue<MAPFState> concurrentStatesInExplored;    // Needed for A* rollback to MAPFState
+    private Queue<ICTNode> ictQueueAtRollback;      // Needed for ICTS rollback to MAPFState
 
     // Constructors
     public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost, int timeStep) {
@@ -39,6 +42,7 @@ public class MAPFState {
         this.timeStep = timeStep;
         this.concurrentStatesInFrontier = new PriorityQueue<>(new StateComparator());
         this.concurrentStatesInExplored = new PriorityQueue<>(new StateComparator());
+        this.ictQueueAtRollback = new LinkedList<>();
 
         // Categorise the agents as active or inactive
         this.activeAgents = new ArrayList<>();
@@ -101,6 +105,12 @@ public class MAPFState {
         for (MAPFState state : other.concurrentStatesInExplored) {
             this.concurrentStatesInExplored.add(new MAPFState(state));
         }
+
+        this.ictQueueAtRollback = new LinkedList<>();
+        for(ICTNode node : other.ictQueueAtRollback) {
+            this.ictQueueAtRollback.add(new ICTNode(node));
+        }
+
     }
 
 
@@ -264,6 +274,14 @@ public class MAPFState {
 
     public void setConcurrentStatesInExplored(PriorityQueue<MAPFState> concurrentStatesInExplored) {
         this.concurrentStatesInExplored = concurrentStatesInExplored;
+    }
+
+    public void setIctQueueAtRollback(Queue<ICTNode> queue) {
+        this.ictQueueAtRollback = queue;
+    }
+
+    public Queue<ICTNode> getIctQueueAtRollback() {
+        return this.ictQueueAtRollback;
     }
 }
 

@@ -84,11 +84,16 @@ public class MAPFSolver {
                 scenario.setInitialState(scenario.generateState(timeStep, null));
 
                 // Give the initial state the concurrent frontier and explored states
+                // (Only relevant to A*)
                 scenario.getInitialState().setConcurrentStatesInFrontier(
                         newCurrentState.getConcurrentStatesInFrontier());
                 scenario.getInitialState().setConcurrentStatesInExplored(
-                        newCurrentState.getConcurrentStatesInExplored()
-                );
+                        newCurrentState.getConcurrentStatesInExplored());
+
+                // Give the initial state the ICTNode queue (only relevant to ICTS)
+                scenario.getInitialState().setIctQueueAtRollback(
+                        newCurrentState.getIctQueueAtRollback());
+
 
                 // Also give the initial state the
 

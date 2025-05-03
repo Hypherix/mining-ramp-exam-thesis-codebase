@@ -445,11 +445,11 @@ public class Astar implements MAPFAlgorithm {
         boolean prioQueuesPrefilled = false;
         int rollbackTimeStep = -1;      // Will only be used if we are here from a rollback
         if(!prioQueuesPrefilled) {
-            if(!initialState.getConcurrentStatesInFrontier().isEmpty() && !prioQueuesPrefilled) {
+            if(!initialState.getConcurrentStatesInFrontier().isEmpty()) {
                 frontier.addAll(initialState.getConcurrentStatesInFrontier());
                 rollbackTimeStep = initialState.getTimeStep();
             }
-            if(!initialState.getConcurrentStatesInExplored().isEmpty() && !prioQueuesPrefilled) {
+            if(!initialState.getConcurrentStatesInExplored().isEmpty()) {
                 explored.addAll(initialState.getConcurrentStatesInExplored());
                 rollbackTimeStep = initialState.getTimeStep();
             }
@@ -522,15 +522,11 @@ public class Astar implements MAPFAlgorithm {
                     // Add a snapshot of the current frontier and explored to the new MAPFState
                     // in case of a future rollback to it
                     PriorityQueue<MAPFState> frontierSnapshot = new PriorityQueue<>(new StateComparator());
-                    for (MAPFState state : frontier) {
-                        frontierSnapshot.add(state);
-                    }
+                    frontierSnapshot.addAll(frontier);
                     neighbourState.setConcurrentStatesInFrontier(frontierSnapshot);
 
                     PriorityQueue<MAPFState> exploredSnapshot = new PriorityQueue<>(new StateComparator());
-                    for (MAPFState state : explored) {
-                        exploredSnapshot.add(state);
-                    }
+                    exploredSnapshot.addAll(explored);
                     neighbourState.setConcurrentStatesInExplored(exploredSnapshot);
 
                     // If neighbourState has not been encountered before, add to frontier
