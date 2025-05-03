@@ -368,7 +368,7 @@ public class ICTS implements MAPFAlgorithm {
                 }
             }
 
-            MAPFState state = new MAPFState(ramp, agentLocations, cost);
+            MAPFState state = new MAPFState(ramp, agentLocations, cost, i);
             solutionSet.addLast(state);
         }
 
@@ -502,8 +502,9 @@ public class ICTS implements MAPFAlgorithm {
                 // Create a MAPFState of the current situation
                 HashMap<Agent, Integer> agentLocations = new HashMap<>();
                 agentLocations.put(agent, current.location);
-                int gcost = depth--;
-                MAPFState state = new MAPFState(ramp, agentLocations, gcost);
+                int gcost = depth;
+                MAPFState state = new MAPFState(ramp, agentLocations, gcost, depth);
+                depth--;
 
                 // Add the state to the solution set
                 solutionStates.add(state);
@@ -551,7 +552,7 @@ public class ICTS implements MAPFAlgorithm {
             HashMap<Agent, Integer> initialAgentLocation = new HashMap<>();
             initialAgentLocation.put(agent, location);
             MAPFState singleInitialState = new MAPFState(
-                    initialState.getRamp(), initialAgentLocation, 0);
+                    initialState.getRamp(), initialAgentLocation, 0, 0);
 
             MAPFScenario initialScenario = new MAPFScenario(
                     initialState.getRamp(), singleInitialState, 1);

@@ -489,7 +489,8 @@ public class Astar implements MAPFAlgorithm {
                     int newGcost = currentState.getGcost() + numOfActiveAgents;
 
                     // Create the neighbourState and assign currentState as its parent
-                    MAPFState neighbourState = new MAPFState(currentState.getRamp(), moveCombination, newGcost);
+                    MAPFState neighbourState = new MAPFState(
+                            currentState.getRamp(), moveCombination, newGcost, currentState.getTimeStep() + 1);
                     neighbourState.setParent(currentState);
 
                     // If neighbourState has not been encountered before, add to frontier

@@ -144,7 +144,7 @@ public class MAPFScenario {
 
         if(timeStep == 0) {
             // If scenario is new, newAgentLocations are the only ones existing
-            setInitialState(new MAPFState(ramp, newAgentLocations, 0));
+            setInitialState(new MAPFState(ramp, newAgentLocations, 0, timeStep));
         }
         else {
             // Add new newAgentLocations to the already existing newAgentLocations if scenario is not new
@@ -157,7 +157,7 @@ public class MAPFScenario {
 
             int newGcost = fetchNumOfActiveAgents();    // TODO CHECK: Correct gCost?
 
-            setInitialState(new MAPFState(ramp, finalAgentLocations, newGcost));
+            setInitialState(new MAPFState(ramp, finalAgentLocations, newGcost, timeStep));
         }
     }
 

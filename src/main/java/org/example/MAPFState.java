@@ -21,18 +21,20 @@ public class MAPFState {
     private int fcost;      // = gcost + hcost
     private int gcost;      // sum of agent actions
     private int hcost;      // sum of agent location h values
+    private int timeStep;
     public MAPFState parent;
     public ArrayList<Agent> activeAgents;      // Agents not in an exit
     public ArrayList<Agent> inactiveAgents;    // Agents in an exit
 
     // Constructors
-    public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost) {
+    public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost, int timeStep) {
         this.ramp = ramp;
         this.agentLocations = agentLocations;
         this.gcost = gcost;
         this.hcost = calculateHcost();
         this.fcost = this.gcost + this.hcost;
         this.parent = null;
+        this.timeStep = timeStep;
 
         // Categorise the agents as active or inactive
         this.activeAgents = new ArrayList<>();
@@ -219,6 +221,10 @@ public class MAPFState {
 
     public void addActiveAgents(ArrayList<Agent> newActiveAgents) {
         this.activeAgents.addAll(newActiveAgents);
+    }
+
+    public int getTimeStep() {
+        return this.timeStep;
     }
 }
 
