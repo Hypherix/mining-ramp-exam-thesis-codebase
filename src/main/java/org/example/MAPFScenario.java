@@ -30,7 +30,7 @@ public class MAPFScenario {
         this.ramp = ramp;
         this.agentEntries = agentEntries;
         this.duration = duration;
-        this.initialState = generateState(0, null);
+        generateInitialState(0);
     }
 
     public MAPFScenario(Ramp ramp, MAPFState initialState, int duration) {
@@ -47,7 +47,7 @@ public class MAPFScenario {
 
     // Methods
 
-    private int getSurfaceQFree(int timeStep, MAPFState knownState) {
+    private int getSurfaceQFree(int timeStep) {
         // Task: Get the first free vertex in the surface queue
 
         // If start of scenario, the first free surface queue vertex is always surface start
@@ -55,15 +55,7 @@ public class MAPFScenario {
             return fetchSurfaceStart() - 1;
         }
 
-        // If knownState != null, get known agent locations from knownState
-        HashMap<Agent, Integer> agentLocations;
-        if(knownState == null) {
-            agentLocations = fetchAgentLocations();
-        }
-        else {
-            agentLocations = knownState.getAgentLocations();
-        }
-
+        HashMap<Agent, Integer> agentLocations = fetchAgentLocations();
         Collection<Integer> occupiedVertices = agentLocations.values();
 
         int surfaceStart = ramp.getSurfaceStart();
@@ -81,7 +73,7 @@ public class MAPFScenario {
         return -1;
     }
 
-    private int getUndergroundQFree(int timeStep, MAPFState knownState) {
+    private int getUndergroundQFree(int timeStep) {
         // Task: Get the first free vertex in the underground queue
 
         // If start of scenario, the first free underground queue vertex is always underground start
@@ -89,15 +81,7 @@ public class MAPFScenario {
             return fetchUndergroundStart() + 1;
         }
 
-        // If knownState != null, get known agent locations from knownState
-        HashMap<Agent, Integer> agentLocations;
-        if(knownState == null) {
-            agentLocations = fetchAgentLocations();
-        }
-        else {
-            agentLocations = knownState.getAgentLocations();
-        }
-
+        HashMap<Agent, Integer> agentLocations = fetchAgentLocations();
         Collection<Integer> occupiedVertices = agentLocations.values();
 
         int undergroundStart = ramp.getUndergroundStart();
@@ -112,20 +96,17 @@ public class MAPFScenario {
         return -1;
     }
 
-    private void putNewAgentsInQueue(Ramp ramp, ArrayList<Agent> newAgentsThisTimeStep,
-                                    HashMap<Agent, Integer> newAgentLocations, int timeStep,
-                                     MAPFState knownState) {
+    public void putNewAgentsInQueue(Ramp ramp, ArrayList<Agent> newAgentsThisTimeStep,
+                                    HashMap<Agent, Integer> newAgentLocations, int timeStep) {
         // Task: If multiple agents in the same start vertex, put them in queue instead
         // newAgentLocations is a hashmap of the agent id and its start vertex (either surface or underground)
         // of ONLY the new agents that are joining the ramp.
         // TODO? Note! After attaining the free vertices in the beginning, this method does NOT check if
         //  the queues get full when trying to add further agents. To make this method check it,
         //  make it call getSurface/UndergroundQFree() for each respective if-statement in the for loop
-        // knownState is null if we work with agent locations from the scenario initialState,
-        // knownState is not null if we work with agent locations from a knownState
 
-        int surfaceQFree = getSurfaceQFree(timeStep, knownState);
-        int undergroundQFree = getUndergroundQFree(timeStep, knownState);
+        int surfaceQFree = getSurfaceQFree(timeStep);
+        int undergroundQFree = getUndergroundQFree(timeStep);
 
         // Put excessive starting agents in their corresponding queues
         for(Agent agent : newAgentsThisTimeStep) {
@@ -142,7 +123,7 @@ public class MAPFScenario {
         }
     }
 
-    public MAPFState generateState(int timeStep, MAPFState knownState) {
+    public void generateInitialState(int timeStep) {
         // Task: From the MAPFScenario, generate the first initial MAPFState
         // The MAPFState only contains the ramp, agent locations and cost
 
@@ -154,7 +135,7 @@ public class MAPFScenario {
         HashMap<Agent, Integer> newAgentLocations = new HashMap<>();
 
         // If multiple starting agents, they will occupy the same start vertex --> put in queue instead
-        putNewAgentsInQueue(this.ramp, newAgentsThisTimeStep, newAgentLocations, timeStep, knownState);
+        putNewAgentsInQueue(this.ramp, newAgentsThisTimeStep, newAgentLocations, timeStep);
 
         // Get the number of new agents at this timeStep
         int nrOfNewAgentsThisTimeStep = entries.get(timeStep).size();
@@ -163,35 +144,20 @@ public class MAPFScenario {
 
         if(timeStep == 0) {
             // If scenario is new, newAgentLocations are the only ones existing
-            return new MAPFState(ramp, newAgentLocations, 0, timeStep);
-            //setInitialState(new MAPFState(ramp, newAgentLocations, 0, timeStep));
+            setInitialState(new MAPFState(ramp, newAgentLocations, 0, timeStep));
         }
         else {
             // Add new newAgentLocations to the already existing newAgentLocations if scenario is not new
             HashMap<Agent, Integer> finalAgentLocations;
-
-            // Get agent locations from before
-            if(knownState == null) {
-                finalAgentLocations = fetchAgentLocations();
-            }
-            else {
-                finalAgentLocations = knownState.getAgentLocations();
-            }
+            finalAgentLocations = fetchAgentLocations();    // agentLocations from before
             finalAgentLocations.putAll(newAgentLocations);  // add the new agentLocations to those from before
 
             // Update scenario's activeAgents
             this.initialState.addActiveAgents(newAgentsThisTimeStep);
 
-            int newGcost;
-            if(knownState == null) {
-                newGcost = fetchNumOfActiveAgents();
-            }
-            else {
-                newGcost = knownState.getGcost();
-            }
+            int newGcost = fetchNumOfActiveAgents();    // TODO CHECK: Correct gCost?
 
-            return new MAPFState(ramp, finalAgentLocations, newGcost, timeStep);
-            //setInitialState(new MAPFState(ramp, finalAgentLocations, newGcost, timeStep));
+            setInitialState(new MAPFState(ramp, finalAgentLocations, newGcost, timeStep));
         }
     }
 
@@ -203,7 +169,7 @@ public class MAPFScenario {
         return this.ramp;
     }
 
-    public HashMap<Integer, ArrayList<Agent>> fetchAgentEntries() {
+    HashMap<Integer, ArrayList<Agent>> fetchAgentEntries() {
         // Returns agentList
         return this.agentEntries.getEntries();
     }
