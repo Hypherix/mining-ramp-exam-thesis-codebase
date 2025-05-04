@@ -340,7 +340,7 @@ public class ICTS implements MAPFAlgorithm {
         Ramp ramp = initialState.getRamp();
         int surfaceExit = ramp.getSurfaceExit();
         int undergroundExit = ramp.getUndergroundExit();
-        int solutionLength = solutionPaths.get(0).size();
+        int solutionLength = solutionPaths.getFirst().size();
         ArrayList<MAPFState> solutionSet = new ArrayList<>();
         solutionSet.addFirst(initialState);
 
@@ -352,6 +352,7 @@ public class ICTS implements MAPFAlgorithm {
 
             agents.addLast(agent);
         }
+
         int numOfAgents = agents.size();
 
         for (int i = 1; i < solutionLength; i++) {
@@ -369,10 +370,11 @@ public class ICTS implements MAPFAlgorithm {
             }
 
             MAPFState state = new MAPFState(ramp, agentLocations, cost, i);
+            if(!solutionSet.isEmpty()) {
+                state.parent = solutionSet.getLast();
+            }
             solutionSet.addLast(state);
         }
-
-        // TODO: REMOVE BELOW
 
         return solutionSet;
     }

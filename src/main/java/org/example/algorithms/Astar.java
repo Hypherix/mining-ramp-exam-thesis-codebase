@@ -521,22 +521,6 @@ public class Astar implements MAPFAlgorithm {
                             currentState.getRamp(), moveCombination, newGcost, currentState.getTimeStep() + 1);
                     neighbourState.setParent(currentState);
 
-
-
-
-//                    // Add a snapshot of the current frontier and explored to the new MAPFState
-//                    // in case of a future rollback to it
-//                    PriorityQueue<MAPFState> frontierSnapshot = new PriorityQueue<>(new StateComparator());
-//                    frontierSnapshot.addAll(frontier);
-//                    neighbourState.setConcurrentStatesInFrontier(frontierSnapshot);
-//
-//                    PriorityQueue<MAPFState> exploredSnapshot = new PriorityQueue<>(new StateComparator());
-//                    exploredSnapshot.addAll(explored);
-//                    neighbourState.setConcurrentStatesInExplored(exploredSnapshot);
-
-
-
-
                     // If neighbourState has not been encountered before, set neighbour to be added
                     if(!frontier.contains(neighbourState) && !explored.contains(neighbourState)) {
                         neighboursToAddToFrontier.add(neighbourState);
