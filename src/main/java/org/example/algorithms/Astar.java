@@ -13,7 +13,8 @@ import java.util.stream.Collectors;
 public class Astar implements MAPFAlgorithm {
 
     // Data members
-
+    private int generatedStates = 0;
+    private int expandedStates = 0;
 
     // Constructors
 
@@ -418,9 +419,6 @@ public class Astar implements MAPFAlgorithm {
 
         ArrayList<MAPFState> solution = new ArrayList<>();
 
-        int generatedStates = 0;
-        int expandedStates = 0;
-
         // Fetch the scenario adjacency list and other key numbers
         HashMap<Integer, UpDownNeighbourList> adjList = scenario.fetchAdjList();
         int surfaceStart = scenario.fetchSurfaceStart();
@@ -432,19 +430,47 @@ public class Astar implements MAPFAlgorithm {
         ArrayList<Integer> verticesInPassingBays = scenario.fetchVerticesInPassingBays();
         ArrayList<ArrayList<Integer>> passingBayVertices = scenario.fetchPassingBayVertices();
 
-        // Get initialState and initialise its g and f cost to 0 (h is set in MAPFState constructor)
+        // Get initialState and initialise its f cost (h is set in MAPFState constructor)
         MAPFState initialState = scenario.getInitialState();
-        initialState.setGcost(0);
         initialState.setFcost(initialState.getGcost() + initialState.getHcost());
+
+        int currTimeStep = initialState.getTimeStep();
 
         // Initialise priority queues
         PriorityQueue<MAPFState> frontier = new PriorityQueue<MAPFState>(new StateComparator());
         PriorityQueue<MAPFState> explored = new PriorityQueue<MAPFState>(new StateComparator());
         frontier.add(initialState);
 
+        // In case we are here due to a rollback. Add all initialState's frontier and explored states
+        boolean prioQueuesPrefilled = false;
+        int rollbackTimeStep = -1;      // Will only be used if we are here from a rollback
+        if(!prioQueuesPrefilled) {
+            if(!initialState.getConcurrentStatesInFrontier().isEmpty() && !prioQueuesPrefilled) {
+                frontier.addAll(initialState.getConcurrentStatesInFrontier());
+                rollbackTimeStep = initialState.getTimeStep();
+            }
+            if(!initialState.getConcurrentStatesInExplored().isEmpty() && !prioQueuesPrefilled) {
+                explored.addAll(initialState.getConcurrentStatesInExplored());
+                rollbackTimeStep = initialState.getTimeStep();
+            }
+        }
+        // Don't try to prefill the queues with initialState concurrent states again
+        prioQueuesPrefilled = true;
+
         while(!frontier.isEmpty()) {
             MAPFState currentState = frontier.poll();
             expandedStates++;
+
+            // If rollback, and we poll a state with the same timestep as the rollback, AND the state is not
+            // the initial state (i.e. nr of active agents are less than those in current state), insert the newly
+            // entered agents
+            if(currentState.getTimeStep() == rollbackTimeStep &&
+               currentState.activeAgents.size() < initialState.activeAgents.size()) {
+
+                // Put currentState as input to generateState() since we want to use the current agentLocations
+                // from currentState and not the scenario initialState
+                currentState = scenario.generateState(currentState.getTimeStep(), currentState);
+            }
 
             if(isGoal(currentState)) {
                 buildSolution(currentState, solution);
@@ -492,6 +518,20 @@ public class Astar implements MAPFAlgorithm {
                     MAPFState neighbourState = new MAPFState(
                             currentState.getRamp(), moveCombination, newGcost, currentState.getTimeStep() + 1);
                     neighbourState.setParent(currentState);
+
+                    // Add a snapshot of the current frontier and explored to the new MAPFState
+                    // in case of a future rollback to it
+                    PriorityQueue<MAPFState> frontierSnapshot = new PriorityQueue<>(new StateComparator());
+                    for (MAPFState state : frontier) {
+                        frontierSnapshot.add(state);
+                    }
+                    neighbourState.setConcurrentStatesInFrontier(frontierSnapshot);
+
+                    PriorityQueue<MAPFState> exploredSnapshot = new PriorityQueue<>(new StateComparator());
+                    for (MAPFState state : explored) {
+                        exploredSnapshot.add(state);
+                    }
+                    neighbourState.setConcurrentStatesInExplored(exploredSnapshot);
 
                     // If neighbourState has not been encountered before, add to frontier
                     if(!frontier.contains(neighbourState) && !explored.contains(neighbourState)) {

@@ -25,6 +25,8 @@ public class MAPFState {
     public MAPFState parent;
     public ArrayList<Agent> activeAgents;      // Agents not in an exit
     public ArrayList<Agent> inactiveAgents;    // Agents in an exit
+    private PriorityQueue<MAPFState> concurrentStatesInFrontier;    // Needed for rollback to MAPFState
+    private PriorityQueue<MAPFState> concurrentStatesInExplored;    // Needed for rollback to MAPFState
 
     // Constructors
     public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost, int timeStep) {
@@ -35,6 +37,8 @@ public class MAPFState {
         this.fcost = this.gcost + this.hcost;
         this.parent = null;
         this.timeStep = timeStep;
+        this.concurrentStatesInFrontier = new PriorityQueue<>(new StateComparator());
+        this.concurrentStatesInExplored = new PriorityQueue<>(new StateComparator());
 
         // Categorise the agents as active or inactive
         this.activeAgents = new ArrayList<>();
@@ -70,6 +74,7 @@ public class MAPFState {
         this.fcost = other.fcost;
         this.gcost = other.gcost;
         this.hcost = other.hcost;
+        this.timeStep = other.timeStep;
 
         this.parent = other.parent;
 
@@ -83,6 +88,18 @@ public class MAPFState {
         this.inactiveAgents = new ArrayList<>();
         for (Agent agent : other.inactiveAgents) {
             this.inactiveAgents.add(new Agent(agent));
+        }
+
+        // Deep copy of concurrentStatesInFrontier
+        this.concurrentStatesInFrontier = new PriorityQueue<>(new StateComparator());
+        for (MAPFState state : other.concurrentStatesInFrontier) {
+            this.concurrentStatesInFrontier.add(new MAPFState(state));
+        }
+
+        // Deep copy of concurrentStatesInExplored
+        this.concurrentStatesInExplored = new PriorityQueue<>(new StateComparator());
+        for (MAPFState state : other.concurrentStatesInExplored) {
+            this.concurrentStatesInExplored.add(new MAPFState(state));
         }
     }
 
@@ -148,6 +165,8 @@ public class MAPFState {
 
     @Override
     public boolean equals(Object o) {
+        // MAPFState equality is based on agentLocations and gcost
+
         if (this == o) {
             return true;
         }
@@ -173,6 +192,10 @@ public class MAPFState {
 
     public HashMap<Agent, Integer> getAgentLocations() {
         return this.agentLocations;
+    }
+
+    public void setAgentLocations(HashMap<Agent, Integer> agentLocations) {
+        this.agentLocations = agentLocations;
     }
 
     public int getFcost() {
@@ -225,6 +248,22 @@ public class MAPFState {
 
     public int getTimeStep() {
         return this.timeStep;
+    }
+
+    public PriorityQueue<MAPFState> getConcurrentStatesInFrontier() {
+        return this.concurrentStatesInFrontier;
+    }
+
+    public void setConcurrentStatesInFrontier(PriorityQueue<MAPFState> concurrentStatesInFrontier) {
+        this.concurrentStatesInFrontier = concurrentStatesInFrontier;
+    }
+
+    public PriorityQueue<MAPFState> getConcurrentStatesInExplored() {
+        return this.concurrentStatesInExplored;
+    }
+
+    public void setConcurrentStatesInExplored(PriorityQueue<MAPFState> concurrentStatesInExplored) {
+        this.concurrentStatesInExplored = concurrentStatesInExplored;
     }
 }
 
