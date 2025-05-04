@@ -80,21 +80,21 @@ public class Main {
         MAPFScenario scenario2 = new MAPFScenario(myRamp, agentEntries2, 20);
         MAPFScenario scenario3 = new MAPFScenario(myRamp, agentEntries2, 20);
 
-//        long startTimeICTS = System.nanoTime();
-//
-//        MAPFSolver solverICTS = new MAPFSolver(scenario2, "ICTS");
-//        solverICTS.solve();
-//
-//        long endTimeICTS = System.nanoTime();
-//        long duration = endTimeICTS - startTimeICTS;
-//        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
+        long startTimeICTS = System.nanoTime();
+
+        MAPFSolver solverICTS = new MAPFSolver(scenario2, "ICTS");
+        solverICTS.solve();
+
+        long endTimeICTS = System.nanoTime();
+        long duration = endTimeICTS - startTimeICTS;
+        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
         long startTimeAstar = System.nanoTime();
 
         MAPFSolver solverAstar = new MAPFSolver(scenario3, "astar");
         solverAstar.solve();
 
         long endTimeAstar = System.nanoTime();
-        long duration = endTimeAstar - startTimeAstar;
+        duration = endTimeAstar - startTimeAstar;
         System.out.println("\nExecution time A*: " + (duration / 1000000.0) + " ms");
 
 
