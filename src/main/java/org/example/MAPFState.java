@@ -96,11 +96,15 @@ public class MAPFState {
 
         // Deep copy of concurrentStatesInFrontier
         this.concurrentStatesInFrontier = new PriorityQueue<>(new StateComparator());
-        this.concurrentStatesInFrontier.addAll(other.concurrentStatesInFrontier);
+        for (MAPFState state : other.concurrentStatesInFrontier) {
+            this.concurrentStatesInFrontier.add(new MAPFState(state));
+        }
 
         // Deep copy of concurrentStatesInExplored
         this.concurrentStatesInExplored = new PriorityQueue<>(new StateComparator());
-        this.concurrentStatesInExplored.addAll(other.concurrentStatesInExplored);
+        for (MAPFState state : other.concurrentStatesInExplored) {
+            this.concurrentStatesInExplored.add(new MAPFState(state));
+        }
 
         this.ictQueueAtRollback = new LinkedList<>();
         for(ICTNode node : other.ictQueueAtRollback) {
