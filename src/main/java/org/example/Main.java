@@ -10,8 +10,8 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {1};
-        Ramp myRamp = new Ramp(3, 5, 5, passBays);
+        int[] passBays = {2};
+        Ramp myRamp = new Ramp(5, 5, 5, passBays);
 
         // This section should be equivalent to the section after (now commented)
         // Add initial agents
@@ -70,9 +70,9 @@ public class Main {
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
-        Agent agent2 = new Agent(3, 1, Constants.UP, true);
-        agentList2.put(agent2.id, agent);
-        agentEntries2.addEntry(2, agent2);
+//        Agent agent2 = new Agent(5, 1, Constants.UP, true);
+//        agentList2.put(agent2.id, agent);
+//        agentEntries2.addEntry(5, agent2);
 
         MAPFScenario scenario2 = new MAPFScenario(myRamp, agentEntries2, 20);
         MAPFScenario scenario3 = new MAPFScenario(myRamp, agentEntries2, 20);

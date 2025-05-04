@@ -81,16 +81,7 @@ public class MAPFSolver {
                 scenario.setTotalAgentCount(newCurrentState.getAgentLocations().size());
 
                 // Update MAPFScenario's initialState
-                scenario.setInitialState(scenario.generateState(timeStep, null));
-
-                // Give the initial state the concurrent frontier and explored states
-                scenario.getInitialState().setConcurrentStatesInFrontier(
-                        newCurrentState.getConcurrentStatesInFrontier());
-                scenario.getInitialState().setConcurrentStatesInExplored(
-                        newCurrentState.getConcurrentStatesInExplored()
-                );
-
-                // Also give the initial state the
+                scenario.generateInitialState(timeStep);
 
                 // Invoke the algorithm anew
                 currentSolution = this.algorithm.solve(this.scenario);
