@@ -17,16 +17,10 @@ public class ICTS implements MAPFAlgorithm {
     // Data members
     private ICT tree;
     private int numOfAgents;
-    private int numOfExploredICTNodes = 0;
-
-    // Used for rollback for ICTNodes who should not have the new agents
-    private HashMap<Agent, Integer> prevAgentLocations;
-    private int prevCostVectorSum = Integer.MAX_VALUE;
 
     // Constructors
     public ICTS() {
         this.tree = new ICT();
-        this.prevAgentLocations = new HashMap<>();
     }
 
     // Methods
@@ -339,15 +333,14 @@ public class ICTS implements MAPFAlgorithm {
         return null;
     }
 
-    private ArrayList<MAPFState> buildSolution(MAPFScenario scenario, ArrayList<ArrayList<Integer>> solutionPaths,
-                                               ICTNode ictNode) {
+    private ArrayList<MAPFState> buildSolution(MAPFScenario scenario, ArrayList<ArrayList<Integer>> solutionPaths) {
         // Task: From solutionPaths, build an ArrayList<MAPFState> with all solution paths
 
         MAPFState initialState = scenario.getInitialState();
         Ramp ramp = initialState.getRamp();
         int surfaceExit = ramp.getSurfaceExit();
         int undergroundExit = ramp.getUndergroundExit();
-        int solutionLength = solutionPaths.getFirst().size();
+        int solutionLength = solutionPaths.get(0).size();
         ArrayList<MAPFState> solutionSet = new ArrayList<>();
         solutionSet.addFirst(initialState);
 
@@ -376,12 +369,10 @@ public class ICTS implements MAPFAlgorithm {
             }
 
             MAPFState state = new MAPFState(ramp, agentLocations, cost, i);
-
-            // Store the goal ICTNode's ictQueue in each of the solution states
-            state.setIctQueueAtRollback(ictNode.getIctQueue());
-
             solutionSet.addLast(state);
         }
+
+        // TODO: REMOVE BELOW
 
         return solutionSet;
     }
@@ -405,7 +396,7 @@ public class ICTS implements MAPFAlgorithm {
                 continue;
             }
 
-            System.out.println("ICT child node with cost vector " + childCostVector + " was pruned");
+            //System.out.println("ICT child node with cost vector " + childCostVector + " was pruned");
         }
     }
 
@@ -542,13 +533,13 @@ public class ICTS implements MAPFAlgorithm {
 
         int accumulatedGeneratedStates = 0;
         int accumulatedExpandedStates = 0;
+        int numOfExploredICTNodes = 0;
 
         // Run A* on each agent as if they were alone in the scenario
         MAPFState initialState = scenario.getInitialState();
         HashMap<Agent, Integer> agentLocations = initialState.getAgentLocations();
         ArrayList<Integer> initialOptimalCosts = new ArrayList<>();
         ArrayList<MAPFSolution> initialSolutions = new ArrayList<>();
-        ArrayList<Integer> newlyEnteredAgentsCosts = new ArrayList<>();     // Used for after rollback
 
         System.out.println("Initial independent solution paths:");
 
@@ -570,21 +561,14 @@ public class ICTS implements MAPFAlgorithm {
             initialSolution.printSolution(true);
             initialSolutions.add(initialSolution);
             initialOptimalCosts.add(initialSolution.getCost());
-
-            // If new agents have arrived, identify them and their starting locations
-            // A new agent is one that is not found in prevAgentLocations but that is in initialState's agentLocations
-            if(!this.prevAgentLocations.containsKey(agent)) {
-                newlyEnteredAgentsCosts.add(initialSolution.getCost());
-            }
-
             accumulatedExpandedStates += initialSolution.getExpandedStates();
             accumulatedGeneratedStates += initialSolution.getGeneratedStates();
         }
 
         root.costVector = initialOptimalCosts;
-        this.tree.resetAllCostVectors();    // If rollback, reset allCostVectors to allow re-searching the ICT
         this.tree.addCostVector(root.costVector);
         this.tree.setRoot(root);
+
 
         // Generate MDDs from the independent solutions
         for(MAPFSolution initialSolution : initialSolutions) {
@@ -593,6 +577,9 @@ public class ICTS implements MAPFAlgorithm {
             root.agentPaths.add(agentPath);
         }
 
+        int surfaceExit = initialState.getRamp().getSurfaceExit();
+        int undergroundExit = initialState.getRamp().getUndergroundExit();
+
         // TODO Optimisation? Run MDDToSolutionPaths() on each pair of agents. If one of them do not return
         //  a solution, dont bother with generating a solution for the whole ICTNode
 
@@ -600,15 +587,10 @@ public class ICTS implements MAPFAlgorithm {
         ArrayList<ArrayList<Integer>> solutionPaths = MDDToSolutionPaths(root, initialState.getRamp());
         numOfExploredICTNodes++;
 
-        // If solutionPaths != null, that means a solution was found in a goal node
         if(solutionPaths != null) {
-            ArrayList<MAPFState> solution = buildSolution(scenario, solutionPaths, root);
+            ArrayList<MAPFState> solution = buildSolution(scenario, solutionPaths);
 
             MAPFSolution completeSolution = new MAPFSolution(solution, accumulatedGeneratedStates, accumulatedExpandedStates);
-
-            // In case of future rollback, set prevAgentLocations and prevCostVectorSum
-            this.prevAgentLocations = initialState.getAgentLocations();
-            this.prevCostVectorSum = root.costVectorSum();
 
             System.out.println("Goal node found after " + numOfExploredICTNodes + " ICTNodes were explored!");
 
@@ -618,86 +600,36 @@ public class ICTS implements MAPFAlgorithm {
         // If not a goal node, create ICT child nodes
         generateChildren(root);
 
-        // Create an ictQueue from which nodes up for checking are retrieved
-        Queue<ICTNode> ictQueue = new LinkedList<>();
-
-        // In case we are here due to a rollback. Add all initialState's ictQueue ICTNodes
-        boolean ictQueuePrefilled = false;
-
-        if(!initialState.getIctQueueAtRollback().isEmpty() && !ictQueuePrefilled) {
-            ictQueue.addAll(initialState.getIctQueueAtRollback());
-        }
-
-        // Enqueue root's child ICTNodes
-        ictQueue.addAll(root.children);
-
-        // Don't try to prefill the queue with initialState's ictQueue again
-        ictQueuePrefilled = true;
-
-        // ############## PUT PART ABOVE AS A HELPER METHOD? ##############
+        // Create an ICT ictQueue from which nodes up for checking are retrieved
+        Queue<ICTNode> ictQueue = new LinkedList<>(root.children);
 
         // Search through the ICT until a goal node is found
         while(!ictQueue.isEmpty()) {
             ICTNode currentNode = ictQueue.poll();
             int numOfAgents = currentNode.costVector.size();
 
-            // Store snapshots of the ictQueue in the currentNode
-            Queue<ICTNode> ictQueueSnapshot = new LinkedList<>(ictQueue);
-            currentNode.setIctQueue(ictQueueSnapshot);
-
             // Generate an MDD for each agent i, imposing all costVector.get(i) possible actions
             // Run BFS for x moves only and return the solution. Then call createMDDFromPath() to get MDD
+            /*
+            * TODO NEXT: Create a BFS method. It takes the ramp, agent start location, and goal location.
+                Try all x action combinations and record the end location. If end location == goal location
+                save the path, create a MAPFSolution for it, and run createMDDFromPath() to get MDD
+            * */
 
             ArrayList<ArrayList<MAPFSolution>> childSolutions = new ArrayList<>();
 
             // For each agent, get all independent solution paths with a cost specified in
             // the currentNode costVector
             int iteration = 0;
+            for(Map.Entry<Agent, Integer> entry : initialState.getAgentLocations().entrySet()) {
+                Agent agent = entry.getKey();
+                int location = entry.getValue();
 
-            // If the current ICTNode has a costVectorSum equal to or larger than that of the previous goal ICTNode,
-            // it means that the current ICTNode represents the timestep at which the new agents enter (or later),
-            // in which case the newly arrived agents should be considered. Thus use initialState's agentLocations.
-            // OR if this.prevAgentLocations is empty, i.e. if there has been no rollback!
-            if(currentNode.costVectorSum() >= this.prevCostVectorSum || this.prevAgentLocations.isEmpty()) {
+                Ramp ramp = initialState.getRamp();
+                int cost = currentNode.costVector.get(iteration++);
 
-                // TODO NEXT: Current problem is that after rollback, ICTNodes that enter here are to have newly entering
-                //  agents in its scenario. However, as of now, the ICTNode's costVector has not been updated to include
-                //  the new agents. This must be added!
-                // TODO ADD: DEBUG THROUGH ICTS WITH THIS SCENARIO AND SEE WHAT HAPPENS. DOES ANYTHING UNINTENDED HAPPEN?
-                //  IF SO, CORRECT IT. ELSE, THIS REPLAN IMPLEMENTATION OF ICTS DOESN'T WORK.
-
-                // If currentNode's costVector size is smaller than the number of agents, that means that the newly entered
-                // agent costs have not been added to currentNode's costVector
-                if(currentNode.costVector.size() < initialState.getAgentLocations().size()) {
-                    currentNode.costVector.addAll(newlyEnteredAgentsCosts);
-                }
-
-                for(Map.Entry<Agent, Integer> entry : initialState.getAgentLocations().entrySet()) {
-                    Agent agent = entry.getKey();
-                    int location = entry.getValue();
-
-                    Ramp ramp = initialState.getRamp();
-                    int cost = currentNode.costVector.get(iteration++);
-
-                    // childSolution is added, in one of its elements, all possible solution paths for this agent
-                    childSolutions.add(getValidSolutions(ramp, agent, location, cost));
-                }
-            }
-            else {
-                // If this is true, a rollback has occurred, and we are at an ICTNode representing a timestep earlier
-                // than when the new agents arrived. Thus, do not use initialState's agentLocations since that
-                // include the new agents
-
-                for(Map.Entry<Agent, Integer> entry : this.prevAgentLocations.entrySet()) {
-                    Agent agent = entry.getKey();
-                    int location = entry.getValue();
-
-                    Ramp ramp = initialState.getRamp();
-                    int cost = currentNode.costVector.get(iteration++);
-
-                    // childSolution is added, in one of its elements, all possible solution paths for this agent
-                    childSolutions.add(getValidSolutions(ramp, agent, location, cost));
-                }
+                // childSolution is added, in one of its elements, all possible solution paths for this agent
+                childSolutions.add(getValidSolutions(ramp, agent, location, cost));
             }
 
 
@@ -723,15 +655,11 @@ public class ICTS implements MAPFAlgorithm {
 
             // Return solution if goal node was found
             if(solutionPaths != null) {
-                ArrayList<MAPFState> solution = buildSolution(scenario, solutionPaths, currentNode);
+                ArrayList<MAPFState> solution = buildSolution(scenario, solutionPaths);
 
                 MAPFSolution completeSolution = new MAPFSolution(solution, accumulatedGeneratedStates, accumulatedExpandedStates);
 
                 System.out.println("Goal node found after " + numOfExploredICTNodes + " ICTNodes were explored!");
-
-                // In case of future rollback, set prevAgentLocations and prevCostVectorSum
-                this.prevAgentLocations = initialState.getAgentLocations();
-                this.prevCostVectorSum = currentNode.costVectorSum();
 
                 return completeSolution;
             }

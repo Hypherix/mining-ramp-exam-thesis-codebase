@@ -10,11 +10,6 @@ public class MDD {
         this.root = root;
     }
 
-    // Copy constructor
-    public MDD(MDD other) {
-        this.root = new MDDNode(other.root);
-    }
-
     // Methods
     public int getRootVertex() {
         return this.root.vertex;

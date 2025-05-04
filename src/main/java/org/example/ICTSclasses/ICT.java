@@ -24,17 +24,6 @@ public class ICT {
         allCostVectors = new ArrayList<>();
     }
 
-    // Copy constructor
-    public ICT(ICT other) {
-        this.root = new ICTNode(other.root);
-
-        // Deep copy of allCostVectors
-        this.allCostVectors = new ArrayList<>();
-        for (ArrayList<Integer> vector : other.allCostVectors) {
-            this.allCostVectors.add(new ArrayList<>(vector));
-        }
-    }
-
     // Methods
     public ICTNode getRoot() {
         return this.root;
@@ -50,9 +39,5 @@ public class ICT {
 
     public ArrayList<ArrayList<Integer>> getAllCostVectors() {
         return this.allCostVectors;
-    }
-
-    public void resetAllCostVectors() {
-        this.allCostVectors.clear();
     }
 }
