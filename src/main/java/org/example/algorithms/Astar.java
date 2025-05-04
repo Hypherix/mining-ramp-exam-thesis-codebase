@@ -503,6 +503,8 @@ public class Astar implements MAPFAlgorithm {
             // Generate new states from moveCombinations
 
             // Go through each move combination
+            ArrayList<MAPFState> neighboursToAddToFrontier = new ArrayList<>();
+
             for (HashMap<Agent, Integer> moveCombination : moveCombinations) {
 
                 boolean stateAllowed = isStateAllowed(moveCombination, currentStateAgentLocations,
@@ -519,23 +521,25 @@ public class Astar implements MAPFAlgorithm {
                             currentState.getRamp(), moveCombination, newGcost, currentState.getTimeStep() + 1);
                     neighbourState.setParent(currentState);
 
-                    // Add a snapshot of the current frontier and explored to the new MAPFState
-                    // in case of a future rollback to it
-                    PriorityQueue<MAPFState> frontierSnapshot = new PriorityQueue<>(new StateComparator());
-                    for (MAPFState state : frontier) {
-                        frontierSnapshot.add(state);
-                    }
-                    neighbourState.setConcurrentStatesInFrontier(frontierSnapshot);
 
-                    PriorityQueue<MAPFState> exploredSnapshot = new PriorityQueue<>(new StateComparator());
-                    for (MAPFState state : explored) {
-                        exploredSnapshot.add(state);
-                    }
-                    neighbourState.setConcurrentStatesInExplored(exploredSnapshot);
 
-                    // If neighbourState has not been encountered before, add to frontier
+
+//                    // Add a snapshot of the current frontier and explored to the new MAPFState
+//                    // in case of a future rollback to it
+//                    PriorityQueue<MAPFState> frontierSnapshot = new PriorityQueue<>(new StateComparator());
+//                    frontierSnapshot.addAll(frontier);
+//                    neighbourState.setConcurrentStatesInFrontier(frontierSnapshot);
+//
+//                    PriorityQueue<MAPFState> exploredSnapshot = new PriorityQueue<>(new StateComparator());
+//                    exploredSnapshot.addAll(explored);
+//                    neighbourState.setConcurrentStatesInExplored(exploredSnapshot);
+
+
+
+
+                    // If neighbourState has not been encountered before, set neighbour to be added
                     if(!frontier.contains(neighbourState) && !explored.contains(neighbourState)) {
-                        frontier.add(neighbourState);
+                        neighboursToAddToFrontier.add(neighbourState);
                         generatedStates++;
                     }
                     /*
@@ -552,6 +556,29 @@ public class Astar implements MAPFAlgorithm {
                     }
                 }
             }
+
+            // Create a snapshot of the explored queue to move over to each new neighbour
+            PriorityQueue<MAPFState> exploredSnapshot = new PriorityQueue<>(new StateComparator());
+            exploredSnapshot.addAll(explored);
+
+            // Now add all neighbours
+            for(MAPFState neighbour : neighboursToAddToFrontier) {
+
+                PriorityQueue<MAPFState> neighboursToAddSnapshot = new PriorityQueue<>(new StateComparator());
+                neighboursToAddSnapshot.addAll(neighboursToAddToFrontier);
+
+                neighbour.setConcurrentStatesInFrontier(neighboursToAddSnapshot);
+
+                neighbour.removeFromConcurrentStatesInFrontier(neighbour);
+
+                PriorityQueue<MAPFState> frontierSnapshot = new PriorityQueue<>(new StateComparator());
+                frontierSnapshot.addAll(frontier);
+                neighbour.addAllToConcurrentStatesInFrontier(frontierSnapshot);
+                neighbour.setConcurrentStatesInExplored(exploredSnapshot);
+            }
+
+            // Add all neighbours to frontier
+            frontier.addAll(neighboursToAddToFrontier);
         }
 
         System.out.println("A* COULD NOT FIND A SOLUTION!");

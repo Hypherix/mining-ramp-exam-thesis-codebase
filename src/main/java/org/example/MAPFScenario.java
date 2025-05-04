@@ -190,6 +190,19 @@ public class MAPFScenario {
                 newGcost = knownState.getGcost();
             }
 
+            // If getConcurrentStatesInFrontier/Explored are filled, move them over as well...
+            if(knownState != null) {
+                if(!knownState.getConcurrentStatesInFrontier().isEmpty() &&
+                        !knownState.getConcurrentStatesInExplored().isEmpty()) {
+
+                    return new MAPFState(ramp, finalAgentLocations, newGcost, timeStep,
+                            knownState.parent,
+                            knownState.getConcurrentStatesInFrontier(),
+                            knownState.getConcurrentStatesInExplored());
+                }
+            }
+
+            // ...else, return without them
             return new MAPFState(ramp, finalAgentLocations, newGcost, timeStep);
             //setInitialState(new MAPFState(ramp, finalAgentLocations, newGcost, timeStep));
         }

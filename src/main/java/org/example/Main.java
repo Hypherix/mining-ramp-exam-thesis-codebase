@@ -71,8 +71,11 @@ public class Main {
             agentEntries2.addEntry(0, agent2);
         }
         Agent agent2 = new Agent(3, 1, Constants.UP, true);
-        agentList2.put(agent2.id, agent);
+        agentList2.put(agent2.id, agent2);
         agentEntries2.addEntry(2, agent2);
+        agent2 = new Agent(4, 1, Constants.DOWN, true);
+        agentList2.put(agent2.id, agent2);
+        agentEntries2.addEntry(12, agent2);
 
         MAPFScenario scenario2 = new MAPFScenario(myRamp, agentEntries2, 20);
         MAPFScenario scenario3 = new MAPFScenario(myRamp, agentEntries2, 20);

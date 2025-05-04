@@ -57,6 +57,74 @@ public class MAPFState {
         }
     }
 
+    // Constructor with concurrentStatesInFrontier/Explored set
+    public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost, int timeStep,
+                     PriorityQueue<MAPFState> concurrentStatesInFrontier,
+                     PriorityQueue<MAPFState> concurrentStatesInExplored) {
+        this.ramp = ramp;
+        this.agentLocations = agentLocations;
+        this.gcost = gcost;
+        this.hcost = calculateHcost();
+        this.fcost = this.gcost + this.hcost;
+        this.parent = null;
+        this.timeStep = timeStep;
+        this.concurrentStatesInFrontier = new PriorityQueue<>(new StateComparator());
+        this.concurrentStatesInFrontier.addAll(concurrentStatesInFrontier);
+        this.concurrentStatesInExplored = new PriorityQueue<>(new StateComparator());
+        this.concurrentStatesInExplored.addAll(concurrentStatesInExplored);
+
+
+        // Categorise the agents as active or inactive
+        this.activeAgents = new ArrayList<>();
+        this.inactiveAgents = new ArrayList<>();
+        int surfaceExit = fetchSurfaceExit();
+        int undergroundExit = fetchUndergroundExit();
+        for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
+            Agent agent = entry.getKey();
+            int location = entry.getValue();
+            if (location == surfaceExit || location == undergroundExit) {
+                this.inactiveAgents.add(agent);
+            }
+            else {
+                this.activeAgents.add(agent);
+            }
+        }
+    }
+
+    // Constructor with concurrentStatesInFrontier/Explored and parent set
+    public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost, int timeStep, MAPFState parent,
+                     PriorityQueue<MAPFState> concurrentStatesInFrontier,
+                     PriorityQueue<MAPFState> concurrentStatesInExplored) {
+        this.ramp = ramp;
+        this.agentLocations = agentLocations;
+        this.gcost = gcost;
+        this.hcost = calculateHcost();
+        this.fcost = this.gcost + this.hcost;
+        this.parent = parent;
+        this.timeStep = timeStep;
+        this.concurrentStatesInFrontier = new PriorityQueue<>(new StateComparator());
+        this.concurrentStatesInFrontier.addAll(concurrentStatesInFrontier);
+        this.concurrentStatesInExplored = new PriorityQueue<>(new StateComparator());
+        this.concurrentStatesInExplored.addAll(concurrentStatesInExplored);
+
+
+        // Categorise the agents as active or inactive
+        this.activeAgents = new ArrayList<>();
+        this.inactiveAgents = new ArrayList<>();
+        int surfaceExit = fetchSurfaceExit();
+        int undergroundExit = fetchUndergroundExit();
+        for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
+            Agent agent = entry.getKey();
+            int location = entry.getValue();
+            if (location == surfaceExit || location == undergroundExit) {
+                this.inactiveAgents.add(agent);
+            }
+            else {
+                this.activeAgents.add(agent);
+            }
+        }
+    }
+
     // Copy constructor
     public MAPFState(MAPFState other) {
         // Deep copy the ramp
@@ -92,15 +160,11 @@ public class MAPFState {
 
         // Deep copy of concurrentStatesInFrontier
         this.concurrentStatesInFrontier = new PriorityQueue<>(new StateComparator());
-        for (MAPFState state : other.concurrentStatesInFrontier) {
-            this.concurrentStatesInFrontier.add(new MAPFState(state));
-        }
+        this.concurrentStatesInFrontier.addAll(other.concurrentStatesInFrontier);
 
         // Deep copy of concurrentStatesInExplored
         this.concurrentStatesInExplored = new PriorityQueue<>(new StateComparator());
-        for (MAPFState state : other.concurrentStatesInExplored) {
-            this.concurrentStatesInExplored.add(new MAPFState(state));
-        }
+        this.concurrentStatesInExplored.addAll(other.concurrentStatesInExplored);
     }
 
 
@@ -250,12 +314,28 @@ public class MAPFState {
         return this.timeStep;
     }
 
+    public void setTimeStep(int timeStep) {
+        this.timeStep = timeStep;
+    }
+
     public PriorityQueue<MAPFState> getConcurrentStatesInFrontier() {
         return this.concurrentStatesInFrontier;
     }
 
     public void setConcurrentStatesInFrontier(PriorityQueue<MAPFState> concurrentStatesInFrontier) {
         this.concurrentStatesInFrontier = concurrentStatesInFrontier;
+    }
+
+    public void addToConcurrentStatesInFrontier(MAPFState concurrentState) {
+        this.concurrentStatesInFrontier.add(concurrentState);
+    }
+
+    public void removeFromConcurrentStatesInFrontier(MAPFState concurrentState) {
+        this.concurrentStatesInFrontier.remove(concurrentState);
+    }
+
+    public void addAllToConcurrentStatesInFrontier(PriorityQueue<MAPFState> statesToAdd) {
+        this.concurrentStatesInFrontier.addAll(statesToAdd);
     }
 
     public PriorityQueue<MAPFState> getConcurrentStatesInExplored() {

@@ -5,6 +5,7 @@ import org.example.algorithms.MAPFAlgorithm;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 
 /*
@@ -55,7 +56,7 @@ public class MAPFSolver {
             if (agentEntries.containsKey(timeStep)) {   // If there are new agents entering this timeStep
                 // Remove from solution states those states that are now invalid
 
-                ArrayList<MAPFState> currentSolutionStates = currentSolution.getSolutionSet();
+                ArrayList<MAPFState> currentSolutionStates = new ArrayList<>(currentSolution.getSolutionSet());
 
                 // TODO: Check if timeStep > currentSolutionStates.size(). If so, create as many identical states as the last
                 //  state until currentSolutionStates.size() == timeStep
@@ -66,7 +67,10 @@ public class MAPFSolver {
                     int difference = timeStep - currentSolutionStates.size() + 1;
                     MAPFState lastSolutionState = currentSolutionStates.getLast();
                     for (int i = 0; i < difference; i++) {
-                        currentSolutionStates.add(new MAPFState(lastSolutionState));
+                        MAPFState paddedState = new MAPFState(lastSolutionState);
+                        paddedState.setTimeStep(lastSolutionState.getTimeStep() + i);  // <-- Advance time step
+                        paddedState.parent = currentSolutionStates.getLast();   // Link to previous state
+                        currentSolutionStates.add(paddedState);
                     }
                 }
                 currentSolutionStates.subList(timeStep + 1, currentSolutionStates.size()).clear();
@@ -80,8 +84,9 @@ public class MAPFSolver {
                 // Update totalAgentCount to reflect currentState's
                 scenario.setTotalAgentCount(newCurrentState.getAgentLocations().size());
 
-                // Update MAPFScenario's initialState
+                // Update MAPFScenario's initialState and manually set parent to newCurrentState.parent
                 scenario.setInitialState(scenario.generateState(timeStep, null));
+                scenario.getInitialState().parent = newCurrentState.parent;
 
                 // Give the initial state the concurrent frontier and explored states
                 scenario.getInitialState().setConcurrentStatesInFrontier(
@@ -95,16 +100,29 @@ public class MAPFSolver {
                 // Invoke the algorithm anew
                 currentSolution = this.algorithm.solve(this.scenario);
 
+
                 // Since currentSolution's initial solution set state is the same as the last state
                 // in currentSolutionStates, remove it from currentSolutionStates
-                currentSolutionStates.removeLast();
+                //currentSolutionStates.removeLast();
 
-                // Merge currentSolutionStates and currentSolution's solution set
-                ArrayList<MAPFState> newCurrentSolutionStates = currentSolutionStates;
-                newCurrentSolutionStates.addAll(currentSolution.getSolutionSet());
+
+                ArrayList<MAPFState> newCurrentSolutionStates = new ArrayList<>();
+                // Start from goal of new A* run
+                MAPFState goalState = currentSolution.getSolutionSet().getLast();
+                LinkedList<MAPFState> fullPath = new LinkedList<>();
+
+                MAPFState current = goalState;
+                while (current != null) {
+                    fullPath.addFirst(current);  // Prepend to reverse order
+                    current = current.parent;
+                }
+
+                // Replace solution set with full reconstructed path
+                currentSolution.setSolutionSet(new ArrayList<>(fullPath));
+
 
                 // Set the solution set of newSolution as newCurrentSolutionStates
-                currentSolution.setSolutionSet(newCurrentSolutionStates);
+                //currentSolution.setSolutionSet(newCurrentSolutionStates);
             }
         }
 
