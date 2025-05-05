@@ -602,13 +602,13 @@ public class ICTS implements MAPFAlgorithm {
         // If not a goal node, create ICT child nodes
         generateChildren(root);
 
+
         // Create an ICT ictQueue from which nodes up for checking are retrieved
         Queue<ICTNode> ictQueue = new LinkedList<>(root.children);
 
         // Search through the ICT until a goal node is found
         while(!ictQueue.isEmpty()) {
             ICTNode currentNode = ictQueue.poll();
-            int numOfAgents = currentNode.costVector.size();
 
             // Generate an MDD for each agent i, imposing all costVector.get(i) possible actions
             // Run BFS for x moves only and return the solution. Then call createMDDFromPath() to get MDD

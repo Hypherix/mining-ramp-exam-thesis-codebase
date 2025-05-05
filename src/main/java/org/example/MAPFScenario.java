@@ -1,8 +1,6 @@
 package org.example;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 
 // This class represents a MAPF problem/scenario
 
@@ -25,6 +23,12 @@ public class MAPFScenario {
 
     private AgentEntries agentEntries;
 
+    // <Agent, <timeStep, prohibitedVertexSet>>
+    private HashMap<Agent, HashMap<Integer, Set<Integer>>> vertexConstraints;
+
+    // <Agent, <timeStep, set of (fromVertex, toVertex)>>
+    private HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> edgeConstraints;
+
 
     public MAPFScenario(Ramp ramp, AgentEntries agentEntries, int duration) {
         this.ramp = ramp;
@@ -44,6 +48,20 @@ public class MAPFScenario {
         this.totalAgentCount = initialState.getAgentLocations().size();
     }
 
+    public MAPFScenario(Ramp ramp, MAPFState initialState, int duration,
+                        HashMap<Agent, HashMap<Integer, Set<Integer>>> vertexConstraints,
+                        HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> edgeConstraints) {
+        // Used in CBS
+
+        this.ramp = ramp;
+        this.initialState = initialState;
+        this.agentEntries = null;
+        this.duration = duration;
+        this.totalAgentCount = initialState.getAgentLocations().size();
+
+        this.vertexConstraints = vertexConstraints;
+        this.edgeConstraints = edgeConstraints;
+    }
 
     // Methods
 
@@ -65,8 +83,6 @@ public class MAPFScenario {
         }
 
         Collection<Integer> occupiedVertices = agentLocations.values();
-
-        int surfaceStart = ramp.getSurfaceStart();
 
         ArrayList<Integer> verticesInSurfaceQ = ramp.getVerticesInSurfaceQ();
 
@@ -99,8 +115,6 @@ public class MAPFScenario {
         }
 
         Collection<Integer> occupiedVertices = agentLocations.values();
-
-        int undergroundStart = ramp.getUndergroundStart();
 
         ArrayList<Integer> verticesInUndergroundQ = ramp.getVerticesInUndergroundQ();
         for(Integer vertex : verticesInUndergroundQ) {
@@ -292,5 +306,31 @@ public class MAPFScenario {
 
     public ArrayList<Integer> fetchVerticesInUndergroundQ() {
         return this.ramp.getVerticesInUndergroundQ();
+    }
+
+    public void addVertexConstraint(Agent agent, int vertex, int timeStep) {
+        this.vertexConstraints
+                .computeIfAbsent(agent, k -> new HashMap<>())
+                .computeIfAbsent(timeStep, k -> new HashSet<>())
+                .add(vertex);
+    }
+
+    public HashMap<Agent, HashMap<Integer, Set<Integer>>> getVertexConstraints() {
+        return this.vertexConstraints;
+    }
+
+    public void addEdgeConstraint(Agent agent, int fromVertex, int toVertex, int timeStep) {
+        ArrayList<Integer> edge = new ArrayList<>();
+        edge.add(fromVertex);
+        edge.add(toVertex);
+
+        this.edgeConstraints
+                .computeIfAbsent(agent, k -> new HashMap<>())
+                .computeIfAbsent(timeStep, k -> new HashSet<>())
+                .add(edge);
+    }
+
+    public HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> getEdgeConstraints() {
+        return this.edgeConstraints;
     }
 }

@@ -358,12 +358,42 @@ public class Astar implements MAPFAlgorithm {
             HashMap<Agent, Integer> currentStateAgentLocations,
             int surfaceExit, int undergroundExit,
             ArrayList<Integer> verticesInPassingBays,
-            ArrayList<ArrayList<Integer>> passingBayVertices) {
+            ArrayList<ArrayList<Integer>> passingBayVertices,
+            MAPFScenario scenario, int timeStep) {
         // Task: Check if the state is allowed in the frontier
 
         ArrayList<Integer> prohibitedVertices = new ArrayList<>();
         ArrayList<ArrayList<Integer>> prohibitedMoves = new ArrayList<>();
 
+        HashMap<Agent, HashMap<Integer, Set<Integer>>> vertexConstraints = scenario.getVertexConstraints();
+        HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> edgeConstraints = scenario.getEdgeConstraints();
+
+        // TODO TEST: The following 2 if statements regarding CBS constraint retrieval have not been tested!!
+        // If A* invoked by CBS, check if any vertex constraints exist
+        if (vertexConstraints != null) {
+            // If vertexConstraints != null, we are here from CBS. CBS only invokes A* on one agent. Retrieve
+            // the agent from scenario's agentLocations
+            Set<Agent> agents = scenario.fetchAgentLocations().keySet();
+            Agent agent = agents.iterator().next();
+
+            // Get all prohibited vertices and moves for the agent this timeStep. Then add them to prohibitedVertices
+            Set<Integer> agentVertexConstraintsThisTimeStep = vertexConstraints.get(agent).get(timeStep);
+            prohibitedVertices.addAll(agentVertexConstraintsThisTimeStep);
+        }
+
+        // If A* invoked by CBS, check if any edge constraints exist
+        if (edgeConstraints != null) {
+            // If vertexConstraints != null, we are here from CBS. CBS only invokes A* on one agent. Retrieve
+            // the agent from scenario's agentLocations
+            Set<Agent> agents = scenario.fetchAgentLocations().keySet();
+            Agent agent = agents.iterator().next();
+
+            // Do the same for prohibited moves
+            Set<ArrayList<Integer>> agentEdgeConstraintsThisTimeStep = edgeConstraints.get(agent).get(timeStep);
+            prohibitedMoves.addAll(agentEdgeConstraintsThisTimeStep);
+        }
+
+        // Check for vertex/edge conflicts
         for(Map.Entry<Agent, Integer> entry : moveCombination.entrySet()) {
             Agent agent = entry.getKey();
             int newLocation = entry.getValue();
@@ -457,6 +487,7 @@ public class Astar implements MAPFAlgorithm {
         // Don't try to prefill the queues with initialState concurrent states again
         prioQueuesPrefilled = true;
 
+
         while(!frontier.isEmpty()) {
             MAPFState currentState = frontier.poll();
             expandedStates++;
@@ -508,7 +539,8 @@ public class Astar implements MAPFAlgorithm {
             for (HashMap<Agent, Integer> moveCombination : moveCombinations) {
 
                 boolean stateAllowed = isStateAllowed(moveCombination, currentStateAgentLocations,
-                        surfaceExit, undergroundExit, verticesInPassingBays, passingBayVertices);
+                        surfaceExit, undergroundExit, verticesInPassingBays, passingBayVertices,
+                        scenario, currentState.getTimeStep() + 1);
 
                 // If state is allowed, generate it
                 if (stateAllowed) {

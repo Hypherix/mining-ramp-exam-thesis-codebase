@@ -61,14 +61,12 @@ public class MAPFSolver {
                 // TODO: Check if timeStep > currentSolutionStates.size(). If so, create as many identical states as the last
                 //  state until currentSolutionStates.size() == timeStep
 
-                int previousSolutionLength = currentSolutionStates.size();
-
                 if(timeStep >= currentSolutionStates.size()) {
                     int difference = timeStep - currentSolutionStates.size() + 1;
                     MAPFState lastSolutionState = currentSolutionStates.getLast();
                     for (int i = 0; i < difference; i++) {
                         MAPFState paddedState = new MAPFState(lastSolutionState);
-                        paddedState.setTimeStep(lastSolutionState.getTimeStep() + i);  // <-- Advance time step
+                        paddedState.setTimeStep(lastSolutionState.getTimeStep() + i);  // Advance time step
                         paddedState.parent = currentSolutionStates.getLast();   // Link to previous state
                         currentSolutionStates.add(paddedState);
                     }

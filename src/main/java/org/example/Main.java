@@ -10,8 +10,8 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {1};
-        Ramp myRamp = new Ramp(3, 5, 5, passBays);
+        int[] passBays = {1, 3};
+        Ramp myRamp = new Ramp(5, 5, 5, passBays);
 
         // This section should be equivalent to the section after (now commented)
         // Add initial agents
