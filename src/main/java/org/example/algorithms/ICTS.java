@@ -348,7 +348,6 @@ public class ICTS implements MAPFAlgorithm {
         ArrayList<Agent> agents = new ArrayList<>();
         for (Map.Entry<Agent, Integer> entry : initialState.getAgentLocations().entrySet()) {
             Agent agent = entry.getKey();
-            int location = entry.getValue();
 
             agents.addLast(agent);
         }

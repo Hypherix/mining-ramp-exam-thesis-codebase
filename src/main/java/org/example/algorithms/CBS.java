@@ -3,6 +3,7 @@ package org.example.algorithms;
 import org.example.*;
 import org.example.CBSclasses.*;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 /*
@@ -16,17 +17,14 @@ public class CBS implements MAPFAlgorithm {
 
     // Data members
     CTNode root;
-    int accumulatedGeneratedStates;
-    int accumulatedExpandedStates;
 
     // Constructors
     public CBS() {
         root = new CTNode();        // Needed? Yes
-        this.accumulatedGeneratedStates = 0;
-        this.accumulatedExpandedStates = 0;
     }
 
-    private void addAgentPaths(CTNode node, HashMap<Agent, Integer> agentLocations, MAPFState initialState) {
+    private void addAgentPaths(CTNode node, HashMap<Agent, Integer> agentLocations, MAPFState initialState,
+                               int accumulatedGeneratedStates, int accumulatedExpandedStates) {
         // Task: Given a CTNode and the agentLocations of the MAPFScenario, add independent agent paths to the CTNode
 
         // For each agent: generate a MAPFScenario, run A*, retrieve independent optimal paths
@@ -45,8 +43,8 @@ public class CBS implements MAPFAlgorithm {
             // With the scenario, run A*
             MAPFAlgorithm aStarSingle = AlgorithmFactory.getAlgorithm("astar");
             MAPFSolution singleInitialSolution = aStarSingle.solve(singleInitialScenario);
-            this.accumulatedGeneratedStates += singleInitialSolution.getGeneratedStates();
-            this.accumulatedExpandedStates += singleInitialSolution.getExpandedStates();
+            accumulatedGeneratedStates += singleInitialSolution.getGeneratedStates();
+            accumulatedExpandedStates += singleInitialSolution.getExpandedStates();
 
             // With the MAPFSolution, retrieve each location in the path (solutionSet)
             ArrayList<Integer> agentPath = new ArrayList<>();
@@ -57,7 +55,7 @@ public class CBS implements MAPFAlgorithm {
             }
 
             // Put the independent agent solution path in the root CT node
-            root.addAgentPath(agent, agentPath);
+            node.addAgentPath(agent, agentPath);
         }
     }
 
@@ -80,6 +78,11 @@ public class CBS implements MAPFAlgorithm {
         // Get exit vertices. Two agents located in an exit vertex should not count as a conflict
 
         ArrayList<Agent> agents = new ArrayList<>(node.agentPaths.keySet());
+
+        // If less than two agents, no conflicts exist
+        if(agents.size() < 2) {
+            return null;
+        }
 
         // Go through the agent paths pair-wise and look for conflicts
         for (int i = 0; i < agents.size(); i++) {
@@ -125,19 +128,70 @@ public class CBS implements MAPFAlgorithm {
         return null;
     }
 
-    public MAPFSolution buildSolution(CTNode goalNode) {
-        // Task: Given a goal CTNode, construct a MAPFSolution
+    public ArrayList<MAPFState> buildSolution(MAPFScenario scenario, CTNode goalNode) {
+        // Task: Given a goal CTNode, construct an ArrayList<MAPFState> with all solution paths
 
-        // TODO NEXT: generated/expanded state counts are data member of CBS. Needed is solution cost
+        // TODO NEXT: generated/expanded state counts are data members of CBS. Needed is solution cost
         //  calculation.
         //  DO NOT FORGET TO SET PARENTS TO THE STATES!
         //  Find a fitting MAPFState constructor and ensure that all costs and such are correct
+
+        MAPFState initialState = scenario.getInitialState();
+        Ramp ramp = initialState.getRamp();
+        int surfaceExit = ramp.getSurfaceExit();
+        int undergroundExit = ramp.getUndergroundExit();
+
+        // Retrieve all agents
+        ArrayList<Agent> agents = new ArrayList<>(initialState.getAgentLocations().keySet());
+
+        // Retrieve solution length
+        HashMap<Agent, ArrayList<Integer>> agentPaths = goalNode.agentPaths;
+        int solutionLength = agentPaths.get(agents.getFirst()).size();
+
+        // For each timeStep, add the locations of each agent to agentLocation and create a MAPFState
+        // Keep track of the cost. Don't add cost if prevLocation and current location are exit vertices
+        ArrayList<MAPFState> solutionSet = new ArrayList<>();
+        solutionSet.addFirst(initialState);
+
+        for (int i = 1; i < solutionLength; i++) {
+            HashMap<Agent, Integer> agentLocations = new HashMap<>();
+
+            int cost = 0;
+            for(Map.Entry<Agent, ArrayList<Integer>> entry : agentPaths.entrySet()) {
+                Agent agent = entry.getKey();
+                int prevLocation = entry.getValue().get(i - 1);
+                int location = entry.getValue().get(i);
+
+                agentLocations.put(agent, location);
+
+                // If current location is not an exit vertex, cost++
+                if(!isAnExitVertex(location, ramp)) {
+                    cost++;
+                }
+                // If current location is an exit vertex, but previous was not, cost++
+                else if(!isAnExitVertex(prevLocation, ramp)) {
+                    cost++;
+                }
+            }
+
+            MAPFState state = new MAPFState(ramp, agentLocations, cost, i);
+            if(!solutionSet.isEmpty()) {
+                state.parent = solutionSet.getLast();
+            }
+            solutionSet.addLast(state);
+        }
+
+        return solutionSet;
     }
 
     // Methods
     @Override
     public MAPFSolution solve(MAPFScenario scenario) {
         // Task: Generates a MAPFSolution from the MAPFScenario
+
+        int accumulatedGeneratedStates = 0;
+        int accumulatedExpandedStates = 0;
+        int numOfExploredCTNodes = 0;
 
         // Set the root CTNode agent paths and add it to the PrioQueue
 
@@ -148,8 +202,8 @@ public class CBS implements MAPFAlgorithm {
         HashMap<Agent, Integer> agentLocations = initialState.getAgentLocations();
 
         // Add independent agent paths to the root CT node
-        addAgentPaths(this.root, agentLocations, initialState);
-
+        addAgentPaths(this.root, agentLocations, initialState,
+                accumulatedGeneratedStates, accumulatedExpandedStates);
 
         // Create a PriorityQueue of CTNodes where the node with the lowest cost is prioritised
         PriorityQueue<CTNode> ctPrioQueue = new PriorityQueue<>(new CTNodeComparator());
@@ -161,11 +215,26 @@ public class CBS implements MAPFAlgorithm {
             // Check for conflicts in the currentNode agent paths
 
             Conflict conflict = getPathConflict(currentNode, initialState.getRamp());
+            numOfExploredCTNodes++;
 
             // conflict is null if no conflicts were found --> goal node
             if(conflict == null) {
-                MAPFSolution solution = buildSolution(currentNode);
+                ArrayList<MAPFState> solutionStates = buildSolution(scenario, currentNode);
+
+                MAPFSolution completeSolution = new MAPFSolution(solutionStates,
+                        accumulatedGeneratedStates, accumulatedExpandedStates);
+
+                System.out.println("CBS: Goal node found after " + numOfExploredCTNodes + " CTNotes we explored!");
+
+                return completeSolution;
             }
+
+            // TODO FIRST: Move all root treatment to before the while loop, since all following CTNodes
+            //  must rerun A* on the newlyConstrainedAgent only!!!
+
+            // Generate children to the non-goal node and enqueue to ictQueue
+            // generateChildren(currentNode);   // Don't forget to set the childrens' newlyConstrainedAgent data member!
+            // ctPrioQueue.addAll(currentNode.children)
         }
 
         return null;
