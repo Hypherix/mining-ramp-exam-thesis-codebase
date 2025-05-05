@@ -26,18 +26,8 @@ public class CBS implements MAPFAlgorithm {
         this.accumulatedExploredStates = 0;
     }
 
-    // Methods
-    @Override
-    public MAPFSolution solve(MAPFScenario scenario) {
-        // Task: Generates a MAPFSolution from the MAPFScenario
-
-        // Set the root CTNode agent paths and add it to the PrioQueue
-
-        // Get the initial state
-        MAPFState initialState = scenario.getInitialState();
-
-        // Retrieve all agents in the scenario
-        HashMap<Agent, Integer> agentLocations = initialState.getAgentLocations();
+    private void addAgentPaths(CTNode node, HashMap<Agent, Integer> agentLocations, MAPFState initialState) {
+        // Task: Given a CTNode and the agentLocations of the MAPFScenario, add independent agent paths to the CTNode
 
         // For each agent: generate a MAPFScenario, run A*, retrieve independent optimal paths
         for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
@@ -59,8 +49,25 @@ public class CBS implements MAPFAlgorithm {
             // Put the agent solution path in the root CT node
             root.addAgentPath(agent, singleInitialSolution.getSolutionSet());
         }
+    }
 
+    // Methods
+    @Override
+    public MAPFSolution solve(MAPFScenario scenario) {
+        // Task: Generates a MAPFSolution from the MAPFScenario
 
+        // Set the root CTNode agent paths and add it to the PrioQueue
+
+        // Get the initial state
+        MAPFState initialState = scenario.getInitialState();
+
+        // Retrieve all agents in the scenario
+        HashMap<Agent, Integer> agentLocations = initialState.getAgentLocations();
+
+        // Add independent agent paths to the root CT node
+        addAgentPaths(this.root, agentLocations, initialState);
+
+        
         // Create a PriorityQueue of CTNodes where the node with the lowest cost is prioritised
         PriorityQueue<CTNode> ctPrioQueue = new PriorityQueue<>(new CTNodeComparator());
 
