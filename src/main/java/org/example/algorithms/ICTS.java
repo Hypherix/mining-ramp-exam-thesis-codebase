@@ -571,16 +571,12 @@ public class ICTS implements MAPFAlgorithm {
         this.tree.addCostVector(root.costVector);
         this.tree.setRoot(root);
 
-
         // Generate MDDs from the independent solutions
         for(MAPFSolution initialSolution : initialSolutions) {
             ArrayList<MDD> agentPath = new ArrayList<>();
             agentPath.add(createMDDFromPath(initialSolution));
             root.agentPaths.add(agentPath);
         }
-
-        int surfaceExit = initialState.getRamp().getSurfaceExit();
-        int undergroundExit = initialState.getRamp().getUndergroundExit();
 
         // TODO Optimisation? Run MDDToSolutionPaths() on each pair of agents. If one of them do not return
         //  a solution, dont bother with generating a solution for the whole ICTNode

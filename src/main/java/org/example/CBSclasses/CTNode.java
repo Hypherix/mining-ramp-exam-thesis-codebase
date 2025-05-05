@@ -13,57 +13,61 @@ public class CTNode {
 
     // Data members
     public int cost;
-    Agent newlyConstrainedAgent;
+    public Agent newlyConstrainedAgent;
 
     // Stores all agent paths
-    public HashMap<Agent, ArrayList<MAPFState>> agentPaths;
+    public HashMap<Agent, ArrayList<Integer>> agentPaths;
 
-    // <Agent, <timeStep, prohibitedVertexSet>>
-    public HashMap<Agent, HashMap<Integer, Set<Integer>>> vertexConstraints;
+//    // <Agent, <timeStep, prohibitedVertexSet>>
+//    public HashMap<Agent, HashMap<Integer, Set<Integer>>> vertexConstraints;
+//
+//    // <Agent, <timeStep, set of (fromVertex, toVertex)>>
+//    public HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> edgeConstraints;
 
-    // <Agent, <timeStep, set of (fromVertex, toVertex)>>
-    public HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> edgeConstraints;
+    public ArrayList<Conflict> conflicts;
 
 
     // Constructors
     public CTNode() {
         this.cost = 0;
         this.agentPaths = new HashMap<>();
-        this.vertexConstraints = new HashMap<>();
-        this.edgeConstraints = new HashMap<>();
+//        this.vertexConstraints = new HashMap<>();
+//        this.edgeConstraints = new HashMap<>();
+
+        this.conflicts = new ArrayList<>();
     }
 
 
     // Methods
-    public void addAgentPath(Agent agent, ArrayList<MAPFState> path) {
+    public void addAgentPath(Agent agent, ArrayList<Integer> path) {
         this.agentPaths.put(agent, path);
     }
 
-    public void addVertexConstraint(Agent agent, int vertex, int timeStep) {
-        this.vertexConstraints
-                .computeIfAbsent(agent, k -> new HashMap<>())
-                .computeIfAbsent(timeStep, k -> new HashSet<>())
-                .add(vertex);
-    }
-
-    public HashMap<Agent, HashMap<Integer, Set<Integer>>> getVertexConstraints() {
-        return this.vertexConstraints;
-    }
-
-    public void addEdgeConstraint(Agent agent, int fromVertex, int toVertex, int timeStep) {
-        ArrayList<Integer> edge = new ArrayList<>();
-        edge.add(fromVertex);
-        edge.add(toVertex);
-
-        this.edgeConstraints
-                .computeIfAbsent(agent, k -> new HashMap<>())
-                .computeIfAbsent(timeStep, k -> new HashSet<>())
-                .add(edge);
-    }
-
-    public HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> getEdgeConstraints() {
-        return this.edgeConstraints;
-    }
+//    public void addVertexConstraint(Agent agent, int vertex, int timeStep) {
+//        this.vertexConstraints
+//                .computeIfAbsent(agent, k -> new HashMap<>())
+//                .computeIfAbsent(timeStep, k -> new HashSet<>())
+//                .add(vertex);
+//    }
+//
+//    public HashMap<Agent, HashMap<Integer, Set<Integer>>> getVertexConstraints() {
+//        return this.vertexConstraints;
+//    }
+//
+//    public void addEdgeConstraint(Agent agent, int fromVertex, int toVertex, int timeStep) {
+//        ArrayList<Integer> edge = new ArrayList<>();
+//        edge.add(fromVertex);
+//        edge.add(toVertex);
+//
+//        this.edgeConstraints
+//                .computeIfAbsent(agent, k -> new HashMap<>())
+//                .computeIfAbsent(timeStep, k -> new HashSet<>())
+//                .add(edge);
+//    }
+//
+//    public HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> getEdgeConstraints() {
+//        return this.edgeConstraints;
+//    }
 
 
 }
