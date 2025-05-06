@@ -58,8 +58,16 @@ public class CBS implements MAPFAlgorithm {
 
             // Put the independent agent solution path in the root CT node, and update the node cost
             node.addAgentPath(agent, agentPath);
-            node.cost += agentPath.size() - 1;
+//            node.cost += agentPath.size() - 1;
         }
+
+        // Go through all paths and calculate the SIC cost
+        Collection<ArrayList<Integer>> allPaths = node.agentPaths.values();
+        int cost = 0;
+        for(ArrayList<Integer> path : allPaths) {
+            cost += path.size() - 1;
+        }
+        node.cost = cost;
     }
 
     public boolean isAnExitVertex(int vertex, Ramp ramp) {
@@ -149,12 +157,26 @@ public class CBS implements MAPFAlgorithm {
 
         // Retrieve solution length
         HashMap<Agent, ArrayList<Integer>> agentPaths = goalNode.agentPaths;
-        int solutionLength = agentPaths.get(agents.getFirst()).size();
+        int solutionLength = 0;
+        for (ArrayList<Integer> path : agentPaths.values()) {
+            solutionLength = Math.max(solutionLength, path.size());
+        }
 
         // For each timeStep, add the locations of each agent to agentLocation and create a MAPFState
         // Keep track of the cost. Don't add cost if prevLocation and current location are exit vertices
         ArrayList<MAPFState> solutionSet = new ArrayList<>();
         solutionSet.addFirst(initialState);
+
+        // First, pad the shorter paths with the exit vertex until all path sizes = solutionLength (i.e. the longest path size)
+        for (Map.Entry<Agent, ArrayList<Integer>> entry : agentPaths.entrySet()) {
+            ArrayList<Integer> path = entry.getValue();
+
+            int pathExitVertex = path.getLast();
+
+            while(path.size() < solutionLength) {
+                path.addLast(pathExitVertex);
+            }
+        }
 
         for (int i = 1; i < solutionLength; i++) {
             HashMap<Agent, Integer> agentLocations = new HashMap<>();
@@ -217,6 +239,76 @@ public class CBS implements MAPFAlgorithm {
                 .add(constrainedEdge);
     }
 
+    private HashMap<Agent, HashMap<Integer, Set<Integer>>> copyParentAndAddVertexConstraint(
+            HashMap<Agent, HashMap<Integer, Set<Integer>>> parentConstraints,
+            Agent agent,
+            int timeStep,
+            int prohibitedVertex
+    ) {
+        // Step 1: Shallow copy of the outer map
+        HashMap<Agent, HashMap<Integer, Set<Integer>>> newConstraints = new HashMap<>(parentConstraints);
+
+        // Step 2: Deep copy the specific agent's constraint map (or start fresh)
+        HashMap<Integer, Set<Integer>> agentConstraints = parentConstraints.get(agent);
+        HashMap<Integer, Set<Integer>> agentConstraintsCopy = (agentConstraints != null)
+                ? new HashMap<>(agentConstraints)
+                : new HashMap<>();
+
+        // Step 3: Deep copy the vertex set for this time step (or start fresh)
+        Set<Integer> vertexSet = agentConstraints != null ? agentConstraints.get(timeStep) : null;
+        Set<Integer> vertexSetCopy = (vertexSet != null) ? new HashSet<>(vertexSet) : new HashSet<>();
+        vertexSetCopy.add(prohibitedVertex);
+
+        // Step 4: Put back into agent's map, then into top-level map
+        agentConstraintsCopy.put(timeStep, vertexSetCopy);
+        newConstraints.put(agent, agentConstraintsCopy);
+
+        return newConstraints;
+    }
+
+    private HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> copyParentAndAddEdgeConstraint(
+            HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> parentConstraints,
+            Agent agent,
+            int timeStep,
+            int fromVertex,
+            int toVertex,
+            boolean firstChild
+    ) {
+        // Step 1: Shallow copy of the outer map
+        HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> newConstraints = new HashMap<>(parentConstraints);
+
+        // Step 2: Deep copy the agent's edge constraint map (or start fresh)
+        HashMap<Integer, Set<ArrayList<Integer>>> agentConstraints = parentConstraints.get(agent);
+        HashMap<Integer, Set<ArrayList<Integer>>> agentConstraintsCopy = (agentConstraints != null)
+                ? new HashMap<>(agentConstraints)
+                : new HashMap<>();
+
+        // Step 3: Deep copy the edge set for this time step (or start fresh)
+        Set<ArrayList<Integer>> edgeSet = agentConstraints != null ? agentConstraints.get(timeStep) : null;
+        Set<ArrayList<Integer>> edgeSetCopy = (edgeSet != null) ? new HashSet<>(edgeSet) : new HashSet<>();
+
+        // Step 4: Add new edge constraint
+        ArrayList<Integer> constrainedEdge = new ArrayList<>();
+        // If second child, create a constraint for the reverse move
+        if(firstChild) {
+            constrainedEdge.add(fromVertex);
+            constrainedEdge.add(toVertex);
+        }
+        else {
+            constrainedEdge.add(toVertex);
+            constrainedEdge.add(fromVertex);
+        }
+
+        edgeSetCopy.add(constrainedEdge);
+
+        // Step 5: Put back into agent's map, then into top-level map
+        agentConstraintsCopy.put(timeStep, edgeSetCopy);
+        newConstraints.put(agent, agentConstraintsCopy);
+
+        return newConstraints;
+    }
+
+
     private void generateChildren(CTNode parent, Conflict conflict, int numOfGeneratedCTNodes) {
         // Generate two children to parent based on the conflict
 
@@ -245,12 +337,24 @@ public class CBS implements MAPFAlgorithm {
         if(conflict.type == Conflict.ConflictType.VERTEX) {
             // If a vertex conflict, add vertex constraint where agent1
             // can't occupy the vertex at the conflict's timestep
-            addVertexConstraint(leftChild, agent1, conflict);
+            leftChild.vertexConstraints = copyParentAndAddVertexConstraint(
+                    parent.vertexConstraints,
+                    agent1,
+                    conflict.timeStep,
+                    conflict.vertex);
+
         }
         else if (conflict.type == Conflict.ConflictType.EDGE) {
             // If an edge conflict, add edge constraint where agent1
             // can't move from fromVertex to toVertex at the conflict's timestep
-            addEdgeConstraint(leftChild, agent1, conflict, true);
+            leftChild.edgeConstraints = copyParentAndAddEdgeConstraint(
+                    parent.edgeConstraints,
+                    agent1,
+                    conflict.timeStep,
+                    conflict.fromVertex,
+                    conflict.toVertex,
+                    true);
+
         }
         parent.children.add(leftChild);
 
@@ -269,9 +373,23 @@ public class CBS implements MAPFAlgorithm {
         rightChild.newlyConstrainedAgent = agent2;
 
         if(conflict.type == Conflict.ConflictType.VERTEX) {
-            addVertexConstraint(rightChild, agent2, conflict);
+            rightChild.vertexConstraints = copyParentAndAddVertexConstraint(
+                    parent.vertexConstraints,
+                    agent2,
+                    conflict.timeStep,
+                    conflict.vertex
+            );
+
         } else if (conflict.type == Conflict.ConflictType.EDGE) {
-            addEdgeConstraint(rightChild, agent2, conflict, false);
+            rightChild.edgeConstraints = copyParentAndAddEdgeConstraint(
+                    parent.edgeConstraints,
+                    agent2,
+                    conflict.timeStep,
+                    conflict.fromVertex,
+                    conflict.toVertex,
+                    false
+            );
+
         }
         parent.children.add(rightChild);
 

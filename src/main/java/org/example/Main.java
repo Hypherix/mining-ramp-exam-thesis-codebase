@@ -10,8 +10,8 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {};
-        Ramp myRamp = new Ramp(3, 5, 5, passBays);
+        int[] passBays = {2};
+        Ramp myRamp = new Ramp(5, 5, 5, passBays);
 
         // This section should be equivalent to the section after (now commented)
         // Add initial agents
@@ -83,21 +83,21 @@ public class Main {
 
         long duration;
 
-//        // ICTS
-//        long startTimeICTS = System.nanoTime();
-//        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
-//        solverICTS.solve();
-//        long endTimeICTS = System.nanoTime();
-//        duration = endTimeICTS - startTimeICTS;
-//        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
-//
-//        // A*
-//        long startTimeAstar = System.nanoTime();
-//        MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
-//        solverAstar.solve();
-//        long endTimeAstar = System.nanoTime();
-//        duration = endTimeAstar - startTimeAstar;
-//        System.out.println("\nExecution time A*: " + (duration / 1000000.0) + " ms");
+        // ICTS
+        long startTimeICTS = System.nanoTime();
+        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
+        solverICTS.solve();
+        long endTimeICTS = System.nanoTime();
+        duration = endTimeICTS - startTimeICTS;
+        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
+
+        // A*
+        long startTimeAstar = System.nanoTime();
+        MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
+        solverAstar.solve();
+        long endTimeAstar = System.nanoTime();
+        duration = endTimeAstar - startTimeAstar;
+        System.out.println("\nExecution time A*: " + (duration / 1000000.0) + " ms");
 
         // CBS
         long startTimeCBS = System.nanoTime();
