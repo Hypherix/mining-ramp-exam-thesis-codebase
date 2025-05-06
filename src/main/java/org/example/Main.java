@@ -2,6 +2,12 @@ package org.example;
 
 /*
 * TODO NEXT: FIND OUT WHY A* CAN'T ROLLBACK IN CBS BRANCH
+*  WITH CURRENT CONFIG, ONLY ICTS CAN ROLLBACK. IF I CHANGE AGENT INITIALISATION FOR LOOP TO ONLY DO 2 AGENTS
+*  AND THEN ADD THE 3RD MANUALLY, A* WORKS CORRECTLY.
+*  IIRC, WHEN LOOKING AT THE FRONTIER OF A* IMMEDIATELY AFTER ROLLBACK (at timestep 2), THE SECOND STATE
+*  HAS TIMESTEP 3 FOR SOME REASON, HENCE WHY IT IS NOT ADDED THE NEw (4TH) AGENT.
+*  PERHAPS IT IS POSSIBLE THAT SOME STATES IN THE FRONTIER HAVE A LATER TIMESTEP IMMEDIATELY AFTER ROLLBACK.
+*  IN THAT CASE: REMOVE ALL STATES WITH LATER TIMESTEP SINCE WE NEED TO ROLLBACK TO DESIRED TIMESTEP!!!!!! YES PROBABLY!
 * */
 
 import java.util.HashMap;
@@ -83,13 +89,13 @@ public class Main {
 
         long duration;
 
-//        // ICTS
-//        long startTimeICTS = System.nanoTime();
-//        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
-//        solverICTS.solve();
-//        long endTimeICTS = System.nanoTime();
-//        duration = endTimeICTS - startTimeICTS;
-//        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
+        // ICTS
+        long startTimeICTS = System.nanoTime();
+        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
+        solverICTS.solve();
+        long endTimeICTS = System.nanoTime();
+        duration = endTimeICTS - startTimeICTS;
+        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
 
         // A*
         long startTimeAstar = System.nanoTime();
