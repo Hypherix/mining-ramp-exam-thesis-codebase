@@ -606,7 +606,7 @@ public class Astar implements MAPFAlgorithm {
             frontier.addAll(neighboursToAddToFrontier);
         }
 
-        System.out.println("A* COULD NOT FIND A SOLUTION!");
+//        System.out.println("A* COULD NOT FIND A SOLUTION!");
         return null;    // Return set of failed-solution states?
     }
 }

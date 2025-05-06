@@ -59,7 +59,7 @@ public class Main {
         // ALL ALGORITHMS TEST
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
         AgentEntries agentEntries2 = new AgentEntries();
-        for(int i = 0; i < 2; i++) {
+        for(int i = 0; i < 3; i++) {
             Agent agent2;
             if(i % 2 == 0) {
                 agent2 = new Agent(i, 1, Constants.DOWN, true);
@@ -70,9 +70,9 @@ public class Main {
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
-//        Agent agent2 = new Agent(3, 1, Constants.UP, true);
-//        agentList2.put(agent2.id, agent2);
-//        agentEntries2.addEntry(2, agent2);
+        Agent agent2 = new Agent(3, 1, Constants.UP, true);
+        agentList2.put(agent2.id, agent2);
+        agentEntries2.addEntry(2, agent2);
 //        agent2 = new Agent(4, 1, Constants.DOWN, true);
 //        agentList2.put(agent2.id, agent2);
 //        agentEntries2.addEntry(12, agent2);
@@ -83,13 +83,13 @@ public class Main {
 
         long duration;
 
-        // ICTS
-        long startTimeICTS = System.nanoTime();
-        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
-        solverICTS.solve();
-        long endTimeICTS = System.nanoTime();
-        duration = endTimeICTS - startTimeICTS;
-        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
+//        // ICTS
+//        long startTimeICTS = System.nanoTime();
+//        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
+//        solverICTS.solve();
+//        long endTimeICTS = System.nanoTime();
+//        duration = endTimeICTS - startTimeICTS;
+//        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
 
         // A*
         long startTimeAstar = System.nanoTime();

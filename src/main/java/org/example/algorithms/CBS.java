@@ -16,13 +16,17 @@ public class CBS implements MAPFAlgorithm {
 
     // Data members
     CTNode root;
+    int accumulatedGeneratedStates;
+    int accumulatedExpandedStates;
 
     // Constructors
     public CBS() {
         root = new CTNode();        // Needed? Yes
+        accumulatedGeneratedStates = 0;
+        accumulatedExpandedStates = 0;
     }
 
-    private void addAgentPaths(CTNode node, HashMap<Agent, Integer> agentLocations, Ramp ramp,
+    private boolean addAgentPaths(CTNode node, HashMap<Agent, Integer> agentLocations, Ramp ramp,
                                int accumulatedGeneratedStates, int accumulatedExpandedStates) {
         // Task: Given a CTNode and the agentLocations of the agents that need a path,
         // add independent agent paths to the CTNode
@@ -45,8 +49,14 @@ public class CBS implements MAPFAlgorithm {
             // With the scenario, run A*
             MAPFAlgorithm aStarSingle = AlgorithmFactory.getAlgorithm("astar");
             MAPFSolution singleInitialSolution = aStarSingle.solve(singleInitialScenario);
-            accumulatedGeneratedStates += singleInitialSolution.getGeneratedStates();
-            accumulatedExpandedStates += singleInitialSolution.getExpandedStates();
+
+            // Check if a single solution path was found, if not (i.e. null), return fail
+            if (singleInitialSolution == null) {
+                return false;
+            }
+
+            this.accumulatedGeneratedStates += singleInitialSolution.getGeneratedStates();
+            this.accumulatedExpandedStates += singleInitialSolution.getExpandedStates();
 
             // With the MAPFSolution, retrieve each location in the path (solutionSet)
             ArrayList<Integer> agentPath = new ArrayList<>();
@@ -68,6 +78,8 @@ public class CBS implements MAPFAlgorithm {
             cost += path.size() - 1;
         }
         node.cost = cost;
+
+        return true;
     }
 
     public boolean isAnExitVertex(int vertex, Ramp ramp) {
@@ -149,11 +161,6 @@ public class CBS implements MAPFAlgorithm {
 
         MAPFState initialState = scenario.getInitialState();
         Ramp ramp = initialState.getRamp();
-        int surfaceExit = ramp.getSurfaceExit();
-        int undergroundExit = ramp.getUndergroundExit();
-
-        // Retrieve all agents
-        ArrayList<Agent> agents = new ArrayList<>(initialState.getAgentLocations().keySet());
 
         // Retrieve solution length
         HashMap<Agent, ArrayList<Integer>> agentPaths = goalNode.agentPaths;
@@ -168,15 +175,7 @@ public class CBS implements MAPFAlgorithm {
         solutionSet.addFirst(initialState);
 
         // First, pad the shorter paths with the exit vertex until all path sizes = solutionLength (i.e. the longest path size)
-        for (Map.Entry<Agent, ArrayList<Integer>> entry : agentPaths.entrySet()) {
-            ArrayList<Integer> path = entry.getValue();
-
-            int pathExitVertex = path.getLast();
-
-            while(path.size() < solutionLength) {
-                path.addLast(pathExitVertex);
-            }
-        }
+        goalNode.agentPaths = padAgentpaths(goalNode.agentPaths);
 
         for (int i = 1; i < solutionLength; i++) {
             HashMap<Agent, Integer> agentLocations = new HashMap<>();
@@ -396,14 +395,130 @@ public class CBS implements MAPFAlgorithm {
         numOfGeneratedCTNodes += 2;
     }
 
+    private HashMap<Agent, ArrayList<Integer>> padAgentpaths(HashMap<Agent, ArrayList<Integer>> agentPaths) {
+        // Task: Make the agent paths of equal length
+
+        // Retrieve solution length
+        int solutionLength = 0;
+        for (ArrayList<Integer> path : agentPaths.values()) {
+            solutionLength = Math.max(solutionLength, path.size());
+        }
+
+        for (Map.Entry<Agent, ArrayList<Integer>> entry : agentPaths.entrySet()) {
+            ArrayList<Integer> path = entry.getValue();
+
+            int pathExitVertex = path.getLast();
+
+            while(path.size() < solutionLength) {
+                path.addLast(pathExitVertex);
+            }
+        }
+
+        return agentPaths;
+    }
+
+    private HashMap<Agent, ArrayList<Integer>> copyAgentPaths(HashMap<Agent, ArrayList<Integer>> agentPaths) {
+        // Task: Return a deep copy of the input agentPaths
+
+        HashMap<Agent, ArrayList<Integer>> agentPathsCopy = new HashMap<>();
+
+        for (Map.Entry<Agent, ArrayList<Integer>> entry : agentPaths.entrySet()) {
+            Agent agent = entry.getKey();
+            ArrayList<Integer> path = entry.getValue();
+
+            Agent agentCopy = new Agent(agent);
+            ArrayList<Integer> pathCopy = new ArrayList<>(path);
+            agentPathsCopy.put(agentCopy, pathCopy);
+        }
+
+        return agentPathsCopy;
+    }
+
+    private boolean isQueueBehaviorValid(HashMap<Agent, ArrayList<Integer>> agentPaths, Ramp ramp) {
+
+        ArrayList<Integer> verticesInSurfaceQ = ramp.getVerticesInSurfaceQ();
+        ArrayList<Integer> verticesInUndergroundQ = ramp.getVerticesInUndergroundQ();
+
+        int pathLength = agentPaths.values().iterator().next().size();
+
+        for (int t = 0; t < pathLength - 1; t++) {
+            boolean inSurfaceQ = true;
+
+            // Go through one queue at a time
+            for (ArrayList<Integer> queue : List.of(verticesInSurfaceQ, verticesInUndergroundQ)) {
+
+                // Build a hashmap from vertex -> agent at time t
+                HashMap<Integer, Agent> locationAgent = new HashMap<>();
+
+                for (Map.Entry<Agent, ArrayList<Integer>> entry : agentPaths.entrySet()) {
+                    Agent agent = entry.getKey();
+                    ArrayList<Integer> path = entry.getValue();
+
+                    locationAgent.put(path.get(t), agent);
+                }
+
+                if(inSurfaceQ && queue.size() >= 2) {
+                    inSurfaceQ = false;
+
+                    for (int i = queue.size() - 1; i > 0; i--) {
+                        int frontVertex = queue.get(i);
+                        int backVertex = queue.get(i - 1);
+
+                        Agent backAgent = locationAgent.get(backVertex);
+                        Agent frontAgent = locationAgent.get(frontVertex);
+
+                        if (frontAgent != null && backAgent != null) {
+                            ArrayList<Integer> frontPath = agentPaths.get(frontAgent);
+                            ArrayList<Integer> backPath = agentPaths.get(backAgent);
+
+                            if (t + 1 < pathLength) {
+                                int frontMove = frontPath.get(t + 1);
+                                int backMove = backPath.get(t + 1);
+
+                                // If front agent moves and back agent stays, the node is invalid
+                                if(frontMove != frontVertex && backMove == backVertex) {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                else if(!inSurfaceQ && queue.size() >= 2) {
+                    for (int i = 0; i < queue.size() - 1; i++) {
+                        int frontVertex = queue.get(i);
+                        int backVertex = queue.get(i + 1);
+
+                        Agent backAgent = locationAgent.get(backVertex);
+                        Agent frontAgent = locationAgent.get(frontVertex);
+
+                        if (frontAgent != null && backAgent != null) {
+                            ArrayList<Integer> frontPath = agentPaths.get(frontAgent);
+                            ArrayList<Integer> backPath = agentPaths.get(backAgent);
+
+                            int frontMove = frontPath.get(t + 1);
+                            int backMove = backPath.get(t + 1);
+
+                            // If front agent moves and back agent stays, the node is invalid
+                            if(frontMove != frontVertex && backMove == backVertex) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+    // TODO: Check if method above works!!!
+
 
     // Methods
     @Override
     public MAPFSolution solve(MAPFScenario scenario) {
         // Task: Generates a MAPFSolution from the MAPFScenario
 
-        int accumulatedGeneratedStates = 0;
-        int accumulatedExpandedStates = 0;
         int numOfGeneratedCTNodes = 0;
         int numOfExpandedCTNodes = 0;
 
@@ -416,8 +531,12 @@ public class CBS implements MAPFAlgorithm {
         HashMap<Agent, Integer> agentLocations = initialState.getAgentLocations();
 
         // Add independent agent paths to the root CT node
-        addAgentPaths(this.root, agentLocations, initialState.getRamp(),
+        boolean success = addAgentPaths(this.root, agentLocations, initialState.getRamp(),
                 accumulatedGeneratedStates, accumulatedExpandedStates);
+
+        if(!success) {
+            System.out.println("CBS: Could not find a solution at root CT level");
+        }
 
 
         // Create a PriorityQueue of CTNodes where the node with the lowest cost is prioritised
@@ -430,6 +549,7 @@ public class CBS implements MAPFAlgorithm {
         while (!ctPrioQueue.isEmpty()) {
             CTNode currentNode = ctPrioQueue.poll();
             numOfExpandedCTNodes++;
+//            System.out.println(currentNode.cost);
 
             // Check for conflicts in the currentNode agentPaths
             Conflict currentNodeConflict = getPathConflict(currentNode, initialState.getRamp());
@@ -441,13 +561,15 @@ public class CBS implements MAPFAlgorithm {
                 MAPFSolution completeSolution = new MAPFSolution(solutionStates,
                         accumulatedGeneratedStates, accumulatedExpandedStates);
 
-                System.out.println("CBS: Goal node found after " + numOfExpandedCTNodes + " CTNodes we explored!");
+                System.out.println("CBS: Goal node found after " + numOfGeneratedCTNodes + " were generated (possibly added to queue)" +
+                        ", and " + numOfExpandedCTNodes + " CTNodes were expanded (polled from the queue)!");
 
                 return completeSolution;
             }
 
             // Generate children to the non-goal node and enqueue to ctPrioQueue
             generateChildren(currentNode, currentNodeConflict, numOfGeneratedCTNodes);
+            numOfGeneratedCTNodes += 2;
 
             // For each child, generate a path for the agent affected by the new constraint
             // First, get the agentLocation of the constrained agent
@@ -460,11 +582,22 @@ public class CBS implements MAPFAlgorithm {
                 }
 
                 // Get a new path for the constrained agent
-                addAgentPaths(child, constrainedAgentLocation, initialState.getRamp(),
+                success = addAgentPaths(child, constrainedAgentLocation, initialState.getRamp(),
                         accumulatedGeneratedStates, accumulatedExpandedStates);
-            }
 
-            ctPrioQueue.addAll(currentNode.children);
+                // Pad the shorter paths with the exit vertex until all path sizes = solutionLength (i.e. the longest path size)
+                // This is needed for checking if queue behaviour is valid
+                HashMap<Agent, ArrayList<Integer>> agentPathsCopy = copyAgentPaths(child.agentPaths);
+
+                agentPathsCopy = padAgentpaths(agentPathsCopy);
+
+                // Only add the child to the queue if it has a set of solution paths that does not
+                // violate normal queue behaviour
+                boolean valid = isQueueBehaviorValid(agentPathsCopy, initialState.getRamp());
+                if(success && valid) {
+                    ctPrioQueue.add(child);
+                }
+            }
         }
 
         return null;
