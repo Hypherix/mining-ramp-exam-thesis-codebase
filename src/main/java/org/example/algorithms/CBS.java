@@ -220,6 +220,10 @@ public class CBS implements MAPFAlgorithm {
     private void generateChildren(CTNode parent, Conflict conflict, int numOfGeneratedCTNodes) {
         // Generate two children to parent based on the conflict
 
+        // TODO: Currently, children get shallow copy of parent constraints. Editing child constraints
+        //  affect the parent also. Maybe not a problem since we dont work with parents anymore? Or
+        //  does the sibling get affected by its other sibling?
+
         // Get the agents affected by the conflict
         Agent agent1 = conflict.agent1;
         Agent agent2 = conflict.agent2;
@@ -297,52 +301,20 @@ public class CBS implements MAPFAlgorithm {
         addAgentPaths(this.root, agentLocations, initialState.getRamp(),
                 accumulatedGeneratedStates, accumulatedExpandedStates);
 
-        // Check for conflicts in the root agentPaths
-        Conflict conflict = getPathConflict(root, initialState.getRamp());
-        numOfExpandedCTNodes++;
-
-        // conflict is null if no conflicts were found --> goal node
-        if(conflict == null) {
-            ArrayList<MAPFState> solutionStates = buildSolution(scenario, root);
-
-            MAPFSolution completeSolution = new MAPFSolution(solutionStates,
-                    accumulatedGeneratedStates, accumulatedExpandedStates);
-
-            System.out.println("CBS: Goal node found after " + numOfExpandedCTNodes + " CTNotes we explored!");
-
-            return completeSolution;
-        }
-
-        // Generate children to the non-goal node
-        generateChildren(root, conflict, numOfGeneratedCTNodes);
-
-        // TODO: ROOT CHILDREN COSTS ARE 0 WHEN ENQUEUED. CHECK AND RESOLVE
 
         // Create a PriorityQueue of CTNodes where the node with the lowest cost is prioritised
         PriorityQueue<CTNode> ctPrioQueue = new PriorityQueue<>(new CTNodeComparator());
 
         // Enqueue the root's children
-        ctPrioQueue.addAll(root.children);
+        ctPrioQueue.add(root);
 
         // Search through the CT until a goal node is found
         while (!ctPrioQueue.isEmpty()) {
             CTNode currentNode = ctPrioQueue.poll();
-
-            // Generate a path for the agent affected by the new constraint in the node
-            // First get the agentLocation of the constrained agent
-            Agent constrainedAgent = currentNode.newlyConstrainedAgent;
-            HashMap<Agent, Integer> constrainedAgentLocation = new HashMap<>();
-            if(agentLocations.containsKey(constrainedAgent)) {
-                constrainedAgentLocation.put(constrainedAgent, agentLocations.get(constrainedAgent));
-            }
-
-            // Get a new path for the constrained agent
-            addAgentPaths(currentNode, constrainedAgentLocation, initialState.getRamp(),
-                    accumulatedGeneratedStates, accumulatedExpandedStates);
+            numOfExpandedCTNodes++;
 
             // Check for conflicts in the currentNode agentPaths
             Conflict currentNodeConflict = getPathConflict(currentNode, initialState.getRamp());
-            numOfExpandedCTNodes++;
 
             // currentNodeConflict is null if no conflicts were found --> goal node
             if(currentNodeConflict == null) {
@@ -351,13 +323,29 @@ public class CBS implements MAPFAlgorithm {
                 MAPFSolution completeSolution = new MAPFSolution(solutionStates,
                         accumulatedGeneratedStates, accumulatedExpandedStates);
 
-                System.out.println("CBS: Goal node found after " + numOfExpandedCTNodes + " CTNotes we explored!");
+                System.out.println("CBS: Goal node found after " + numOfExpandedCTNodes + " CTNodes we explored!");
 
                 return completeSolution;
             }
 
             // Generate children to the non-goal node and enqueue to ctPrioQueue
             generateChildren(currentNode, currentNodeConflict, numOfGeneratedCTNodes);
+
+            // For each child, generate a path for the agent affected by the new constraint
+            // First, get the agentLocation of the constrained agent
+            for (CTNode child : currentNode.children) {
+                Agent constrainedAgent = child.newlyConstrainedAgent;
+                HashMap<Agent, Integer> constrainedAgentLocation = new HashMap<>();
+
+                if(agentLocations.containsKey(constrainedAgent)) {
+                    constrainedAgentLocation.put(constrainedAgent, agentLocations.get(constrainedAgent));
+                }
+
+                // Get a new path for the constrained agent
+                addAgentPaths(child, constrainedAgentLocation, initialState.getRamp(),
+                        accumulatedGeneratedStates, accumulatedExpandedStates);
+            }
+
             ctPrioQueue.addAll(currentNode.children);
         }
 
