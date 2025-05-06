@@ -3,7 +3,6 @@ package org.example.algorithms;
 import org.example.*;
 import org.example.CBSclasses.*;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 /*
@@ -23,11 +22,12 @@ public class CBS implements MAPFAlgorithm {
         root = new CTNode();        // Needed? Yes
     }
 
-    private void addAgentPaths(CTNode node, HashMap<Agent, Integer> agentLocations, MAPFState initialState,
+    private void addAgentPaths(CTNode node, HashMap<Agent, Integer> agentLocations, Ramp ramp,
                                int accumulatedGeneratedStates, int accumulatedExpandedStates) {
-        // Task: Given a CTNode and the agentLocations of the MAPFScenario, add independent agent paths to the CTNode
+        // Task: Given a CTNode and the agentLocations of the agents that need a path,
+        // add independent agent paths to the CTNode
 
-        // For each agent: generate a MAPFScenario, run A*, retrieve independent optimal paths
+        // For each agent: generate a MAPFScenario, run A*, retrieve an independent optimal path
         for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
             Agent agent = entry.getKey();
             Integer location = entry.getValue();
@@ -36,9 +36,11 @@ public class CBS implements MAPFAlgorithm {
             HashMap<Agent, Integer> initialAgentLocation = new HashMap<>();
             initialAgentLocation.put(agent, location);
             MAPFState singleInitialState = new MAPFState(
-                    initialState.getRamp(), initialAgentLocation, 0, 0);
+                    ramp, initialAgentLocation, 0, 0);
+            // Fill the scenario with the node's constraints that A* must consider
             MAPFScenario singleInitialScenario = new MAPFScenario(
-                    initialState.getRamp(), singleInitialState, 1);
+                    ramp, singleInitialState, 1,
+                    node.vertexConstraints, node.edgeConstraints);
 
             // With the scenario, run A*
             MAPFAlgorithm aStarSingle = AlgorithmFactory.getAlgorithm("astar");
@@ -54,8 +56,9 @@ public class CBS implements MAPFAlgorithm {
                 agentPath.add(currentLocation);     // Add it to path
             }
 
-            // Put the independent agent solution path in the root CT node
+            // Put the independent agent solution path in the root CT node, and update the node cost
             node.addAgentPath(agent, agentPath);
+            node.cost += agentPath.size() - 1;
         }
     }
 
@@ -69,7 +72,7 @@ public class CBS implements MAPFAlgorithm {
     }
 
     public Conflict getPathConflict(CTNode node, Ramp ramp) {
-        // Task: Given a CTNode, return the first conflict amongst agents, else null.
+        // Task: Given a the root CTNode, return the first conflict amongst agents, else null.
         // TODO: Check if vertex is an exit vertex, in which case it should not count as a conflict
         //  Perhaps even implement that if both agent locations are at exits, continue to next pair for optimisation
         // TODO ALSO: Perhaps isAnExitVertex is not needed in all if statements since the first if statement
@@ -124,7 +127,7 @@ public class CBS implements MAPFAlgorithm {
             }
         }
 
-        // If no detections found, i.e. a goal CT node
+        // If no detections found, i.e. a goal CT root
         return null;
     }
 
@@ -184,6 +187,94 @@ public class CBS implements MAPFAlgorithm {
         return solutionSet;
     }
 
+    private void addVertexConstraint(CTNode node, Agent agent, Conflict conflict) {
+        // Task: Add a vertex constraint to a CTNode
+
+        node.vertexConstraints
+                .computeIfAbsent(agent, k -> new HashMap<>())
+                .computeIfAbsent(conflict.timeStep, k -> new HashSet<>())
+                .add(conflict.vertex);
+    }
+
+    private void addEdgeConstraint(CTNode node, Agent agent, Conflict conflict, boolean leftChild) {
+        // Task: Add an edge constraint to a CTNode
+        // If firstChild == true, constrained edge is fromVertex->toVertex. Vice versa if false
+
+        ArrayList<Integer> constrainedEdge = new ArrayList<>();
+
+        if(leftChild) {
+            constrainedEdge.add(conflict.fromVertex);
+            constrainedEdge.add(conflict.toVertex);
+        }
+        else {
+            constrainedEdge.add(conflict.toVertex);
+            constrainedEdge.add(conflict.fromVertex);
+        }
+
+        node.edgeConstraints
+                .computeIfAbsent(agent, k -> new HashMap<>())
+                .computeIfAbsent(conflict.timeStep, k -> new HashSet<>())
+                .add(constrainedEdge);
+    }
+
+    private void generateChildren(CTNode parent, Conflict conflict, int numOfGeneratedCTNodes) {
+        // Generate two children to parent based on the conflict
+
+        // Get the agents affected by the conflict
+        Agent agent1 = conflict.agent1;
+        Agent agent2 = conflict.agent2;
+
+        // First (left) child
+        CTNode leftChild = new CTNode(parent.vertexConstraints, parent.edgeConstraints);
+
+        // Left child agentPaths is identical to its parent, with the newly constrained agent (agent1) removed
+        HashMap<Agent, ArrayList<Integer>> leftChildAgentPaths = new HashMap<>();
+        for(Map.Entry<Agent, ArrayList<Integer>> entry : parent.agentPaths.entrySet()) {
+            // Copy each entry from parent's agentPaths to leftChild's agentPaths (deep copy)
+            leftChildAgentPaths.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        }
+
+        leftChildAgentPaths.remove(agent1);
+        leftChild.agentPaths = leftChildAgentPaths;
+        leftChild.newlyConstrainedAgent = agent1;
+
+        if(conflict.type == Conflict.ConflictType.VERTEX) {
+            // If a vertex conflict, add vertex constraint where agent1
+            // can't occupy the vertex at the conflict's timestep
+            addVertexConstraint(leftChild, agent1, conflict);
+        }
+        else if (conflict.type == Conflict.ConflictType.EDGE) {
+            // If an edge conflict, add edge constraint where agent1
+            // can't move from fromVertex to toVertex at the conflict's timestep
+            addEdgeConstraint(leftChild, agent1, conflict, true);
+        }
+        parent.children.add(leftChild);
+
+        // Right (second) child
+        CTNode rightChild = new CTNode(parent.vertexConstraints, parent.edgeConstraints);
+
+        // Right child agentPaths is identical to its parent, with the newly constrained agent (agent2) removed
+        HashMap<Agent, ArrayList<Integer>> rightChildAgentPaths = new HashMap<>();
+        for(Map.Entry<Agent, ArrayList<Integer>> entry : parent.agentPaths.entrySet()) {
+            // Copy each entry from parent's agentPaths to rightChild's agentPaths (deep copy)
+            rightChildAgentPaths.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        }
+
+        rightChildAgentPaths.remove(agent2);
+        rightChild.agentPaths = rightChildAgentPaths;
+        rightChild.newlyConstrainedAgent = agent2;
+
+        if(conflict.type == Conflict.ConflictType.VERTEX) {
+            addVertexConstraint(rightChild, agent2, conflict);
+        } else if (conflict.type == Conflict.ConflictType.EDGE) {
+            addEdgeConstraint(rightChild, agent2, conflict, false);
+        }
+        parent.children.add(rightChild);
+
+        numOfGeneratedCTNodes += 2;
+    }
+
+
     // Methods
     @Override
     public MAPFSolution solve(MAPFScenario scenario) {
@@ -191,9 +282,10 @@ public class CBS implements MAPFAlgorithm {
 
         int accumulatedGeneratedStates = 0;
         int accumulatedExpandedStates = 0;
-        int numOfExploredCTNodes = 0;
+        int numOfGeneratedCTNodes = 0;
+        int numOfExpandedCTNodes = 0;
 
-        // Set the root CTNode agent paths and add it to the PrioQueue
+        // Set the root CTNode agent paths and add it to the PrioQueue if not a goal node
 
         // Get the initial state
         MAPFState initialState = scenario.getInitialState();
@@ -202,39 +294,71 @@ public class CBS implements MAPFAlgorithm {
         HashMap<Agent, Integer> agentLocations = initialState.getAgentLocations();
 
         // Add independent agent paths to the root CT node
-        addAgentPaths(this.root, agentLocations, initialState,
+        addAgentPaths(this.root, agentLocations, initialState.getRamp(),
                 accumulatedGeneratedStates, accumulatedExpandedStates);
+
+        // Check for conflicts in the root agentPaths
+        Conflict conflict = getPathConflict(root, initialState.getRamp());
+        numOfExpandedCTNodes++;
+
+        // conflict is null if no conflicts were found --> goal node
+        if(conflict == null) {
+            ArrayList<MAPFState> solutionStates = buildSolution(scenario, root);
+
+            MAPFSolution completeSolution = new MAPFSolution(solutionStates,
+                    accumulatedGeneratedStates, accumulatedExpandedStates);
+
+            System.out.println("CBS: Goal node found after " + numOfExpandedCTNodes + " CTNotes we explored!");
+
+            return completeSolution;
+        }
+
+        // Generate children to the non-goal node
+        generateChildren(root, conflict, numOfGeneratedCTNodes);
+
+        // TODO: ROOT CHILDREN COSTS ARE 0 WHEN ENQUEUED. CHECK AND RESOLVE
 
         // Create a PriorityQueue of CTNodes where the node with the lowest cost is prioritised
         PriorityQueue<CTNode> ctPrioQueue = new PriorityQueue<>(new CTNodeComparator());
+
+        // Enqueue the root's children
+        ctPrioQueue.addAll(root.children);
 
         // Search through the CT until a goal node is found
         while (!ctPrioQueue.isEmpty()) {
             CTNode currentNode = ctPrioQueue.poll();
 
-            // Check for conflicts in the currentNode agent paths
+            // Generate a path for the agent affected by the new constraint in the node
+            // First get the agentLocation of the constrained agent
+            Agent constrainedAgent = currentNode.newlyConstrainedAgent;
+            HashMap<Agent, Integer> constrainedAgentLocation = new HashMap<>();
+            if(agentLocations.containsKey(constrainedAgent)) {
+                constrainedAgentLocation.put(constrainedAgent, agentLocations.get(constrainedAgent));
+            }
 
-            Conflict conflict = getPathConflict(currentNode, initialState.getRamp());
-            numOfExploredCTNodes++;
+            // Get a new path for the constrained agent
+            addAgentPaths(currentNode, constrainedAgentLocation, initialState.getRamp(),
+                    accumulatedGeneratedStates, accumulatedExpandedStates);
 
-            // conflict is null if no conflicts were found --> goal node
-            if(conflict == null) {
+            // Check for conflicts in the currentNode agentPaths
+            Conflict currentNodeConflict = getPathConflict(currentNode, initialState.getRamp());
+            numOfExpandedCTNodes++;
+
+            // currentNodeConflict is null if no conflicts were found --> goal node
+            if(currentNodeConflict == null) {
                 ArrayList<MAPFState> solutionStates = buildSolution(scenario, currentNode);
 
                 MAPFSolution completeSolution = new MAPFSolution(solutionStates,
                         accumulatedGeneratedStates, accumulatedExpandedStates);
 
-                System.out.println("CBS: Goal node found after " + numOfExploredCTNodes + " CTNotes we explored!");
+                System.out.println("CBS: Goal node found after " + numOfExpandedCTNodes + " CTNotes we explored!");
 
                 return completeSolution;
             }
 
-            // TODO FIRST: Move all root treatment to before the while loop, since all following CTNodes
-            //  must rerun A* on the newlyConstrainedAgent only!!!
-
-            // Generate children to the non-goal node and enqueue to ictQueue
-            // generateChildren(currentNode);   // Don't forget to set the childrens' newlyConstrainedAgent data member!
-            // ctPrioQueue.addAll(currentNode.children)
+            // Generate children to the non-goal node and enqueue to ctPrioQueue
+            generateChildren(currentNode, currentNodeConflict, numOfGeneratedCTNodes);
+            ctPrioQueue.addAll(currentNode.children);
         }
 
         return null;

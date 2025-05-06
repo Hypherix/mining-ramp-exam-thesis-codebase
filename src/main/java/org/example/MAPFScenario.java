@@ -313,7 +313,7 @@ public class MAPFScenario {
         return this.ramp.getVerticesInUndergroundQ();
     }
 
-        public void addVertexConstraint(Agent agent, int vertex, int timeStep) {
+    public void addVertexConstraint(Agent agent, int vertex, int timeStep) {
         this.vertexConstraints
                 .computeIfAbsent(agent, k -> new HashMap<>())
                 .computeIfAbsent(timeStep, k -> new HashSet<>())

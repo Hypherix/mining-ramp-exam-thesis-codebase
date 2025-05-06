@@ -10,8 +10,8 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {1, 3};
-        Ramp myRamp = new Ramp(5, 5, 5, passBays);
+        int[] passBays = {};
+        Ramp myRamp = new Ramp(3, 5, 5, passBays);
 
         // This section should be equivalent to the section after (now commented)
         // Add initial agents
@@ -56,10 +56,10 @@ public class Main {
         System.out.println("\nExecution time: " + (duration / 1000000.0) + " ms");
         */
 
-        // ICTS
+        // ALL ALGORITHMS TEST
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
         AgentEntries agentEntries2 = new AgentEntries();
-        for(int i = 0; i < 3; i++) {
+        for(int i = 0; i < 2; i++) {
             Agent agent2;
             if(i % 2 == 0) {
                 agent2 = new Agent(i, 1, Constants.DOWN, true);
@@ -70,33 +70,41 @@ public class Main {
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
-        Agent agent2 = new Agent(3, 1, Constants.UP, true);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(2, agent2);
-        agent2 = new Agent(4, 1, Constants.DOWN, true);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(12, agent2);
+//        Agent agent2 = new Agent(3, 1, Constants.UP, true);
+//        agentList2.put(agent2.id, agent2);
+//        agentEntries2.addEntry(2, agent2);
+//        agent2 = new Agent(4, 1, Constants.DOWN, true);
+//        agentList2.put(agent2.id, agent2);
+//        agentEntries2.addEntry(12, agent2);
 
-        MAPFScenario scenario2 = new MAPFScenario(myRamp, agentEntries2, 20);
-        MAPFScenario scenario3 = new MAPFScenario(myRamp, agentEntries2, 20);
+        MAPFScenario scenarioICTS = new MAPFScenario(myRamp, agentEntries2, 20);
+        MAPFScenario scenarioAstar = new MAPFScenario(myRamp, agentEntries2, 20);
+        MAPFScenario scenarioCBS = new MAPFScenario(myRamp, agentEntries2, 20);
 
-        long startTimeICTS = System.nanoTime();
+        long duration;
 
-        MAPFSolver solverICTS = new MAPFSolver(scenario2, "ICTS");
-        solverICTS.solve();
+//        // ICTS
+//        long startTimeICTS = System.nanoTime();
+//        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
+//        solverICTS.solve();
+//        long endTimeICTS = System.nanoTime();
+//        duration = endTimeICTS - startTimeICTS;
+//        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
+//
+//        // A*
+//        long startTimeAstar = System.nanoTime();
+//        MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
+//        solverAstar.solve();
+//        long endTimeAstar = System.nanoTime();
+//        duration = endTimeAstar - startTimeAstar;
+//        System.out.println("\nExecution time A*: " + (duration / 1000000.0) + " ms");
 
-        long endTimeICTS = System.nanoTime();
-        long duration = endTimeICTS - startTimeICTS;
-        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
-        long startTimeAstar = System.nanoTime();
-
-        MAPFSolver solverAstar = new MAPFSolver(scenario3, "astar");
-        solverAstar.solve();
-
-        long endTimeAstar = System.nanoTime();
-        duration = endTimeAstar - startTimeAstar;
-        System.out.println("\nExecution time A*: " + (duration / 1000000.0) + " ms");
-
-
+        // CBS
+        long startTimeCBS = System.nanoTime();
+        MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
+        solverCBS.solve();
+        long endTimeCBS = System.nanoTime();
+        duration = endTimeCBS - startTimeCBS;
+        System.out.println("\nExecution time CBS: " + (duration / 1000000.0) + " ms");
     }
 }

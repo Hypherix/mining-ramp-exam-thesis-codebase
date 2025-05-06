@@ -36,6 +36,17 @@ public class CTNode {
         this.children = new ArrayList<>();
     }
 
+    public CTNode(HashMap<Agent, HashMap<Integer, Set<Integer>>> vertexConstraints,
+                  HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> edgeConstraints) {
+        // Used for generating children where constraints are inherited
+
+        this.cost = 0;
+        this.agentPaths = new HashMap<>();
+        this.vertexConstraints = vertexConstraints;
+        this.edgeConstraints = edgeConstraints;
+        this.children = new ArrayList<>();
+    }
+
 
     // Methods
     public void addAgentPath(Agent agent, ArrayList<Integer> path) {

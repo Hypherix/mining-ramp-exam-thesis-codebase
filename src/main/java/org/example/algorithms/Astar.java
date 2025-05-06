@@ -376,9 +376,14 @@ public class Astar implements MAPFAlgorithm {
             Set<Agent> agents = scenario.fetchAgentLocations().keySet();
             Agent agent = agents.iterator().next();
 
-            // Get all prohibited vertices and moves for the agent this timeStep. Then add them to prohibitedVertices
-            Set<Integer> agentVertexConstraintsThisTimeStep = vertexConstraints.get(agent).get(timeStep);
-            prohibitedVertices.addAll(agentVertexConstraintsThisTimeStep);
+            // Get all prohibited vertices for the agent this timeStep if they exist.
+            // Then add them to prohibitedVertices
+            if (vertexConstraints.containsKey(agent)) {
+                HashMap<Integer, Set<Integer>> agentVertexConstraints = vertexConstraints.get(agent);
+                if (agentVertexConstraints.containsKey(timeStep)) {
+                    prohibitedVertices.addAll(agentVertexConstraints.get(timeStep));
+                }
+            }
         }
 
         // If A* invoked by CBS, check if any edge constraints exist
@@ -389,8 +394,12 @@ public class Astar implements MAPFAlgorithm {
             Agent agent = agents.iterator().next();
 
             // Do the same for prohibited moves
-            Set<ArrayList<Integer>> agentEdgeConstraintsThisTimeStep = edgeConstraints.get(agent).get(timeStep);
-            prohibitedMoves.addAll(agentEdgeConstraintsThisTimeStep);
+            if (edgeConstraints.containsKey(agent)) {
+                HashMap<Integer, Set<ArrayList<Integer>>> agentEdgeConstraints = edgeConstraints.get(agent);
+                if (agentEdgeConstraints.containsKey(timeStep)) {
+                    prohibitedMoves.addAll(agentEdgeConstraints.get(timeStep));
+                }
+            }
         }
 
         // Check for vertex/edge conflicts

@@ -126,6 +126,8 @@ public class MAPFSolver {
 
         this.solution = currentSolution;
 
-        this.solution.printSolution(false);
+        if(this.solution != null) {
+            this.solution.printSolution(false);
+        }
     }
 }
