@@ -484,13 +484,38 @@ public class Astar implements MAPFAlgorithm {
         boolean prioQueuesPrefilled = false;
         int rollbackTimeStep = -1;      // Will only be used if we are here from a rollback
         if(!prioQueuesPrefilled) {
-            if(!initialState.getConcurrentStatesInFrontier().isEmpty() && !prioQueuesPrefilled) {
+            ArrayList<MAPFState> statesToRemoveFromExplored = new ArrayList<>();
+
+            if(!initialState.getConcurrentStatesInFrontier().isEmpty()) {
                 frontier.addAll(initialState.getConcurrentStatesInFrontier());
                 rollbackTimeStep = initialState.getTimeStep();
+
+                // Some states in the frontier may have a later time step than rollbackTimeStep.
+                // In that case, get their ancestor with a timeStep == rollbackTimeStep and add to frontier.
+                // Remove the state with the later timeStep
+                // Later, remove all involved states from explored
+                ArrayList<MAPFState> statesToRemove = new ArrayList<>();
+                ArrayList<MAPFState> ancestorsToAdd = new ArrayList<>();
+                for (MAPFState state : frontier) {
+                    if (state.getTimeStep() > rollbackTimeStep) {
+                        MAPFState ancestor = state.parent;
+                        while(ancestor.getTimeStep() > rollbackTimeStep) {
+                            ancestor = ancestor.parent;
+                        }
+                        ancestorsToAdd.add(ancestor);
+                        statesToRemove.add(state);
+                        statesToRemoveFromExplored.addAll(statesToRemove);
+                        statesToRemoveFromExplored.addAll(ancestorsToAdd);
+                    }
+                }
+                frontier.removeAll(statesToRemove);
+                frontier.addAll(ancestorsToAdd);
             }
-            if(!initialState.getConcurrentStatesInExplored().isEmpty() && !prioQueuesPrefilled) {
+            if(!initialState.getConcurrentStatesInExplored().isEmpty()) {
                 explored.addAll(initialState.getConcurrentStatesInExplored());
                 rollbackTimeStep = initialState.getTimeStep();
+
+                explored.removeAll(statesToRemoveFromExplored);
             }
         }
         // Don't try to prefill the queues with initialState concurrent states again
