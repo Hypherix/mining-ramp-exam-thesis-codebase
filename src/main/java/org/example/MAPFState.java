@@ -1,5 +1,8 @@
 package org.example;
 
+import org.example.CBSclasses.CTNode;
+import org.example.CBSclasses.CTNodeComparator;
+
 import java.util.*;
 
 /*
@@ -25,8 +28,10 @@ public class MAPFState {
     public MAPFState parent;
     public ArrayList<Agent> activeAgents;      // Agents not in an exit
     public ArrayList<Agent> inactiveAgents;    // Agents in an exit
-    private PriorityQueue<MAPFState> concurrentStatesInFrontier;    // Needed for rollback to MAPFState
-    private PriorityQueue<MAPFState> concurrentStatesInExplored;    // Needed for rollback to MAPFState
+    private PriorityQueue<MAPFState> concurrentStatesInFrontier;    // Needed for rollback to MAPFState (A*)
+    private PriorityQueue<MAPFState> concurrentStatesInExplored;    // Needed for rollback to MAPFState (A*)
+    private PriorityQueue<CTNode> concurrentNodesInCTPrioQueue;    // Needed for CBS rollback
+
 
     // Constructors
     public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost, int timeStep) {
@@ -39,6 +44,7 @@ public class MAPFState {
         this.timeStep = timeStep;
         this.concurrentStatesInFrontier = new PriorityQueue<>(new StateComparator());
         this.concurrentStatesInExplored = new PriorityQueue<>(new StateComparator());
+        this.concurrentNodesInCTPrioQueue = new PriorityQueue<>(new CTNodeComparator());
 
         // Categorise the agents as active or inactive
         this.activeAgents = new ArrayList<>();
@@ -91,7 +97,7 @@ public class MAPFState {
         }
     }
 
-    // Constructor with concurrentStatesInFrontier/Explored and parent set
+    // Constructor with concurrentStatesInFrontier/Explored and parent set (for A* rollback)
     public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost, int timeStep, MAPFState parent,
                      PriorityQueue<MAPFState> concurrentStatesInFrontier,
                      PriorityQueue<MAPFState> concurrentStatesInExplored) {
@@ -106,6 +112,37 @@ public class MAPFState {
         this.concurrentStatesInFrontier.addAll(concurrentStatesInFrontier);
         this.concurrentStatesInExplored = new PriorityQueue<>(new StateComparator());
         this.concurrentStatesInExplored.addAll(concurrentStatesInExplored);
+
+
+        // Categorise the agents as active or inactive
+        this.activeAgents = new ArrayList<>();
+        this.inactiveAgents = new ArrayList<>();
+        int surfaceExit = fetchSurfaceExit();
+        int undergroundExit = fetchUndergroundExit();
+        for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
+            Agent agent = entry.getKey();
+            int location = entry.getValue();
+            if (location == surfaceExit || location == undergroundExit) {
+                this.inactiveAgents.add(agent);
+            }
+            else {
+                this.activeAgents.add(agent);
+            }
+        }
+    }
+
+    // Constructor with concurrentStatesInFrontier/Explored and parent set (for CBS rollback)
+    public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost, int timeStep,
+                     PriorityQueue<CTNode> concurrentStatesInCTPrioQueue) {
+        this.ramp = ramp;
+        this.agentLocations = agentLocations;
+        this.gcost = gcost;
+        this.hcost = calculateHcost();
+        this.fcost = this.gcost + this.hcost;
+        this.parent = parent;
+        this.timeStep = timeStep;
+        this.concurrentNodesInCTPrioQueue = new PriorityQueue<>(new CTNodeComparator());
+        this.concurrentNodesInCTPrioQueue.addAll(concurrentStatesInCTPrioQueue);
 
 
         // Categorise the agents as active or inactive
@@ -344,6 +381,14 @@ public class MAPFState {
 
     public void setConcurrentStatesInExplored(PriorityQueue<MAPFState> concurrentStatesInExplored) {
         this.concurrentStatesInExplored = concurrentStatesInExplored;
+    }
+
+    public PriorityQueue<CTNode> getConcurrentNodesInCTPrioQueue() {
+        return this.concurrentNodesInCTPrioQueue;
+    }
+
+    public void setConcurrentNodesInCTPrioQueue(PriorityQueue<CTNode> concurrentNodesInCTPrioQueue) {
+        this.concurrentNodesInCTPrioQueue = concurrentNodesInCTPrioQueue;
     }
 }
 

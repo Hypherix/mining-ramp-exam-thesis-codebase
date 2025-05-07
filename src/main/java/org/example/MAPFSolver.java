@@ -86,12 +86,21 @@ public class MAPFSolver {
                 scenario.setInitialState(scenario.generateState(timeStep, null));
                 scenario.getInitialState().parent = newCurrentState.parent;
 
-                // Give the initial state the concurrent frontier and explored states
-                scenario.getInitialState().setConcurrentStatesInFrontier(
-                        newCurrentState.getConcurrentStatesInFrontier());
-                scenario.getInitialState().setConcurrentStatesInExplored(
-                        newCurrentState.getConcurrentStatesInExplored()
-                );
+                // Give the initial state the concurrent frontier and explored states (if A* rollback)
+                if(newCurrentState.getConcurrentStatesInFrontier() != null) {
+                    scenario.getInitialState().setConcurrentStatesInFrontier(
+                            newCurrentState.getConcurrentStatesInFrontier());
+                }
+                if(newCurrentState.getConcurrentStatesInExplored() != null) {
+                    scenario.getInitialState().setConcurrentStatesInExplored(
+                            newCurrentState.getConcurrentStatesInExplored());
+                }
+
+                // Give the initial state the concurrent ctPrioQueue (if CBS rollback)
+                if(newCurrentState.getConcurrentNodesInCTPrioQueue() != null) {
+                    scenario.getInitialState().setConcurrentNodesInCTPrioQueue(
+                            newCurrentState.getConcurrentNodesInCTPrioQueue());
+                }
 
                 // Also give the initial state the
 

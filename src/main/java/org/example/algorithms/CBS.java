@@ -545,6 +545,35 @@ public class CBS implements MAPFAlgorithm {
         // Enqueue the root's children
         ctPrioQueue.add(root);
 
+
+        // In case we are here due to a rollback. Add all initialState's ctPrioQueue's nodes
+        boolean prioQueuePrefilled = false;
+        if(!prioQueuePrefilled && !initialState.getConcurrentNodesInCTPrioQueue().isEmpty()) {
+
+            ArrayList<CTNode> nodesToRemove = new ArrayList<>();
+            // First, give the nodes new agentPaths (with the new agents included)
+            for (CTNode node : initialState.getConcurrentNodesInCTPrioQueue()) {
+                // Clear the node's agentPaths
+                node.agentPaths.clear();
+
+                // Then add with updated agentLocations
+                success = addAgentPaths(node, agentLocations, initialState.getRamp(),
+                        accumulatedGeneratedStates, accumulatedExpandedStates);
+
+                // If no valid agentPaths can be procured with the new agents included, remove the CTNode later
+                if(!success) {
+                    nodesToRemove.add(node);
+                }
+            }
+
+            ctPrioQueue.addAll(initialState.getConcurrentNodesInCTPrioQueue());
+
+            ctPrioQueue.removeAll(nodesToRemove);
+        }
+        // Don't try to prefill the queue with initialState concurrent nodes again
+        prioQueuePrefilled = true;
+
+
         // Search through the CT until a goal node is found
         while (!ctPrioQueue.isEmpty()) {
             CTNode currentNode = ctPrioQueue.poll();
@@ -604,3 +633,8 @@ public class CBS implements MAPFAlgorithm {
     }
 }
 
+// TODO: Add a snapshot of the ctPrioQueue to children right before they are enqueued, similar to in A*!
+//  Then, make sure all other rollback-related things are in place and work. Then test CBS rollback
+//  Check how the concurrentNodesInPrioQueue for a rollback state is handled, to ensure it is in the MAPFSolution
+//  in MAPFSolver when looking for new agents and prompting a rollback, and thus also is in the new initialState
+//  for that rollback.
