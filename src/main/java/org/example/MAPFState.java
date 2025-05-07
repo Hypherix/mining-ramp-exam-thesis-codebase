@@ -197,11 +197,15 @@ public class MAPFState {
 
         // Deep copy of concurrentStatesInFrontier
         this.concurrentStatesInFrontier = new PriorityQueue<>(new StateComparator());
-        this.concurrentStatesInFrontier.addAll(other.concurrentStatesInFrontier);
+        if(other.concurrentStatesInFrontier != null) {
+            this.concurrentStatesInFrontier.addAll(other.concurrentStatesInFrontier);
+        }
 
         // Deep copy of concurrentStatesInExplored
         this.concurrentStatesInExplored = new PriorityQueue<>(new StateComparator());
-        this.concurrentStatesInExplored.addAll(other.concurrentStatesInExplored);
+        if(other.concurrentStatesInExplored != null) {
+            this.concurrentStatesInExplored.addAll(other.concurrentStatesInExplored);
+        }
     }
 
 

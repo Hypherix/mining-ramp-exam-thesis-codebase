@@ -5,7 +5,6 @@ package org.example.CBSclasses;
 * */
 
 import org.example.Agent;
-import org.example.MAPFState;
 
 import java.util.*;
 
@@ -93,5 +92,9 @@ public class CTNode {
 
     public void setConcurrentNodesInCTPrioQueue(PriorityQueue<CTNode> concurrentNodesInCTPrioQueue) {
         this.concurrentNodesInCTPrioQueue = concurrentNodesInCTPrioQueue;
+    }
+
+    public void removeFromConcurrentNodesInCTPrioQueue(CTNode concurrentNode) {
+        this.concurrentNodesInCTPrioQueue.remove(concurrentNode);
     }
 }

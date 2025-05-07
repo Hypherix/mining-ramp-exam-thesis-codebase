@@ -15,15 +15,17 @@ import java.util.*;
 public class CBS implements MAPFAlgorithm {
 
     // Data members
-    CTNode root;
     int accumulatedGeneratedStates;
     int accumulatedExpandedStates;
+    int numOfGeneratedCTNodes;
+    int numOfExpandedCTNodes;
 
     // Constructors
     public CBS() {
-        root = new CTNode();        // Needed? Yes
         accumulatedGeneratedStates = 0;
         accumulatedExpandedStates = 0;
+        numOfGeneratedCTNodes = 0;
+        numOfExpandedCTNodes = 0;
     }
 
     private boolean addAgentPaths(CTNode node, HashMap<Agent, Integer> agentLocations, Ramp ramp,
@@ -198,7 +200,9 @@ public class CBS implements MAPFAlgorithm {
                 }
             }
 
-            MAPFState state = new MAPFState(ramp, agentLocations, cost, i);
+            MAPFState state = new MAPFState(ramp, agentLocations, cost, i,
+                    goalNode.getConcurrentNodesInCTPrioQueue());
+
             if(!solutionSet.isEmpty()) {
                 state.parent = solutionSet.getLast();
             }
@@ -519,8 +523,9 @@ public class CBS implements MAPFAlgorithm {
     public MAPFSolution solve(MAPFScenario scenario) {
         // Task: Generates a MAPFSolution from the MAPFScenario
 
-        int numOfGeneratedCTNodes = 0;
-        int numOfExpandedCTNodes = 0;
+        CTNode root = new CTNode();
+
+
 
         // Set the root CTNode agent paths and add it to the PrioQueue if not a goal node
 
@@ -531,7 +536,7 @@ public class CBS implements MAPFAlgorithm {
         HashMap<Agent, Integer> agentLocations = initialState.getAgentLocations();
 
         // Add independent agent paths to the root CT node
-        boolean success = addAgentPaths(this.root, agentLocations, initialState.getRamp(),
+        boolean success = addAgentPaths(root, agentLocations, initialState.getRamp(),
                 accumulatedGeneratedStates, accumulatedExpandedStates);
 
         if(!success) {
@@ -569,6 +574,11 @@ public class CBS implements MAPFAlgorithm {
             ctPrioQueue.addAll(initialState.getConcurrentNodesInCTPrioQueue());
 
             ctPrioQueue.removeAll(nodesToRemove);
+
+            // Remove the children of all ctPrioQueue entries
+            for (CTNode node : ctPrioQueue) {
+                node.children.clear();
+            }
         }
         // Don't try to prefill the queue with initialState concurrent nodes again
         prioQueuePrefilled = true;
@@ -602,6 +612,7 @@ public class CBS implements MAPFAlgorithm {
 
             // For each child, generate a path for the agent affected by the new constraint
             // First, get the agentLocation of the constrained agent
+            ArrayList<CTNode> childrenToAddToPrioQueue = new ArrayList<>();
             for (CTNode child : currentNode.children) {
                 Agent constrainedAgent = child.newlyConstrainedAgent;
                 HashMap<Agent, Integer> constrainedAgentLocation = new HashMap<>();
@@ -621,12 +632,30 @@ public class CBS implements MAPFAlgorithm {
                 agentPathsCopy = padAgentpaths(agentPathsCopy);
 
                 // Only add the child to the queue if it has a set of solution paths that does not
-                // violate normal queue behaviour
+                // violate normal queue behaviou
                 boolean valid = isQueueBehaviorValid(agentPathsCopy, initialState.getRamp());
                 if(success && valid) {
-                    ctPrioQueue.add(child);
+                    childrenToAddToPrioQueue.add(child);
                 }
             }
+
+            // Create a snapshot of the prioqueue including the child sibling
+            PriorityQueue<CTNode> ctPrioQueueSnapshot = new PriorityQueue<>(new CTNodeComparator());
+            ctPrioQueueSnapshot.addAll(ctPrioQueue);
+            PriorityQueue<CTNode> children = new PriorityQueue<>(new CTNodeComparator());
+            children.addAll(currentNode.children);
+
+            for (CTNode child : currentNode.children) {
+                // First add the sibling to the child
+                child.setConcurrentNodesInCTPrioQueue(children);
+                child.removeFromConcurrentNodesInCTPrioQueue(child);    // Remove itself
+
+                // Finally, also add the actual current ctPrioQueue
+                child.addAllToConcurrentNodesInPrioQueue(ctPrioQueueSnapshot);
+            }
+
+            // Finally, add the children to the ctPrioQueue
+            ctPrioQueue.addAll(childrenToAddToPrioQueue);
         }
 
         return null;
@@ -638,3 +667,5 @@ public class CBS implements MAPFAlgorithm {
 //  Check how the concurrentNodesInPrioQueue for a rollback state is handled, to ensure it is in the MAPFSolution
 //  in MAPFSolver when looking for new agents and prompting a rollback, and thus also is in the new initialState
 //  for that rollback.
+
+// TODO: MAPFSTATE NEEDS TO HOLD VERTEX AND EDGE CONSTRAINTS SO THAT THE ROLLBACK INITIAL STATE HAS THEM.

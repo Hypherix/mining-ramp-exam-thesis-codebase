@@ -79,9 +79,9 @@ public class Main {
         Agent agent2 = new Agent(3, 1, Constants.UP, true);
         agentList2.put(agent2.id, agent2);
         agentEntries2.addEntry(2, agent2);
-//        agent2 = new Agent(4, 1, Constants.DOWN, true);
-//        agentList2.put(agent2.id, agent2);
-//        agentEntries2.addEntry(12, agent2);
+        agent2 = new Agent(4, 1, Constants.DOWN, true);
+        agentList2.put(agent2.id, agent2);
+        agentEntries2.addEntry(18, agent2);
 
         MAPFScenario scenarioICTS = new MAPFScenario(myRamp, agentEntries2, 20);
         MAPFScenario scenarioAstar = new MAPFScenario(myRamp, agentEntries2, 20);
@@ -90,6 +90,7 @@ public class Main {
         long duration;
 
         // ICTS
+        System.out.println("#################### ICTS ####################");
         long startTimeICTS = System.nanoTime();
         MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
         solverICTS.solve();
@@ -97,7 +98,10 @@ public class Main {
         duration = endTimeICTS - startTimeICTS;
         System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
 
+        System.out.println();
+
         // A*
+        System.out.println("#################### A* ####################");
         long startTimeAstar = System.nanoTime();
         MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
         solverAstar.solve();
@@ -105,7 +109,10 @@ public class Main {
         duration = endTimeAstar - startTimeAstar;
         System.out.println("\nExecution time A*: " + (duration / 1000000.0) + " ms");
 
+        System.out.println();
+
         // CBS
+        System.out.println("#################### CBS ####################");
         long startTimeCBS = System.nanoTime();
         MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
         solverCBS.solve();

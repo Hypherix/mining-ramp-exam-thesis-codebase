@@ -542,7 +542,7 @@ public class ICTS implements MAPFAlgorithm {
         ArrayList<Integer> initialOptimalCosts = new ArrayList<>();
         ArrayList<MAPFSolution> initialSolutions = new ArrayList<>();
 
-        System.out.println("Initial independent solution paths:");
+//        System.out.println("Initial independent solution paths:");
 
         // Create a scenario for each initial agent and get their independent optimal solutions
         for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {

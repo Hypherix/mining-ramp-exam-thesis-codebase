@@ -481,7 +481,7 @@ public class Astar implements MAPFAlgorithm {
         frontier.add(initialState);
 
         // In case we are here due to a rollback. Add all initialState's frontier and explored states
-        boolean prioQueuesPrefilled = false;
+        boolean prioQueuesPrefilled = true;
         int rollbackTimeStep = -1;      // Will only be used if we are here from a rollback
         if(!prioQueuesPrefilled) {
             ArrayList<MAPFState> statesToRemoveFromExplored = new ArrayList<>();
