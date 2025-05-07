@@ -425,6 +425,7 @@ public class Astar implements MAPFAlgorithm {
             if(newLocation != surfaceExit && newLocation != undergroundExit) {
                 prohibitedVertices.add(newLocation);
             }
+
             // If the vertex is in a passing bay, prohibit the other vertex in the same passing bay from being occupied
             if (verticesInPassingBays.contains(oldLocation) || verticesInPassingBays.contains(newLocation)) {
                 for(ArrayList<Integer> passingBay : passingBayVertices) {

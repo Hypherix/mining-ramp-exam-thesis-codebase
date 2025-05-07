@@ -28,8 +28,17 @@ public class CBS implements MAPFAlgorithm {
         numOfExpandedCTNodes = 0;
     }
 
-    private boolean addAgentPaths(CTNode node, HashMap<Agent, Integer> agentLocations, Ramp ramp,
-                               int accumulatedGeneratedStates, int accumulatedExpandedStates) {
+    protected CTNode createRootNode() {
+        return new CTNode();
+    }
+
+    protected boolean setRootAgentPaths(CTNode root, HashMap<Agent, Integer> agentLocations, Ramp ramp) {
+        // Task: Initiate the root by setting its agentPaths
+
+        return addAgentPaths(root, agentLocations, ramp);
+    }
+
+    protected boolean addAgentPaths(CTNode node, HashMap<Agent, Integer> agentLocations, Ramp ramp) {
         // Task: Given a CTNode and the agentLocations of the agents that need a path,
         // add independent agent paths to the CTNode
 
@@ -242,7 +251,7 @@ public class CBS implements MAPFAlgorithm {
                 .add(constrainedEdge);
     }
 
-    private HashMap<Agent, HashMap<Integer, Set<Integer>>> copyParentAndAddVertexConstraint(
+    protected HashMap<Agent, HashMap<Integer, Set<Integer>>> copyParentAndAddVertexConstraint(
             HashMap<Agent, HashMap<Integer, Set<Integer>>> parentConstraints,
             Agent agent,
             int timeStep,
@@ -269,7 +278,7 @@ public class CBS implements MAPFAlgorithm {
         return newConstraints;
     }
 
-    private HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> copyParentAndAddEdgeConstraint(
+    protected HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> copyParentAndAddEdgeConstraint(
             HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> parentConstraints,
             Agent agent,
             int timeStep,
@@ -311,8 +320,47 @@ public class CBS implements MAPFAlgorithm {
         return newConstraints;
     }
 
+    protected void generateChildHelper(CTNode parent, CTNode child, Conflict conflict,
+                                       Agent constrainedAgent, boolean firstChild) {
+        // Task: Carry out the child assignment
 
-    private void generateChildren(CTNode parent, Conflict conflict, int numOfGeneratedCTNodes) {
+        // Left child agentPaths is identical to its parent, with the newly constrained constrainedAgent removed
+        HashMap<Agent, ArrayList<Integer>> leftChildAgentPaths = new HashMap<>();
+        for(Map.Entry<Agent, ArrayList<Integer>> entry : parent.agentPaths.entrySet()) {
+            // Copy each entry from parent's agentPaths to leftChild's agentPaths (deep copy)
+            leftChildAgentPaths.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        }
+
+        leftChildAgentPaths.remove(constrainedAgent);
+        child.agentPaths = leftChildAgentPaths;
+        child.newlyConstrainedAgent = constrainedAgent;
+
+        if(conflict.type == Conflict.ConflictType.VERTEX) {
+            // If a vertex conflict, add vertex constraint where agent1
+            // can't occupy the vertex at the conflict's timestep
+            child.vertexConstraints = copyParentAndAddVertexConstraint(
+                    parent.vertexConstraints,
+                    constrainedAgent,
+                    conflict.timeStep,
+                    conflict.vertex);
+
+        }
+        else if (conflict.type == Conflict.ConflictType.EDGE) {
+            // If an edge conflict, add edge constraint where agent1
+            // can't move from fromVertex to toVertex at the conflict's timestep
+            child.edgeConstraints = copyParentAndAddEdgeConstraint(
+                    parent.edgeConstraints,
+                    constrainedAgent,
+                    conflict.timeStep,
+                    conflict.fromVertex,
+                    conflict.toVertex,
+                    firstChild);
+
+        }
+        parent.children.add(child);
+    }
+
+    protected void generateChildren(CTNode parent, Conflict conflict) {
         // Generate two children to parent based on the conflict
 
         // TODO: Currently, children get shallow copy of parent constraints. Editing child constraints
@@ -325,76 +373,11 @@ public class CBS implements MAPFAlgorithm {
 
         // First (left) child
         CTNode leftChild = new CTNode(parent.vertexConstraints, parent.edgeConstraints);
-
-        // Left child agentPaths is identical to its parent, with the newly constrained agent (agent1) removed
-        HashMap<Agent, ArrayList<Integer>> leftChildAgentPaths = new HashMap<>();
-        for(Map.Entry<Agent, ArrayList<Integer>> entry : parent.agentPaths.entrySet()) {
-            // Copy each entry from parent's agentPaths to leftChild's agentPaths (deep copy)
-            leftChildAgentPaths.put(entry.getKey(), new ArrayList<>(entry.getValue()));
-        }
-
-        leftChildAgentPaths.remove(agent1);
-        leftChild.agentPaths = leftChildAgentPaths;
-        leftChild.newlyConstrainedAgent = agent1;
-
-        if(conflict.type == Conflict.ConflictType.VERTEX) {
-            // If a vertex conflict, add vertex constraint where agent1
-            // can't occupy the vertex at the conflict's timestep
-            leftChild.vertexConstraints = copyParentAndAddVertexConstraint(
-                    parent.vertexConstraints,
-                    agent1,
-                    conflict.timeStep,
-                    conflict.vertex);
-
-        }
-        else if (conflict.type == Conflict.ConflictType.EDGE) {
-            // If an edge conflict, add edge constraint where agent1
-            // can't move from fromVertex to toVertex at the conflict's timestep
-            leftChild.edgeConstraints = copyParentAndAddEdgeConstraint(
-                    parent.edgeConstraints,
-                    agent1,
-                    conflict.timeStep,
-                    conflict.fromVertex,
-                    conflict.toVertex,
-                    true);
-
-        }
-        parent.children.add(leftChild);
+        generateChildHelper(parent, leftChild, conflict, agent1, true);
 
         // Right (second) child
         CTNode rightChild = new CTNode(parent.vertexConstraints, parent.edgeConstraints);
-
-        // Right child agentPaths is identical to its parent, with the newly constrained agent (agent2) removed
-        HashMap<Agent, ArrayList<Integer>> rightChildAgentPaths = new HashMap<>();
-        for(Map.Entry<Agent, ArrayList<Integer>> entry : parent.agentPaths.entrySet()) {
-            // Copy each entry from parent's agentPaths to rightChild's agentPaths (deep copy)
-            rightChildAgentPaths.put(entry.getKey(), new ArrayList<>(entry.getValue()));
-        }
-
-        rightChildAgentPaths.remove(agent2);
-        rightChild.agentPaths = rightChildAgentPaths;
-        rightChild.newlyConstrainedAgent = agent2;
-
-        if(conflict.type == Conflict.ConflictType.VERTEX) {
-            rightChild.vertexConstraints = copyParentAndAddVertexConstraint(
-                    parent.vertexConstraints,
-                    agent2,
-                    conflict.timeStep,
-                    conflict.vertex
-            );
-
-        } else if (conflict.type == Conflict.ConflictType.EDGE) {
-            rightChild.edgeConstraints = copyParentAndAddEdgeConstraint(
-                    parent.edgeConstraints,
-                    agent2,
-                    conflict.timeStep,
-                    conflict.fromVertex,
-                    conflict.toVertex,
-                    false
-            );
-
-        }
-        parent.children.add(rightChild);
+        generateChildHelper(parent, rightChild, conflict, agent2, false);
 
         numOfGeneratedCTNodes += 2;
     }
@@ -515,17 +498,60 @@ public class CBS implements MAPFAlgorithm {
 
         return true;
     }
-    // TODO: Check if method above works!!!
 
+    private boolean isPassingBayBehaviourValid(HashMap<Agent, ArrayList<Integer>> agentPaths, Ramp ramp) {
+        // Task: Check that no passing bay is occupied with more than one agent at a time
+
+        // Get the passing bay and their vertices
+        ArrayList<ArrayList<Integer>> passingBays = ramp.getPassingBayVertices();
+
+        int pathLength = agentPaths.values().iterator().next().size();
+
+        // For each timeStep, check every agent location and fill occupancy if in a passing bay
+        for (int t = 0; t < pathLength; t++) {
+            // Map from passing bay index to how many agents occupy it this time step
+            HashMap<Integer, Integer> passingBayOccupancy = new HashMap<>();
+
+            // Go through each agent location this time step
+            for (Map.Entry<Agent, ArrayList<Integer>> entry : agentPaths.entrySet()) {
+                int currentVertex = entry.getValue().get(t);
+
+                // Check if the vertex is a passing bay vertex
+                for(int i = 0; i < passingBays.size(); i++) {
+                    ArrayList<Integer> passingBay = passingBays.get(i);
+
+                    // If the vertex is of a passing bay, increment the occupancy count
+                    if(passingBay.contains(currentVertex)) {
+                        int count = passingBayOccupancy.getOrDefault(i, 0) + 1;
+                        if(count > 1) {
+                            return false;
+                        }
+                        passingBayOccupancy.put(i, count);
+                    }
+                }
+            }
+        }
+
+        // If reached here, no passing bay conflicts were found
+        return true;
+    }
+
+    private boolean arePathsValid(HashMap<Agent, ArrayList<Integer>> agentPaths, Ramp ramp) {
+        // Check that agentPaths conform to the rules of the ramp
+
+        // Check that queue behaviour is valid
+        boolean queueValid = isQueueBehaviorValid(agentPaths, ramp);
+
+        // Check that no passing bay is occupied by more than one agent simultaneously
+        boolean passingBaysValid = isPassingBayBehaviourValid(agentPaths, ramp);
+
+        return queueValid && passingBaysValid;
+    }
 
     // Methods
     @Override
     public MAPFSolution solve(MAPFScenario scenario) {
         // Task: Generates a MAPFSolution from the MAPFScenario
-
-        CTNode root = new CTNode();
-
-
 
         // Set the root CTNode agent paths and add it to the PrioQueue if not a goal node
 
@@ -536,9 +562,8 @@ public class CBS implements MAPFAlgorithm {
         HashMap<Agent, Integer> agentLocations = initialState.getAgentLocations();
 
         // Add independent agent paths to the root CT node
-        boolean success = addAgentPaths(root, agentLocations, initialState.getRamp(),
-                accumulatedGeneratedStates, accumulatedExpandedStates);
-
+        CTNode root = createRootNode();
+        boolean success = setRootAgentPaths(root, agentLocations, initialState.getRamp());
         if(!success) {
             System.out.println("CBS: Could not find a solution at root CT level");
         }
@@ -562,8 +587,7 @@ public class CBS implements MAPFAlgorithm {
                 node.agentPaths.clear();
 
                 // Then add with updated agentLocations
-                success = addAgentPaths(node, agentLocations, initialState.getRamp(),
-                        accumulatedGeneratedStates, accumulatedExpandedStates);
+                success = addAgentPaths(node, agentLocations, initialState.getRamp());
 
                 // If no valid agentPaths can be procured with the new agents included, remove the CTNode later
                 if(!success) {
@@ -607,8 +631,8 @@ public class CBS implements MAPFAlgorithm {
             }
 
             // Generate children to the non-goal node and enqueue to ctPrioQueue
-            generateChildren(currentNode, currentNodeConflict, numOfGeneratedCTNodes);
-            numOfGeneratedCTNodes += 2;
+            generateChildren(currentNode, currentNodeConflict);
+            numOfGeneratedCTNodes += 2; // TODO: Put in generateChildren instead
 
             // For each child, generate a path for the agent affected by the new constraint
             // First, get the agentLocation of the constrained agent
@@ -622,8 +646,7 @@ public class CBS implements MAPFAlgorithm {
                 }
 
                 // Get a new path for the constrained agent
-                success = addAgentPaths(child, constrainedAgentLocation, initialState.getRamp(),
-                        accumulatedGeneratedStates, accumulatedExpandedStates);
+                success = addAgentPaths(child, constrainedAgentLocation, initialState.getRamp());
 
                 // Pad the shorter paths with the exit vertex until all path sizes = solutionLength (i.e. the longest path size)
                 // This is needed for checking if queue behaviour is valid
@@ -633,7 +656,8 @@ public class CBS implements MAPFAlgorithm {
 
                 // Only add the child to the queue if it has a set of solution paths that does not
                 // violate normal queue behaviou
-                boolean valid = isQueueBehaviorValid(agentPathsCopy, initialState.getRamp());
+                boolean valid = arePathsValid(agentPathsCopy, initialState.getRamp());
+
                 if(success && valid) {
                     childrenToAddToPrioQueue.add(child);
                 }
@@ -662,10 +686,4 @@ public class CBS implements MAPFAlgorithm {
     }
 }
 
-// TODO: Add a snapshot of the ctPrioQueue to children right before they are enqueued, similar to in A*!
-//  Then, make sure all other rollback-related things are in place and work. Then test CBS rollback
-//  Check how the concurrentNodesInPrioQueue for a rollback state is handled, to ensure it is in the MAPFSolution
-//  in MAPFSolver when looking for new agents and prompting a rollback, and thus also is in the new initialState
-//  for that rollback.
-
-// TODO: MAPFSTATE NEEDS TO HOLD VERTEX AND EDGE CONSTRAINTS SO THAT THE ROLLBACK INITIAL STATE HAS THEM.
+// TODO: NEED TO IMPLEMENT MAX ONE AGENT IN PASSING BAY!!! AT SIMILAR PLACE AS QUEUE BEHAVIOUR CHECK

@@ -56,7 +56,10 @@ public class MAPFSolver {
             if (agentEntries.containsKey(timeStep)) {   // If there are new agents entering this timeStep
                 // Remove from solution states those states that are now invalid
 
-                ArrayList<MAPFState> currentSolutionStates = new ArrayList<>(currentSolution.getSolutionSet());
+                ArrayList<MAPFState> currentSolutionStates = new ArrayList<>();
+                if(currentSolution != null) {
+                    currentSolutionStates = new ArrayList<>(currentSolution.getSolutionSet());
+                }
 
                 // TODO: Check if timeStep > currentSolutionStates.size(). If so, create as many identical states as the last
                 //  state until currentSolutionStates.size() == timeStep

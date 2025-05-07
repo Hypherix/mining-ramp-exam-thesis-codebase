@@ -1,13 +1,12 @@
 package org.example;
 
 /*
-* TODO NEXT: FIND OUT WHY A* CAN'T ROLLBACK IN CBS BRANCH
-*  WITH CURRENT CONFIG, ONLY ICTS CAN ROLLBACK. IF I CHANGE AGENT INITIALISATION FOR LOOP TO ONLY DO 2 AGENTS
-*  AND THEN ADD THE 3RD MANUALLY, A* WORKS CORRECTLY.
-*  IIRC, WHEN LOOKING AT THE FRONTIER OF A* IMMEDIATELY AFTER ROLLBACK (at timestep 2), THE SECOND STATE
-*  HAS TIMESTEP 3 FOR SOME REASON, HENCE WHY IT IS NOT ADDED THE NEw (4TH) AGENT.
-*  PERHAPS IT IS POSSIBLE THAT SOME STATES IN THE FRONTIER HAVE A LATER TIMESTEP IMMEDIATELY AFTER ROLLBACK.
-*  IN THAT CASE: REMOVE ALL STATES WITH LATER TIMESTEP SINCE WE NEED TO ROLLBACK TO DESIRED TIMESTEP!!!!!! YES PROBABLY!
+* TODO: Only ICTS seems to use passing bays in its solutions. A* and CBS never use them.
+*  Debug A* and CBS and check if any states/nodes in frontier/ctQueue have agentPaths with
+*  passing bay occupancy in them, to ensure that passing bay conflict detection is not bugged.
+*  DO IT WITH A* FIRST since that is more intuitive?
+*
+* TODO ALSO: Test CBSwP with root constraints non-empty.
 * */
 
 import java.util.HashMap;
@@ -16,8 +15,8 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {2};
-        Ramp myRamp = new Ramp(5, 5, 5, passBays);
+        int[] passBays = {1};
+        Ramp myRamp = new Ramp(3, 5, 5, passBays);
 
         // This section should be equivalent to the section after (now commented)
         // Add initial agents
@@ -76,16 +75,17 @@ public class Main {
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
-        Agent agent2 = new Agent(3, 1, Constants.UP, true);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(2, agent2);
-        agent2 = new Agent(4, 1, Constants.DOWN, true);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(18, agent2);
+//        Agent agent2 = new Agent(3, 1, Constants.UP, true);
+//        agentList2.put(agent2.id, agent2);
+//        agentEntries2.addEntry(2, agent2);
+//        agent2 = new Agent(4, 1, Constants.DOWN, true);
+//        agentList2.put(agent2.id, agent2);
+//        agentEntries2.addEntry(18, agent2);
 
         MAPFScenario scenarioICTS = new MAPFScenario(myRamp, agentEntries2, 20);
         MAPFScenario scenarioAstar = new MAPFScenario(myRamp, agentEntries2, 20);
         MAPFScenario scenarioCBS = new MAPFScenario(myRamp, agentEntries2, 20);
+        MAPFScenario scenarioCBSwP = new MAPFScenario(myRamp, agentEntries2, 20);
 
         long duration;
 
@@ -119,5 +119,14 @@ public class Main {
         long endTimeCBS = System.nanoTime();
         duration = endTimeCBS - startTimeCBS;
         System.out.println("\nExecution time CBS: " + (duration / 1000000.0) + " ms");
+
+        // CBSwP
+        System.out.println("#################### CBSwP ####################");
+        long startTimeCBSwP = System.nanoTime();
+        MAPFSolver solverCBSwP = new MAPFSolver(scenarioCBSwP, "CBSwP");
+        solverCBSwP.solve();
+        long endTimeCBSwP = System.nanoTime();
+        duration = endTimeCBSwP - startTimeCBSwP;
+        System.out.println("\nExecution time CBSwP: " + (duration / 1000000.0) + " ms");
     }
 }
