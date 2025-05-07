@@ -1,12 +1,14 @@
 package org.example;
 
 /*
-* TODO: Only ICTS seems to use passing bays in its solutions. A* and CBS never use them.
-*  Debug A* and CBS and check if any states/nodes in frontier/ctQueue have agentPaths with
-*  passing bay occupancy in them, to ensure that passing bay conflict detection is not bugged.
-*  DO IT WITH A* FIRST since that is more intuitive?
+* TODO: The algorithms tend to give different solutions, sometimes with different results.
+*  This is especially the case with more agents, larger ramps and re-planning.
+*  Of course, the nature of the rollback differs between the algorithms.
+*  Honestly, not really sure what to make of it at the moment
 *
 * TODO ALSO: Test CBSwP with root constraints non-empty.
+*
+* TODO: Visualisation
 * */
 
 import java.util.HashMap;
@@ -15,8 +17,8 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {1};
-        Ramp myRamp = new Ramp(3, 5, 5, passBays);
+        int[] passBays = {3};
+        Ramp myRamp = new Ramp(6, 5, 5, passBays);
 
         // This section should be equivalent to the section after (now commented)
         // Add initial agents
@@ -64,7 +66,7 @@ public class Main {
         // ALL ALGORITHMS TEST
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
         AgentEntries agentEntries2 = new AgentEntries();
-        for(int i = 0; i < 3; i++) {
+        for(int i = 0; i < 2; i++) {
             Agent agent2;
             if(i % 2 == 0) {
                 agent2 = new Agent(i, 1, Constants.DOWN, true);
@@ -75,9 +77,9 @@ public class Main {
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
-//        Agent agent2 = new Agent(3, 1, Constants.UP, true);
-//        agentList2.put(agent2.id, agent2);
-//        agentEntries2.addEntry(2, agent2);
+        Agent agent2 = new Agent(2, 1, Constants.UP, true);
+        agentList2.put(agent2.id, agent2);
+        agentEntries2.addEntry(2, agent2);
 //        agent2 = new Agent(4, 1, Constants.DOWN, true);
 //        agentList2.put(agent2.id, agent2);
 //        agentEntries2.addEntry(18, agent2);
