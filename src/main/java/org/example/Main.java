@@ -8,8 +8,10 @@ package org.example;
 *
 * TODO ALSO: Test CBSwP with root constraints non-empty.
 *
+* TODO: Create 6x6 grid with 4 connections and try the algorithms to see if they deviate
+*
 * TODO: Visualisation
-* */
+*/
 
 import java.util.HashMap;
 
@@ -17,56 +19,15 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {3};
-        Ramp myRamp = new Ramp(6, 5, 5, passBays);
+        int[] passBays = {2, 4, 6};
+        Ramp myRamp = new Ramp(10, 5, 5, passBays);
 
-        // This section should be equivalent to the section after (now commented)
-        // Add initial agents
-        // Every other agent goes the same direction
-        HashMap<Integer, Agent> agentList = new HashMap<>();
-        AgentEntries agentEntries = new AgentEntries();
-        for(int i = 0; i < 4; i++) {
-            Agent agent;
-            if(i % 2 == 0) {
-                agent = new Agent(i, 1, Constants.DOWN, true);
-                agentList.put(agent.id, agent);
-                agentEntries.addEntry(0, agent);
-            }
-            else {
-                agent = new Agent(i, 1, Constants.UP, true);
-                agentList.put(agent.id, agent);
-                agentEntries.addEntry(0, agent);
-            }
-        }
-        Agent agent = new Agent(4, 1, Constants.UP, true);
-        agentList.put(agent.id, agent);
-        agentEntries.addEntry(1, agent);
 
-        agent = new Agent(5, 1, Constants.DOWN, true);
-        agentList.put(agent.id, agent);
-        agentEntries.addEntry(3, agent);
-
-        agent = new Agent(6, 1, Constants.DOWN, true);
-        agentList.put(agent.id, agent);
-        agentEntries.addEntry(17, agent);
-
-        // Duration specifies the latest timeStep at which new agents can enter
-        MAPFScenario scenario = new MAPFScenario(myRamp, agentEntries, 20);
-
-        // A*
-        /*
-        MAPFSolver solverAStar = new MAPFSolver(scenario, "astar");
-        solverAStar.solve();
-
-        long endTimeAStar = System.nanoTime();
-        long duration = endTimeAStar - startTime;
-        System.out.println("\nExecution time: " + (duration / 1000000.0) + " ms");
-        */
 
         // ALL ALGORITHMS TEST
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
         AgentEntries agentEntries2 = new AgentEntries();
-        for(int i = 0; i < 2; i++) {
+        for(int i = 0; i < 3; i++) {
             Agent agent2;
             if(i % 2 == 0) {
                 agent2 = new Agent(i, 1, Constants.DOWN, true);
@@ -77,9 +38,9 @@ public class Main {
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
-        Agent agent2 = new Agent(2, 1, Constants.UP, true);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(2, agent2);
+//        Agent agent2 = new Agent(2, 1, Constants.UP, true);
+//        agentList2.put(agent2.id, agent2);
+//        agentEntries2.addEntry(2, agent2);
 //        agent2 = new Agent(4, 1, Constants.DOWN, true);
 //        agentList2.put(agent2.id, agent2);
 //        agentEntries2.addEntry(18, agent2);

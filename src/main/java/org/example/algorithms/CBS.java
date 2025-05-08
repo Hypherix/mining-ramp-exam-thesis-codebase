@@ -32,12 +32,6 @@ public class CBS implements MAPFAlgorithm {
         return new CTNode();
     }
 
-    protected boolean setRootAgentPaths(CTNode root, HashMap<Agent, Integer> agentLocations, Ramp ramp) {
-        // Task: Initiate the root by setting its agentPaths
-
-        return addAgentPaths(root, agentLocations, ramp);
-    }
-
     protected boolean addAgentPaths(CTNode node, HashMap<Agent, Integer> agentLocations, Ramp ramp) {
         // Task: Given a CTNode and the agentLocations of the agents that need a path,
         // add independent agent paths to the CTNode
@@ -50,8 +44,7 @@ public class CBS implements MAPFAlgorithm {
             // Create an initial state for the scenario
             HashMap<Agent, Integer> initialAgentLocation = new HashMap<>();
             initialAgentLocation.put(agent, location);
-            MAPFState singleInitialState = new MAPFState(
-                    ramp, initialAgentLocation, 0, 0);
+            MAPFState singleInitialState = new MAPFState(ramp, initialAgentLocation, 0, 0);
             // Fill the scenario with the node's constraints that A* must consider
             MAPFScenario singleInitialScenario = new MAPFScenario(
                     ramp, singleInitialState, 1,
@@ -77,20 +70,23 @@ public class CBS implements MAPFAlgorithm {
                 agentPath.add(currentLocation);     // Add it to path
             }
 
-            // Put the independent agent solution path in the root CT node, and update the node cost
+            // Put the independent agent solution path in the root CT node
             node.addAgentPath(agent, agentPath);
-//            node.cost += agentPath.size() - 1;
         }
 
         // Go through all paths and calculate the SIC cost
         Collection<ArrayList<Integer>> allPaths = node.agentPaths.values();
-        int cost = 0;
         for(ArrayList<Integer> path : allPaths) {
-            cost += path.size() - 1;
+            node.cost += path.size() - 1;
         }
-        node.cost = cost;
 
         return true;
+    }
+
+    protected boolean setRootAgentPaths(CTNode root, HashMap<Agent, Integer> agentLocations, Ramp ramp) {
+        // Task: Initiate the root by setting its agentPaths
+
+        return addAgentPaths(root, agentLocations, ramp);
     }
 
     public boolean isAnExitVertex(int vertex, Ramp ramp) {
@@ -111,7 +107,12 @@ public class CBS implements MAPFAlgorithm {
 
         // Get exit vertices. Two agents located in an exit vertex should not count as a conflict
 
+//        if (node.cost == 29) {
+//            System.out.println();
+//        }
+
         ArrayList<Agent> agents = new ArrayList<>(node.agentPaths.keySet());
+        agents.sort(Comparator.comparing(agent -> agent.id));
 
         // If less than two agents, no conflicts exist
         if(agents.size() < 2) {
@@ -326,6 +327,7 @@ public class CBS implements MAPFAlgorithm {
 
         // Left child agentPaths is identical to its parent, with the newly constrained constrainedAgent removed
         HashMap<Agent, ArrayList<Integer>> leftChildAgentPaths = new HashMap<>();
+
         for(Map.Entry<Agent, ArrayList<Integer>> entry : parent.agentPaths.entrySet()) {
             // Copy each entry from parent's agentPaths to leftChild's agentPaths (deep copy)
             leftChildAgentPaths.put(entry.getKey(), new ArrayList<>(entry.getValue()));
@@ -502,7 +504,7 @@ public class CBS implements MAPFAlgorithm {
     private boolean isPassingBayBehaviourValid(HashMap<Agent, ArrayList<Integer>> agentPaths, Ramp ramp) {
         // Task: Check that no passing bay is occupied with more than one agent at a time
 
-        // Get the passing bay and their vertices
+        // Get the passing bay and their vertices (pairs)
         ArrayList<ArrayList<Integer>> passingBays = ramp.getPassingBayVertices();
 
         int pathLength = agentPaths.values().iterator().next().size();
@@ -563,18 +565,18 @@ public class CBS implements MAPFAlgorithm {
 
         // Add independent agent paths to the root CT node
         CTNode root = createRootNode();
-        boolean success = setRootAgentPaths(root, agentLocations, initialState.getRamp());
-        if(!success) {
+        boolean rootSuccess = setRootAgentPaths(root, agentLocations, initialState.getRamp());
+        if(!rootSuccess) {
             System.out.println("CBS: Could not find a solution at root CT level");
+            return null;
         }
 
 
         // Create a PriorityQueue of CTNodes where the node with the lowest cost is prioritised
         PriorityQueue<CTNode> ctPrioQueue = new PriorityQueue<>(new CTNodeComparator());
 
-        // Enqueue the root's children
+        // Enqueue the root
         ctPrioQueue.add(root);
-
 
         // In case we are here due to a rollback. Add all initialState's ctPrioQueue's nodes
         boolean prioQueuePrefilled = false;
@@ -587,7 +589,7 @@ public class CBS implements MAPFAlgorithm {
                 node.agentPaths.clear();
 
                 // Then add with updated agentLocations
-                success = addAgentPaths(node, agentLocations, initialState.getRamp());
+                boolean success = addAgentPaths(node, agentLocations, initialState.getRamp());
 
                 // If no valid agentPaths can be procured with the new agents included, remove the CTNode later
                 if(!success) {
@@ -609,10 +611,19 @@ public class CBS implements MAPFAlgorithm {
 
 
         // Search through the CT until a goal node is found
+
         while (!ctPrioQueue.isEmpty()) {
             CTNode currentNode = ctPrioQueue.poll();
             numOfExpandedCTNodes++;
 //            System.out.println(currentNode.cost);
+
+//            if(currentNode.cost == 40) {
+//                System.out.println("agentPaths:");
+//                for(ArrayList<Integer> path : currentNode.agentPaths.values()) {
+//                    System.out.println(path);
+//                }
+//                System.out.println();
+//            }
 
             // Check for conflicts in the currentNode agentPaths
             Conflict currentNodeConflict = getPathConflict(currentNode, initialState.getRamp());
@@ -641,25 +652,26 @@ public class CBS implements MAPFAlgorithm {
                 Agent constrainedAgent = child.newlyConstrainedAgent;
                 HashMap<Agent, Integer> constrainedAgentLocation = new HashMap<>();
 
-                if(agentLocations.containsKey(constrainedAgent)) {
+                if (agentLocations.containsKey(constrainedAgent)) {
                     constrainedAgentLocation.put(constrainedAgent, agentLocations.get(constrainedAgent));
                 }
 
                 // Get a new path for the constrained agent
-                success = addAgentPaths(child, constrainedAgentLocation, initialState.getRamp());
+                boolean success = addAgentPaths(child, constrainedAgentLocation, initialState.getRamp());
 
                 // Pad the shorter paths with the exit vertex until all path sizes = solutionLength (i.e. the longest path size)
                 // This is needed for checking if queue behaviour is valid
-                HashMap<Agent, ArrayList<Integer>> agentPathsCopy = copyAgentPaths(child.agentPaths);
+                HashMap<Agent, ArrayList<Integer>> copyUnpadded = copyAgentPaths(child.agentPaths);
 
-                agentPathsCopy = padAgentpaths(agentPathsCopy);
+                HashMap<Agent, ArrayList<Integer>> agentPathsCopy = padAgentpaths(copyUnpadded);
 
                 // Only add the child to the queue if it has a set of solution paths that does not
-                // violate normal queue behaviou
+                // violate normal queue behaviour
                 boolean valid = arePathsValid(agentPathsCopy, initialState.getRamp());
 
-                if(success && valid) {
+                if (success && valid) {
                     childrenToAddToPrioQueue.add(child);
+
                 }
             }
 
@@ -682,6 +694,7 @@ public class CBS implements MAPFAlgorithm {
             ctPrioQueue.addAll(childrenToAddToPrioQueue);
         }
 
+        System.out.println("No solution :(");
         return null;
     }
 }
