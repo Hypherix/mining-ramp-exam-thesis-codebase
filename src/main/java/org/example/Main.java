@@ -9,6 +9,7 @@ package org.example;
 * TODO ALSO: Test CBSwP with root constraints non-empty.
 *
 * TODO: Create 6x6 grid with 4 connections and try the algorithms to see if they deviate
+*  DONE. Have not found any deviations --> passing bays causing issues?
 *
 * TODO: Visualisation
 */
