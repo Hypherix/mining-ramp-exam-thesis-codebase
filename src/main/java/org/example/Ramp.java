@@ -79,6 +79,306 @@ public class Ramp {
         printRampStructure();
     }
 
+    // 5x5 grid constructor
+    public Ramp(int gridLength) {
+        this.adjList = new HashMap<>();
+        this.hUpgoing = new HashMap<>();
+        this.hDowngoing = new HashMap<>();
+        this.verticesInSurfaceQ = new ArrayList<>();
+        this.verticesInUndergroundQ = new ArrayList<>();
+        this.verticesInPassingBays = new ArrayList<>();
+        this.secondPassBayVertices = new ArrayList<>();
+        this.passingBayVertices = new ArrayList<>();
+
+        verticesInRamp = 0;
+
+        // h values hard coded as if 5x5! gridLength must always be 5
+
+        for (int i = 0; i < (gridLength * gridLength); i++) {
+            addVertexToRamp(verticesInRamp++);
+        }
+
+        int verticesHandled = 0;
+        for (int i = 0; i < gridLength; i++) {
+            for (int j = 0; j < gridLength; j++) {
+
+                // Upper left corner
+                if(i == 0 && j == 0) {
+                    addDownEdge(verticesHandled, verticesHandled + 1);
+                    addUpEdge(verticesHandled, verticesHandled + 1);
+                    addDownEdge(verticesHandled, verticesHandled + gridLength);
+                    addUpEdge(verticesHandled, verticesHandled + gridLength);
+                    hDowngoing.put(verticesHandled, 3 + j);
+                    hUpgoing.put(verticesHandled, 3 + j);
+
+                    verticesHandled++;
+                }
+
+                // Upper edge
+                else if(i == 0 && j < gridLength - 1) {
+                    addDownEdge(verticesHandled, verticesHandled - 1);
+                    addDownEdge(verticesHandled, verticesHandled + 1);
+                    addDownEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addUpEdge(verticesHandled, verticesHandled - 1);
+                    addUpEdge(verticesHandled, verticesHandled + 1);
+                    addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    hDowngoing.put(verticesHandled, 3 + j);
+                    hUpgoing.put(verticesHandled, 3 + j);
+
+                    verticesHandled++;
+                }
+
+                // Upper right corner
+                else if(i == 0 && j == gridLength - 1) {
+                    addDownEdge(verticesHandled, verticesHandled - 1);
+                    addDownEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addUpEdge(verticesHandled, verticesHandled - 1);
+                    addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    hDowngoing.put(verticesHandled, 3 + j);
+                    hUpgoing.put(verticesHandled, 3 + j);
+
+                    verticesHandled++;
+                }
+
+                // Second row
+                else if (i == 1 && j == 0) {
+                    addDownEdge(verticesHandled, verticesHandled - gridLength);
+                    addDownEdge(verticesHandled, verticesHandled + 1);
+                    addDownEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addUpEdge(verticesHandled, verticesHandled - gridLength);
+                    addUpEdge(verticesHandled, verticesHandled + 1);
+                    addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    hDowngoing.put(verticesHandled, 2 + j);
+                    hUpgoing.put(verticesHandled, 2 + j);
+
+                    verticesHandled++;
+                }
+
+                else if (i == 1 && j < gridLength - 1) {
+                    addDownEdge(verticesHandled, verticesHandled - 1);
+                    addDownEdge(verticesHandled, verticesHandled + 1);
+                    addDownEdge(verticesHandled, verticesHandled - gridLength);
+                    addDownEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addUpEdge(verticesHandled, verticesHandled - 1);
+                    addUpEdge(verticesHandled, verticesHandled + 1);
+                    addUpEdge(verticesHandled, verticesHandled - gridLength);
+                    addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    hDowngoing.put(verticesHandled, 2 + j);
+                    hUpgoing.put(verticesHandled, 2 + j);
+
+                    verticesHandled++;
+                }
+
+                else if(i == 1 && j == gridLength - 1) {
+                    addDownEdge(verticesHandled, verticesHandled - 1);
+                    addDownEdge(verticesHandled, verticesHandled - gridLength);
+                    addDownEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addUpEdge(verticesHandled, verticesHandled - 1);
+                    addUpEdge(verticesHandled, verticesHandled - gridLength);
+                    addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    hDowngoing.put(verticesHandled, 2 + j);
+                    hUpgoing.put(verticesHandled, 2 + j);
+
+                    verticesHandled++;
+                }
+
+                // Third row
+                else if (i == 2 && j == 0) {
+                    addDownEdge(verticesHandled, verticesHandled - gridLength);
+                    addDownEdge(verticesHandled, verticesHandled + 1);
+                    addDownEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addUpEdge(verticesHandled, verticesHandled - gridLength);
+                    addUpEdge(verticesHandled, verticesHandled + 1);
+                    addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    hDowngoing.put(verticesHandled, 1 + j);
+                    hUpgoing.put(verticesHandled, 1 + j);
+
+                    verticesHandled++;
+                }
+
+                else if (i == 2 && j < gridLength - 1) {
+                    addDownEdge(verticesHandled, verticesHandled - 1);
+                    addDownEdge(verticesHandled, verticesHandled + 1);
+                    addDownEdge(verticesHandled, verticesHandled - gridLength);
+                    addDownEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addUpEdge(verticesHandled, verticesHandled - 1);
+                    addUpEdge(verticesHandled, verticesHandled + 1);
+                    addUpEdge(verticesHandled, verticesHandled - gridLength);
+                    addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    hDowngoing.put(verticesHandled, 1 + j);
+                    hUpgoing.put(verticesHandled, 1 + j);
+
+                    verticesHandled++;
+                }
+
+                else if(i == 2 && j == gridLength - 1) {
+                    addDownEdge(verticesHandled, verticesHandled - 1);
+                    addDownEdge(verticesHandled, verticesHandled - gridLength);
+                    addDownEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addUpEdge(verticesHandled, verticesHandled - 1);
+                    addUpEdge(verticesHandled, verticesHandled - gridLength);
+                    addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    hDowngoing.put(verticesHandled, 1 + j);
+                    hUpgoing.put(verticesHandled, 1 + j);
+
+                    verticesHandled++;
+                }
+
+                // Fourth row
+                else if (i == 3 && j == 0) {
+                    addDownEdge(verticesHandled, verticesHandled - gridLength);
+                    addDownEdge(verticesHandled, verticesHandled + 1);
+                    addDownEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addUpEdge(verticesHandled, verticesHandled - gridLength);
+                    addUpEdge(verticesHandled, verticesHandled + 1);
+                    addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    hDowngoing.put(verticesHandled, 2 + j);
+                    hUpgoing.put(verticesHandled, 2 + j);
+
+                    verticesHandled++;
+                }
+
+                else if (i == 3 && j < gridLength - 1) {
+                    addDownEdge(verticesHandled, verticesHandled - 1);
+                    addDownEdge(verticesHandled, verticesHandled + 1);
+                    addDownEdge(verticesHandled, verticesHandled - gridLength);
+                    addDownEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addUpEdge(verticesHandled, verticesHandled - 1);
+                    addUpEdge(verticesHandled, verticesHandled + 1);
+                    addUpEdge(verticesHandled, verticesHandled - gridLength);
+                    addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    hDowngoing.put(verticesHandled, 2 + j);
+                    hUpgoing.put(verticesHandled, 2 + j);
+
+                    verticesHandled++;
+                }
+
+                else if(i == 3 && j == gridLength - 1) {
+                    addDownEdge(verticesHandled, verticesHandled - 1);
+                    addDownEdge(verticesHandled, verticesHandled - gridLength);
+                    addDownEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addUpEdge(verticesHandled, verticesHandled - 1);
+                    addUpEdge(verticesHandled, verticesHandled - gridLength);
+                    addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    hDowngoing.put(verticesHandled, 2 + j);
+                    hUpgoing.put(verticesHandled, 2 + j);
+
+                    verticesHandled++;
+                }
+
+                // Fifth row
+                // Lower left corner
+                if(i == 4 && j == 0) {
+                    addDownEdge(verticesHandled, verticesHandled + 1);
+                    addUpEdge(verticesHandled, verticesHandled + 1);
+                    addDownEdge(verticesHandled, verticesHandled - gridLength);
+                    addUpEdge(verticesHandled, verticesHandled - gridLength);
+
+                    hDowngoing.put(verticesHandled, 3 + j);
+                    hUpgoing.put(verticesHandled, 3 + j);
+
+                    verticesHandled++;
+                }
+
+                // Upper edge
+                else if(i == 4 && j < gridLength - 1) {
+                    addDownEdge(verticesHandled, verticesHandled - 1);
+                    addDownEdge(verticesHandled, verticesHandled + 1);
+                    addDownEdge(verticesHandled, verticesHandled - gridLength);
+
+                    addUpEdge(verticesHandled, verticesHandled - 1);
+                    addUpEdge(verticesHandled, verticesHandled + 1);
+                    addUpEdge(verticesHandled, verticesHandled - gridLength);
+
+                    hDowngoing.put(verticesHandled, 3 + j);
+                    hUpgoing.put(verticesHandled, 3 + j);
+
+                    verticesHandled++;
+                }
+
+                // Lower right corner
+                else if(i == 4 && j == gridLength - 1) {
+                    addDownEdge(verticesHandled, verticesHandled - 1);
+                    addDownEdge(verticesHandled, verticesHandled - gridLength);
+
+                    addUpEdge(verticesHandled, verticesHandled - 1);
+                    addUpEdge(verticesHandled, verticesHandled - gridLength);
+
+                    hDowngoing.put(verticesHandled, 3 + j);
+                    hUpgoing.put(verticesHandled, 3 + j);
+
+                    verticesHandled++;
+                }
+
+                if (verticesHandled == verticesInRamp) {
+                    // "Surface queue" of length 2
+                    addVertexToRamp(verticesInRamp++);
+                    addVertexToRamp(verticesInRamp++);
+                    addDownEdge(verticesInRamp - 1, verticesInRamp - 2);
+                    addDownEdge(verticesInRamp - 2, (gridLength * 2) - 1);
+
+                    hDowngoing.put(verticesInRamp - 2, 8);
+                    hUpgoing.put(verticesInRamp - 2, 8);
+                    hDowngoing.put(verticesInRamp - 1, 7);
+                    hUpgoing.put(verticesInRamp - 1, 7);
+
+                    surfaceQFree = verticesInRamp - 2;
+                    verticesInSurfaceQ.add(verticesInRamp - 2);
+                    verticesInSurfaceQ.add(verticesInRamp - 1);
+
+                    // "Underground queue" of length 2
+                    addVertexToRamp(verticesInRamp++);
+                    addVertexToRamp(verticesInRamp++);
+                    addUpEdge(verticesInRamp - 1, verticesInRamp - 2);
+                    addUpEdge(verticesInRamp - 2, (gridLength * 4) - 1);
+
+                    hDowngoing.put(verticesInRamp - 2, 8);
+                    hUpgoing.put(verticesInRamp - 2, 8);
+                    hDowngoing.put(verticesInRamp - 1, 7);
+                    hUpgoing.put(verticesInRamp - 1, 7);
+
+                    undergroundQFree = verticesInRamp - 2;
+                    verticesInUndergroundQ.add(verticesInRamp - 2);
+                    verticesInUndergroundQ.add(verticesInRamp - 1);
+
+                    // Add one universal exit node
+                    addVertexToRamp(verticesInRamp++);
+                    addDownEdge(gridLength * 2, verticesInRamp - 1);
+                    addUpEdge(gridLength * 2, verticesInRamp - 1);
+                    surfaceExit = verticesInRamp - 1;
+                    undergroundExit = verticesInRamp - 1;
+                    surfaceStart = (gridLength * 2) - 1;
+                    undergroundStart = (gridLength * 4) - 1;
+
+                    hDowngoing.put(verticesInRamp - 1, 0);
+                    hUpgoing.put(verticesInRamp - 1, 0);
+                }
+            }
+        }
+    }
+
     // Copy constructor
     public Ramp(Ramp other) {
         // Copy primitives
@@ -311,7 +611,6 @@ public class Ramp {
         undergroundQFree = undergroundStart + 1;
     }
 
-
     private void categoriseVertices() {
         // Task: Categorise vertices depending on what part of the ramp they are in
 
@@ -347,7 +646,6 @@ public class Ramp {
         surfaceExit = currentVertex++;
         undergroundExit = currentVertex++;
     }
-
 
     private HashMap<Integer, Integer> getVerticesCosts(int sourceVertex) {
         // Task: Get the vertices costs (= their generation from a starting vertex)
@@ -408,7 +706,6 @@ public class Ramp {
 
         return vertexGeneration;
     }
-
 
     private void assignh(int vertex, HashMap<Integer, Integer> vertexGeneration, int direction) {
         // Task: Assign h values to a vertex based on its generation/cost
@@ -478,7 +775,6 @@ public class Ramp {
         }
     }
 
-
     public void seth() {
         // Task: Set the h values of all vertices.
         // Note! h values are set to queue and exit vertices as well. Some of these might technically have
@@ -497,7 +793,6 @@ public class Ramp {
             assignh(vertex, vertexGenerationUndergroundSource, Constants.UP);
         }
     }
-
 
     public HashMap<Integer, UpDownNeighbourList> getAdjList() {
         return this.adjList;

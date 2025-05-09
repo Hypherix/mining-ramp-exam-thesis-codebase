@@ -338,4 +338,8 @@ public class MAPFScenario {
     public HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> getEdgeConstraints() {
         return this.edgeConstraints;
     }
+
+    public void setAgentEntries(AgentEntries agentEntries) {
+        this.agentEntries = agentEntries;
+    }
 }

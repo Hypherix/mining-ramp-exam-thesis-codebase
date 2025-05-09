@@ -605,6 +605,15 @@ public class ICTS implements MAPFAlgorithm {
         while(!ictQueue.isEmpty()) {
             ICTNode currentNode = ictQueue.poll();
 
+            int sum = 0;
+            for (Integer cost : currentNode.costVector) {
+                sum += cost;
+            }
+            int count = 0;
+            if(sum == 21) {
+                count++;
+            }
+
             // Generate an MDD for each agent i, imposing all costVector.get(i) possible actions
             // Run BFS for x moves only and return the solution. Then call createMDDFromPath() to get MDD
             /*
@@ -657,6 +666,8 @@ public class ICTS implements MAPFAlgorithm {
                 MAPFSolution completeSolution = new MAPFSolution(solution, accumulatedGeneratedStates, accumulatedExpandedStates);
 
                 System.out.println("Goal node found after " + numOfExploredICTNodes + " ICTNodes were explored!");
+
+                System.out.println("ICTNodes with cost 21: " + count);
 
                 return completeSolution;
             }

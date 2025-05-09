@@ -28,7 +28,13 @@ public class Astar implements MAPFAlgorithm {
         Collection<Integer> agentLocations = state.getAgentLocations().values();
         int surfaceExit = state.fetchSurfaceExit();
         int undergroundExit = state.fetchUndergroundExit();
-        Set<Integer> exits = Set.of(surfaceExit, undergroundExit);
+        Set<Integer> exits;
+        if(surfaceExit != undergroundExit) {
+            exits = Set.of(surfaceExit, undergroundExit);
+        }
+        else {
+            exits = Set.of(surfaceExit);
+        }
 
         // Check if any agent is not in an exit
         for(int location : agentLocations) {
@@ -152,7 +158,7 @@ public class Astar implements MAPFAlgorithm {
             ArrayList<Integer> moves;
 
             // If an upgoing agent has reached the surface start vertex, force next move to be to surface exit
-            if(vertex == surfaceStart && agent.direction == Constants.UP) {
+            /*if(vertex == surfaceStart && agent.direction == Constants.UP) {
                 moves = new ArrayList<>();
                 moves.add(surfaceExit);
                 agentMoves.put(agent, moves);
@@ -162,9 +168,9 @@ public class Astar implements MAPFAlgorithm {
                 moves = new ArrayList<>();
                 moves.add(undergroundExit);
                 agentMoves.put(agent, moves);
-            }
+            }*/
             // If in surface exit, stay there indefinitely
-            else if(vertex == surfaceExit) {
+            if(vertex == surfaceExit) {
                 moves = new ArrayList<>();
                 moves.add(surfaceExit);
                 agentMoves.put(agent, moves);
@@ -349,8 +355,6 @@ public class Astar implements MAPFAlgorithm {
 
             System.out.println("}");
         }
-
-        System.out.println("");
     }
 
     private static boolean isStateAllowed(
