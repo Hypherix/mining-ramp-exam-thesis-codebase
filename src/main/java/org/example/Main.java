@@ -7,9 +7,10 @@ package org.example;
 *  Honestly, not really sure what to make of it at the moment
 *
 * TODO ALSO: Test CBSwP with root constraints non-empty.
+*  Skip this: Better to define priorities in frontier and queue comparators.
 *
 * TODO: Create 6x6 grid with 4 connections and try the algorithms to see if they deviate
-*  DONE. Have not found any deviations --> passing bays causing issues?
+*  DONE. Have not found any deviations. !!Everything points towards passing bays being a problem for CBS!!
 *
 * TODO: Visualisation
 */
@@ -20,15 +21,15 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {2, 4, 6};
-        Ramp myRamp = new Ramp(10, 5, 5, passBays);
+        int[] passBays = {2};
+        Ramp myRamp = new Ramp(5, 5, 5, passBays);
 
 
 
         // ALL ALGORITHMS TEST
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
         AgentEntries agentEntries2 = new AgentEntries();
-        for(int i = 0; i < 3; i++) {
+        for(int i = 0; i < 4; i++) {
             Agent agent2;
             if(i % 2 == 0) {
                 agent2 = new Agent(i, 1, Constants.DOWN, true);
@@ -39,7 +40,7 @@ public class Main {
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
-//        Agent agent2 = new Agent(2, 1, Constants.UP, true);
+//        Agent agent2 = new Agent(4, 1, Constants.UP, true);
 //        agentList2.put(agent2.id, agent2);
 //        agentEntries2.addEntry(2, agent2);
 //        agent2 = new Agent(4, 1, Constants.DOWN, true);
@@ -83,6 +84,8 @@ public class Main {
         long endTimeCBS = System.nanoTime();
         duration = endTimeCBS - startTimeCBS;
         System.out.println("\nExecution time CBS: " + (duration / 1000000.0) + " ms");
+
+        System.out.println();
 
         // CBSwP
         System.out.println("#################### CBSwP ####################");
