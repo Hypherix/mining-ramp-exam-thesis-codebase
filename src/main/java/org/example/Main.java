@@ -28,31 +28,31 @@ public class Main {
         // ALL ALGORITHMS TEST
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
         AgentEntries agentEntries2 = new AgentEntries();
-        for(int i = 0; i < 5; i++) {
+        for(int i = 0; i < 6; i++) {
             Agent agent2;
             if(i % 2 == 0) {
                 agent2 = new Agent(i, 1, Constants.DOWN, true);
                 if (i == 0) {
-                    agentLocations.put(agent2, 2);
+                    agentLocations.put(agent2, 17);
                 }
                 if (i == 2) {
-                    agentLocations.put(agent2, 8);
+                    agentLocations.put(agent2, 15);
                 }
                 if (i == 4) {
-                    agentLocations.put(agent2, 22);
+                    agentLocations.put(agent2, 11);
                 }
             }
             else {
                 agent2 = new Agent(i, 1, Constants.UP, false);
 
                 if (i == 1) {
-                    agentLocations.put(agent2, 3);
+                    agentLocations.put(agent2, 12);
                 }
                 if (i == 3) {
-                    agentLocations.put(agent2, 23);
+                    agentLocations.put(agent2, 13);
                 }
                 if (i == 5) {
-                    agentLocations.put(agent2, 12);
+                    agentLocations.put(agent2, 14);
                 }
             }
             agentList2.put(agent2.id, agent2);
@@ -99,7 +99,7 @@ public class Main {
         System.out.println("#################### A* ####################");
         long startTimeAstar = System.nanoTime();
         MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
-        solverAstar.solve();
+//        solverAstar.solve();
         long endTimeAstar = System.nanoTime();
         duration = endTimeAstar - startTimeAstar;
         System.out.println("\nExecution time A*: " + (duration / 1000000.0) + " ms");
