@@ -21,15 +21,15 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {};
-        Ramp myRamp = new Ramp(7, 5, 5, passBays);
+        int[] passBays = {2};
+        Ramp myRamp = new Ramp(5, 5, 5, passBays);
 
 
 
         // ALL ALGORITHMS TEST
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
         AgentEntries agentEntries2 = new AgentEntries();
-        for(int i = 0; i < 4; i++) {
+        for(int i = 0; i < 3; i++) {
             Agent agent2;
             if(i % 2 == 0) {
                 agent2 = new Agent(i, 1, Constants.DOWN, true);
