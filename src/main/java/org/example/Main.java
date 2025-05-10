@@ -14,6 +14,8 @@ package org.example;
 * TODO: Visualisation
 */
 
+import org.example.visualiser.MAPFVisualiser;
+
 import java.util.HashMap;
 
 public class Main {
@@ -28,7 +30,7 @@ public class Main {
         // ALL ALGORITHMS TEST
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
         AgentEntries agentEntries2 = new AgentEntries();
-        for(int i = 0; i < 5; i++) {
+        for(int i = 0; i < 2; i++) {
             Agent agent2;
             if(i % 2 == 0) {
                 agent2 = new Agent(i, 1, Constants.DOWN, true);
@@ -92,5 +94,8 @@ public class Main {
         long endTimeCBSwP = System.nanoTime();
         duration = endTimeCBSwP - startTimeCBSwP;
         System.out.println("\nExecution time CBSwP: " + (duration / 1000000.0) + " ms");
+
+        // Visualiser
+        MAPFVisualiser myVis = new MAPFVisualiser();
     }
 }
