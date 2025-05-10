@@ -21,8 +21,8 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {2};
-        Ramp myRamp = new Ramp(5, 5, 5, passBays);
+        int[] passBays = {};
+        Ramp myRamp = new Ramp(7, 5, 5, passBays);
 
 
 
@@ -58,7 +58,7 @@ public class Main {
         System.out.println("#################### ICTS ####################");
         long startTimeICTS = System.nanoTime();
         MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
-        solverICTS.solve();
+//        solverICTS.solve();
         long endTimeICTS = System.nanoTime();
         duration = endTimeICTS - startTimeICTS;
         System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
