@@ -10,7 +10,7 @@ public class UIPanel extends JPanel {
     private ArrayList<UILabel> labels = new ArrayList<>();
     
     UIPanel() {
-        this.setBackground(new Color(/*0xd6dbdf*/0x000000));
+        this.setBackground(new Color(0xd6dbdf));
     }
     
     public void addLabel(UILabel label) {

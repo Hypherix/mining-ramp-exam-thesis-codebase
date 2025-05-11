@@ -133,7 +133,7 @@ public class MAPFVisualiser2 extends JFrame implements ActionListener {
 
         // Ramp panel
         rampPanel = new UIPanel();
-        rampPanel.setBounds(420, 70, 1000, 800);
+        rampPanel.setBounds(420, 70, 1100, 700);
 
         this.add(rampPanel);
 
