@@ -203,7 +203,6 @@ public class CBS implements MAPFAlgorithm {
                                     // vertex conflict below
                                 }
                             }
-
                         }
                     }
 
@@ -255,7 +254,7 @@ public class CBS implements MAPFAlgorithm {
         solutionSet.addFirst(initialState);
 
         // First, pad the shorter paths with the exit vertex until all path sizes = solutionLength (i.e. the longest path size)
-        goalNode.agentPaths = padAgentpaths(goalNode.agentPaths);
+        goalNode.agentPaths = padAgentPaths(goalNode.agentPaths);
 
         for (int i = 1; i < solutionLength; i++) {
             HashMap<Agent, Integer> agentLocations = new HashMap<>();
@@ -294,8 +293,8 @@ public class CBS implements MAPFAlgorithm {
         // Task: Add a vertex constraint to a CTNode
 
         node.vertexConstraints
-                .computeIfAbsent(agent, k -> new HashMap<>())
-                .computeIfAbsent(conflict.timeStep, k -> new HashSet<>())
+                .computeIfAbsent(agent, _ -> new HashMap<>())
+                .computeIfAbsent(conflict.timeStep, _ -> new HashSet<>())
                 .add(conflict.vertex);
     }
 
@@ -315,8 +314,8 @@ public class CBS implements MAPFAlgorithm {
         }
 
         node.edgeConstraints
-                .computeIfAbsent(agent, k -> new HashMap<>())
-                .computeIfAbsent(conflict.timeStep, k -> new HashSet<>())
+                .computeIfAbsent(agent, _ -> new HashMap<>())
+                .computeIfAbsent(conflict.timeStep, _ -> new HashSet<>())
                 .add(constrainedEdge);
     }
 
@@ -492,7 +491,7 @@ public class CBS implements MAPFAlgorithm {
         }
     }
 
-    private HashMap<Agent, ArrayList<Integer>> padAgentpaths(HashMap<Agent, ArrayList<Integer>> agentPaths) {
+    private HashMap<Agent, ArrayList<Integer>> padAgentPaths(HashMap<Agent, ArrayList<Integer>> agentPaths) {
         // Task: Make the agent paths of equal length
 
         // Retrieve solution length
@@ -740,7 +739,7 @@ public class CBS implements MAPFAlgorithm {
             // This is needed for checking if queue behaviour is valid
             HashMap<Agent, ArrayList<Integer>> copyUnpadded = copyAgentPaths(currentNode.agentPaths);
 
-            HashMap<Agent, ArrayList<Integer>> agentPathsCopy = padAgentpaths(copyUnpadded);
+            HashMap<Agent, ArrayList<Integer>> agentPathsCopy = padAgentPaths(copyUnpadded);
 
             // Only add the child to the queue if it has a set of solution paths that does not
             // violate normal queue behaviour
