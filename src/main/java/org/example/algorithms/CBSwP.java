@@ -94,6 +94,8 @@ public class CBSwP extends CBS {
             onlyChild.partialOrderings = onlyChildOrderings;
 
             generateChildHelper(parent, onlyChild, conflict, agent, true);
+
+            numOfGeneratedCTNodes++;
         }
 
 

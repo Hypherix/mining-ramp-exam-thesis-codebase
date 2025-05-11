@@ -765,7 +765,6 @@ public class CBS implements MAPFAlgorithm {
 
             // Generate children to the non-goal node and enqueue to ctPrioQueue
             generateChildren(currentNode, currentNodeConflict);
-            numOfGeneratedCTNodes += 2; // TODO: Put in generateChildren instead
 
             // For each child, generate a path for the agent affected by the new constraint
             // First, get the agentLocation of the constrained agent

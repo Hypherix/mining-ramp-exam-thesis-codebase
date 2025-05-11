@@ -39,12 +39,12 @@ public class Main {
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
-//        Agent agent2 = new Agent(2, 1, Constants.UP, true);
-//        agentList2.put(agent2.id, agent2);
-//        agentEntries2.addEntry(2, agent2);
-//        agent2 = new Agent(4, 1, Constants.DOWN, true);
-//        agentList2.put(agent2.id, agent2);
-//        agentEntries2.addEntry(18, agent2);
+        Agent agent2 = new Agent(4, 1, Constants.UP, true);
+        agentList2.put(agent2.id, agent2);
+        agentEntries2.addEntry(2, agent2);
+        agent2 = new Agent(5, 1, Constants.DOWN, true);
+        agentList2.put(agent2.id, agent2);
+        agentEntries2.addEntry(19, agent2);
 
         MAPFScenario scenarioICTS = new MAPFScenario(myRamp, agentEntries2, 20);
         MAPFScenario scenarioAstar = new MAPFScenario(myRamp, agentEntries2, 20);
