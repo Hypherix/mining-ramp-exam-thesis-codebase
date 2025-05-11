@@ -79,7 +79,7 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
         this.setTitle("Wildfire Simulator");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setSize(1500, 1000);
-        this.getContentPane().setBackground(new Color(0x2D2D2D));
+//        this.getContentPane().setBackground(new Color(0x2D2D2D));
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         // UI main label

@@ -7,6 +7,7 @@ package org.example;
 *  Honestly, not really sure what to make of it at the moment
 *
 * TODO ALSO: Test CBSwP with root constraints non-empty.
+*  Skip this. Define priorities in frontier and queue comparators
 *
 * TODO: Create 6x6 grid with 4 connections and try the algorithms to see if they deviate
 *  DONE. Have not found any deviations --> passing bays causing issues?
@@ -15,6 +16,7 @@ package org.example;
 */
 
 import org.example.visualiser.MAPFVisualiser;
+import org.example.visualiser.MAPFVisualiser2;
 
 import java.util.HashMap;
 
@@ -22,10 +24,8 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {2};
+        int[] passBays = {2, 2};
         Ramp myRamp = new Ramp(5, 5, 5, passBays);
-
-
 
         // ALL ALGORITHMS TEST
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
@@ -59,7 +59,7 @@ public class Main {
         System.out.println("#################### ICTS ####################");
         long startTimeICTS = System.nanoTime();
         MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
-        solverICTS.solve();
+//        solverICTS.solve();
         long endTimeICTS = System.nanoTime();
         duration = endTimeICTS - startTimeICTS;
         System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
@@ -70,7 +70,7 @@ public class Main {
         System.out.println("#################### A* ####################");
         long startTimeAstar = System.nanoTime();
         MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
-        solverAstar.solve();
+//        solverAstar.solve();
         long endTimeAstar = System.nanoTime();
         duration = endTimeAstar - startTimeAstar;
         System.out.println("\nExecution time A*: " + (duration / 1000000.0) + " ms");
@@ -81,7 +81,7 @@ public class Main {
         System.out.println("#################### CBS ####################");
         long startTimeCBS = System.nanoTime();
         MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
-        solverCBS.solve();
+//        solverCBS.solve();
         long endTimeCBS = System.nanoTime();
         duration = endTimeCBS - startTimeCBS;
         System.out.println("\nExecution time CBS: " + (duration / 1000000.0) + " ms");
@@ -96,6 +96,7 @@ public class Main {
         System.out.println("\nExecution time CBSwP: " + (duration / 1000000.0) + " ms");
 
         // Visualiser
-        MAPFVisualiser myVis = new MAPFVisualiser();
+//        MAPFVisualiser myVis = new MAPFVisualiser();
+        MAPFVisualiser2 myVis2 = new MAPFVisualiser2(myRamp);
     }
 }

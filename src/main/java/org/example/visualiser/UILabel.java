@@ -10,6 +10,6 @@ public class UILabel extends JLabel{
         
         this.setText(text);
         this.setFont(new Font("Calibri", Font.PLAIN, fontSize));
-        this.setForeground(new Color(0xCCCCCC));
+        this.setForeground(new Color(0x000000));
     }
 }
