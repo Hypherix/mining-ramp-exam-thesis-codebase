@@ -23,11 +23,9 @@ public class CTwPNode extends CTNode {
     }
 
     public CTwPNode(HashMap<Agent, HashMap<Integer, Set<Integer>>> vertexConstraints,
-                    HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> edgeConstraints,
-                    HashMap<Agent, ArrayList<Agent>> pairOrderings) {
+                    HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> edgeConstraints) {
         // Used for generating children where constraints and partialOrderings are inherited
         super(vertexConstraints, edgeConstraints);
-        this.partialOrderings = pairOrderings;
     }
 
 

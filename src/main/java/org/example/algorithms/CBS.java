@@ -485,9 +485,9 @@ public class CBS implements MAPFAlgorithm {
         // If passbay conflict in same direction, create only one child for the later agent
         else {
             Agent agent = conflict.agent1;
-
             CTNode onlyChild = new CTNode(parent.vertexConstraints, parent.edgeConstraints);
             generateChildHelper(parent, onlyChild, conflict, agent, true);
+
             numOfGeneratedCTNodes++;
         }
     }
@@ -675,7 +675,7 @@ public class CBS implements MAPFAlgorithm {
         CTNode root = createRootNode();
         boolean rootSuccess = setRootAgentPaths(root, agentLocations, initialState.getRamp());
         if(!rootSuccess) {
-            System.out.println("CBS: Could not find a solution at root CT level");
+            System.out.println("Could not find a solution at root CT level");
             return null;
         }
 
@@ -753,7 +753,7 @@ public class CBS implements MAPFAlgorithm {
                 MAPFSolution completeSolution = new MAPFSolution(solutionStates,
                         accumulatedGeneratedStates, accumulatedExpandedStates);
 
-                System.out.println("CBS: Goal node found after " + numOfGeneratedCTNodes + " were generated (possibly added to queue)" +
+                System.out.println("Goal node found after " + numOfGeneratedCTNodes + " were generated (possibly added to queue)" +
                         ", and " + numOfExpandedCTNodes + " CTNodes were expanded (polled from the queue)!");
 
                 return completeSolution;
