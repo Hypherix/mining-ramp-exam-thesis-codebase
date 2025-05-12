@@ -12,6 +12,7 @@ public class MAPFSolution {
     private int cost;
     private int generatedStates;
     private int expandedStates;
+    private double obtainTime;
 
     // Constructors
     public MAPFSolution(ArrayList<MAPFState> solution, int generatedStates, int expandedStates) {
@@ -126,5 +127,13 @@ public class MAPFSolution {
 
     public int getExpandedStates() {
         return this.expandedStates;
+    }
+
+    public void setObtainTime(long time) {
+        this.obtainTime = time / 1000000.0;
+    }
+
+    public double getObtainTime() {
+        return this.obtainTime;
     }
 }

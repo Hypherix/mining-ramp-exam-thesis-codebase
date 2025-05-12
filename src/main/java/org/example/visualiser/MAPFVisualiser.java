@@ -7,6 +7,8 @@ import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.*;
 
 /*
@@ -29,6 +31,7 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
     public static final int IN_GOAL = 0;
 
     // Buttons
+    UIButton submitTicksButton;
     UIButton startICTSButton;
     UIButton startAstarButton;
     UIButton startCBSButton;
@@ -36,6 +39,9 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
     UIButton resetButton;
     UIButton pauseButton;
     UIButton resumeButton;
+
+    // Text fields
+    UITextField ticksPerSecText;
 
     // Solutions
     MAPFSolution ictsSolution;
@@ -50,12 +56,17 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
 
     // Labels
     UILabel simInfoLabel;
+    UILabel algSelectionLabel;
     UILabel currentAlgorithmLabel;
     UILabel currentAlgorithmEmptyLabel;
+    UILabel timeToSolveLabel;
+    UILabel timeToSolveNumberLabel;
     UILabel costLabel;
     UILabel costNumberLabel;
     UILabel timeStepLabel;
     UILabel timeStepNumberLabel;
+    UILabel ticksPerSecLabel;
+    UILabel ticksPerSecNumberLabel;
 
     // Data structures used by simulate()
     HashMap<Integer, VertexPanel> rampVertices;
@@ -63,6 +74,13 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
     ArrayList<Color> assignedColours;
     Timer simTimer;
     Ramp ramp;
+    int tickLength;
+
+    // Booleans
+    boolean astarNull = true;
+    boolean ictsNull = true;
+    boolean cbsNull = true;
+    boolean cbswpNull = true;
 
     // Constructors
     public MAPFVisualiser(Ramp ramp, MAPFSolution astarSolution, MAPFSolution ictsSolution,
@@ -75,6 +93,20 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
         this.cbswpSolution = cbswpSolution;
         this.ramp = ramp;
 
+        if (astarSolution != null) {
+            astarNull = false;
+        }
+        if (ictsSolution != null) {
+            ictsNull = false;
+        }
+        if (cbsSolution != null) {
+            cbsNull = false;
+        }
+        if (cbswpSolution != null) {
+            cbswpNull = false;
+        }
+
+
         // UI main attributes
         this.setTitle("Ramp traffic simulator");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -82,60 +114,79 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         // UI main label
-        UILabel mainLabel = new UILabel("Ramp traffic simulator", 30);
+        UILabel mainLabel = new UILabel("Ramp traffic simulator", Font.BOLD, 30);
         mainLabel.setBounds(700, 5, 300, 50);
         this.add(mainLabel);
 
         // Simulation info panel
         simInfoPanel = new UIPanel();
         simInfoPanel.setLayout(new BoxLayout(simInfoPanel, BoxLayout.Y_AXIS));
-        simInfoPanel.setBounds(10, 70, 400, 400);
+        simInfoPanel.setBounds(10, 70, 400, 350);
 
         // Simulation info labels
-        simInfoLabel = new UILabel("Simulation info", 20);
-        currentAlgorithmLabel = new UILabel("Current algorithm:", 16);
-        currentAlgorithmEmptyLabel = new UILabel("", 18);
+        simInfoLabel = new UILabel("Simulation info", Font.BOLD, 20);
+        currentAlgorithmLabel = new UILabel("Current algorithm:", Font.BOLD, 16);
+        currentAlgorithmEmptyLabel = new UILabel(" ", 18);
         simInfoPanel.addLabel(currentAlgorithmEmptyLabel);
-        costLabel = new UILabel("Solution cost:", 16);
-        costNumberLabel = new UILabel("", 18);
+        timeToSolveLabel = new UILabel("Time to solve (ms):", Font.BOLD, 16);
+        timeToSolveNumberLabel = new UILabel(" ", 18);
+        simInfoPanel.addLabel(timeToSolveLabel);
+        costLabel = new UILabel("Solution cost:", Font.BOLD, 16);
+        costNumberLabel = new UILabel(" ", 18);
         simInfoPanel.addLabel(costNumberLabel);
-        timeStepLabel = new UILabel("Current time step:", 16);
-        timeStepNumberLabel = new UILabel("", 18);
+        timeStepLabel = new UILabel("Current time step:", Font.BOLD, 16);
+        timeStepNumberLabel = new UILabel(" ", 18);
         simInfoPanel.addLabel(timeStepNumberLabel);
+        ticksPerSecLabel = new UILabel("Ticks per second:", Font.BOLD, 16);
+        ticksPerSecNumberLabel = new UILabel(" ", 18);
 
         // Align all labels to the center
         simInfoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         currentAlgorithmLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         currentAlgorithmEmptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        timeToSolveLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        timeToSolveNumberLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         costLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         costNumberLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         timeStepLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         timeStepNumberLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        ticksPerSecLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        ticksPerSecNumberLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Add all elements to the simInfoPanel
         simInfoPanel.add(Box.createVerticalStrut(5));
         simInfoPanel.add(simInfoLabel);
-        simInfoPanel.add(Box.createVerticalStrut(20));
+        simInfoPanel.add(Box.createVerticalStrut(10));
         simInfoPanel.add(currentAlgorithmLabel);
-        simInfoPanel.add(Box.createVerticalStrut(10));
+        simInfoPanel.add(Box.createVerticalStrut(5));
         simInfoPanel.add(currentAlgorithmEmptyLabel);
-        simInfoPanel.add(Box.createVerticalStrut(50));
+        simInfoPanel.add(Box.createVerticalStrut(10));
+        simInfoPanel.add(timeToSolveLabel);
+        simInfoPanel.add(Box.createVerticalStrut(5));
+        simInfoPanel.add(timeToSolveNumberLabel);
+        simInfoPanel.add(Box.createVerticalStrut(10));
         simInfoPanel.add(costLabel);
-        simInfoPanel.add(Box.createVerticalStrut(10));
+        simInfoPanel.add(Box.createVerticalStrut(5));
         simInfoPanel.add(costNumberLabel);
-        simInfoPanel.add(Box.createVerticalStrut(50));
-        simInfoPanel.add(timeStepLabel);
         simInfoPanel.add(Box.createVerticalStrut(10));
+        simInfoPanel.add(timeStepLabel);
+        simInfoPanel.add(Box.createVerticalStrut(5));
         simInfoPanel.add(timeStepNumberLabel);
+        simInfoPanel.add(Box.createVerticalStrut(10));
+        simInfoPanel.add(ticksPerSecLabel);
+        simInfoPanel.add(Box.createVerticalStrut(5));
+        simInfoPanel.add(ticksPerSecNumberLabel);
 
         this.add(simInfoPanel);
 
 
         // Algorithm selection panel
         algSelectionPanel = new UIPanel();
-        algSelectionPanel.setBounds(10, 480, 400, 290);
+        algSelectionPanel.setBounds(10, 430, 400, 300);
 
-        UILabel algSelectionLabel = new UILabel("        Algorithm selection        ", 20);
+        algSelectionLabel = new UILabel("        Algorithm selection        ", Font.BOLD, 20);
+        ticksPerSecText = new UITextField("Valid ticks: 1-20", "Specify the number of ticks per second (1-20)");
+        submitTicksButton = new UIButton("Submit");
         startAstarButton = new UIButton("A*");
         startICTSButton = new UIButton("ICTS");
         startCBSButton = new UIButton("CBS");
@@ -144,8 +195,8 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
         resumeButton = new UIButton("Resume");
         resetButton = new UIButton("Reset");
 
-
         algSelectionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        ticksPerSecText.setAlignmentX(Component.CENTER_ALIGNMENT);
         startAstarButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         startICTSButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         startCBSButton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -155,6 +206,7 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
         resetButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         Dimension buttonSize = new Dimension(175, 50);
+        submitTicksButton.setPreferredSize(new Dimension(100, 40));
         startAstarButton.setPreferredSize(buttonSize);
         startICTSButton.setPreferredSize(buttonSize);
         startCBSButton.setPreferredSize(buttonSize);
@@ -164,18 +216,23 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
         resetButton.setPreferredSize(buttonSize);
 
         algSelectionPanel.add(algSelectionLabel);
-        simInfoPanel.add(Box.createVerticalStrut(5));
+        algSelectionPanel.add(Box.createVerticalStrut(5));
+        algSelectionPanel.add(ticksPerSecText);
+        algSelectionPanel.add(submitTicksButton);
+        algSelectionPanel.add(Box.createVerticalStrut(5));
         algSelectionPanel.add(startAstarButton);
         algSelectionPanel.add(startICTSButton);
-        simInfoPanel.add(Box.createVerticalStrut(5));
+        algSelectionPanel.add(Box.createVerticalStrut(5));
         algSelectionPanel.add(startCBSButton);
         algSelectionPanel.add(startCBSwPButton);
-        simInfoPanel.add(Box.createVerticalStrut(5));
+        algSelectionPanel.add(Box.createVerticalStrut(5));
         algSelectionPanel.add(pauseButton);
         algSelectionPanel.add(resumeButton);
-        simInfoPanel.add(Box.createVerticalStrut(5));
+        algSelectionPanel.add(Box.createVerticalStrut(5));
         algSelectionPanel.add(resetButton);
 
+        addMouseListenerToTextField(ticksPerSecText);
+        submitTicksButton.addActionListener(this);
         startAstarButton.addActionListener(this);
         startICTSButton.addActionListener(this);
         startCBSButton.addActionListener(this);
@@ -184,6 +241,10 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
         resumeButton.addActionListener(this);
         resetButton.addActionListener(this);
 
+        startAstarButton.setEnabled(false);
+        startICTSButton.setEnabled(false);
+        startCBSButton.setEnabled(false);
+        startCBSwPButton.setEnabled(false);
         pauseButton.setEnabled(false);
         resumeButton.setEnabled(false);
         resetButton.setEnabled(true);
@@ -340,10 +401,12 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
         resetButton.setEnabled(false);
         pauseButton.setEnabled(true);
 
+        timeToSolveNumberLabel.setText(String.valueOf(solution.getObtainTime()));
+
         ArrayList<MAPFState> solutionStates = solution.getSolutionSet();
 
         // Show the solution
-        simTimer = new Timer(400, new ActionListener() {
+        simTimer = new Timer(tickLength, new ActionListener() {
 
             int timeStep = 0;
             int surfaceExit = ramp.getSurfaceExit();
@@ -392,10 +455,19 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
                 timeStepNumberLabel.setText(String.valueOf(timeStep++));
 
                 if(timeStep >= maxTimeStep) {
-                    startAstarButton.setEnabled(true);
-                    startICTSButton.setEnabled(true);
-                    startCBSButton.setEnabled(true);
-                    startCBSwPButton.setEnabled(true);
+                    if (!astarNull) {
+                        startAstarButton.setEnabled(true);
+                    }
+                    if (!ictsNull) {
+                        startICTSButton.setEnabled(true);
+                    }
+                    if (!cbsNull) {
+                        startCBSButton.setEnabled(true);
+                    }
+                    if (!cbswpNull) {
+                        startCBSwPButton.setEnabled(true);
+                    }
+
                     pauseButton.setEnabled(false);
                     resumeButton.setEnabled(false);
                     resetButton.setEnabled(true);
@@ -410,7 +482,43 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
 
-        if (e.getSource() == startAstarButton) {
+        if (e.getSource() == submitTicksButton) {
+
+            try {
+                int ticksPerSec = Integer.parseInt(ticksPerSecText.getText());
+                if (ticksPerSec >= 1 && ticksPerSec <= 20) {
+                    tickLength = 1000 / ticksPerSec;
+
+                    // If a new tick rate is submitted during pause
+                    if(simTimer != null) {
+                        simTimer.setDelay(tickLength);
+                    }
+
+                    ticksPerSecNumberLabel.setText(String.valueOf(tickLength));
+
+                    if (!astarNull) {
+                        startAstarButton.setEnabled(true);
+                    }
+                    if (!ictsNull) {
+                        startICTSButton.setEnabled(true);
+                    }
+                    if (!cbsNull) {
+                        startCBSButton.setEnabled(true);
+                    }
+                    if (!cbswpNull) {
+                        startCBSwPButton.setEnabled(true);
+                    }
+                }
+                else {
+                    JOptionPane.showMessageDialog(null, "Enter a number between 1-20");
+                }
+            }
+            catch (NumberFormatException nex) {
+                JOptionPane.showMessageDialog(null, "Enter a number between 1-20");
+            }
+        }
+
+        else if (e.getSource() == startAstarButton) {
             currentAlgorithmEmptyLabel.setText("A*");
 
             if (astarSolution != null) {
@@ -463,9 +571,20 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
             for(VertexPanel vertex : rampVertices.values()) {
                 vertex.clearAgent();
             }
-            currentAlgorithmEmptyLabel.setText("");
-            costNumberLabel.setText("");
-            timeStepNumberLabel.setText("");
+            currentAlgorithmEmptyLabel.setText(" ");
+            timeToSolveNumberLabel.setText(" ");
+            costNumberLabel.setText(" ");
+            timeStepNumberLabel.setText(" ");
         }
+    }
+
+    private void addMouseListenerToTextField(UITextField textField) {
+        // Remove text from the text field when clicked on
+        textField.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                textField.setText("");
+            }
+        });
     }
 }
