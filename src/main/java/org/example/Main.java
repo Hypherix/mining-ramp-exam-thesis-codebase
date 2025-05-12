@@ -16,7 +16,6 @@ package org.example;
 */
 
 import org.example.visualiser.MAPFVisualiser;
-import org.example.visualiser.MAPFVisualiser2;
 
 import java.util.HashMap;
 
@@ -24,7 +23,7 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {2, 4, 6};
+        int[] passBays = {2, 7, 10};
         Ramp myRamp = new Ramp(15, 5, 5, passBays);
 
         // ALL ALGORITHMS TEST
@@ -97,6 +96,6 @@ public class Main {
 
         // Visualiser
 //        MAPFVisualiser myVis = new MAPFVisualiser();
-        MAPFVisualiser2 myVis2 = new MAPFVisualiser2(myRamp, astarSolution, null, null, null);
+        MAPFVisualiser myVis2 = new MAPFVisualiser(myRamp, astarSolution, null, null, null);
     }
 }

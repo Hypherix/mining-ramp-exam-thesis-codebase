@@ -1,308 +1,471 @@
 package org.example.visualiser;
 
-import org.example.visualiser.*;
+import org.example.*;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.util.*;
+
+/*
+* TODO: Make reset button clear all VertexPanels
+*  Enable buttons after simulation is done.
+*  Show stats to the left (put it inside the timer loop)
+*
+* */
 
 public class MAPFVisualiser extends JFrame implements ActionListener {
 
-    // Data members
+    // DATA MEMBERS
 
     // Constants
-    public static final int MIN_ROWS_COLS = 50;
-    public static final int MAX_ROWS_COLS = 150;
-    public static final float MIN_WATER_SHARE = 0f;
-    public static final float MAX_WATER_SHARE = 1f;
-    public static final int MIN_WIND_VELOCITY = 0;
-    public static final int MAX_WIND_VELOCITY = 50;
-    public static final int MIN_HUMIDITY = 0;
-    public static final int MAX_HUMIDITY = 10;
-    public static final int MIN_TICK_RATE = 1;
-    public static final int MAX_TICK_RATE = 10;
-    public static final int MIN_DURATION = 2;
-    public static final int MAX_DURATION = 1000;
-    public static final String[] WIND_DIRECTIONS = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
-    private boolean randIgnitionOnOff = false;
-    private boolean ignitionOrExtinguish = false;
+    public static final int RAMP_PANEL_WIDTH = 1100;
+    public static final int RAMP_PANEL_HEIGHT = 700;
+    public static final int RAMP_PANEL_X = 420;
+    public static final int RAMP_PANEL_Y = 70;
+    public static final int MIN_RAMP_LENGTH_FOR_WIDTH = 10;
+    public static final int IN_GOAL = 0;
 
-    // Restart button test
-    UIButton restartButton;
-    UIButton exitButton;
-
-
-    // Object initializations
-//    Configurator conf;
-//    Map map;
-//    Simulator sim;
-//    display display;
-//    Statistic stats;
-//    InputValidator inputValidator = new InputValidator();
-//    CellPanel[][] cellPanels;
-
-    // Map info declarations
-    UITextField waterShareTextField;
-    UITextField mapColumnsTextField;
-    UITextField mapRowsTextField;
-    UIButton mapInfoButton;
-    //Cell[][] mapCells;
-
-    // Weather & sim info declarations
-    UITextField windDirectionTextField;
-    UITextField windVelocityTextField;
-    UITextField humidityTextField;
-    UITextField tickRateTextField;
-    UITextField simDurationTextField;
-    UIButton simInfoButton;
-
-    // Sim control declarations
-    UIButton startButton;
+    // Buttons
+    UIButton startICTSButton;
+    UIButton startAstarButton;
+    UIButton startCBSButton;
+    UIButton startCBSwPButton;
+    UIButton resetButton;
     UIButton pauseButton;
-    UIButton stopButton;
     UIButton resumeButton;
-    UIButton randomIgnitionButton;
-    UIButton ignitionControlButton;
 
-    // Map panel declarations
-    UIPanel mapPanel;
+    // Solutions
+    MAPFSolution ictsSolution;
+    MAPFSolution astarSolution;
+    MAPFSolution cbsSolution;
+    MAPFSolution cbswpSolution;
 
-    // Statistics panel declarations
-    UIPanel statPanel;
+    // Panels
+    UIPanel simInfoPanel;
+    UIPanel algSelectionPanel;
+    UIPanel rampPanel;
+
+    // Labels
+    UILabel simInfoLabel;
+    UILabel currentAlgorithmLabel;
+    UILabel currentAlgorithmEmptyLabel;
+    UILabel costLabel;
+    UILabel costNumberLabel;
+    UILabel timeStepLabel;
+    UILabel timeStepNumberLabel;
+
+    // Data structures used by simulate()
+    HashMap<Integer, VertexPanel> rampVertices;
+    HashMap<Agent, Color> agentColours;
+    ArrayList<Color> assignedColours;
+    Timer simTimer;
+    Ramp ramp;
 
     // Constructors
-    public MAPFVisualiser() {
+    public MAPFVisualiser(Ramp ramp, MAPFSolution astarSolution, MAPFSolution ictsSolution,
+                          MAPFSolution cbsSolution, MAPFSolution cbswpSolution) {
+
+        // Store solutions as data members
+        this.astarSolution = astarSolution;
+        this.ictsSolution = ictsSolution;
+        this.cbsSolution = cbsSolution;
+        this.cbswpSolution = cbswpSolution;
+        this.ramp = ramp;
+
         // UI main attributes
-        this.setTitle("Wildfire Simulator");
+        this.setTitle("Ramp traffic simulator");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(1500, 1000);
-//        this.getContentPane().setBackground(new Color(0x2D2D2D));
+        this.setSize(1000, 1000);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         // UI main label
-        UILabel mainLabel = new UILabel("Wildfire Simulator", 30);
-        mainLabel.setBounds(625, 5, 300, 50);
+        UILabel mainLabel = new UILabel("Ramp traffic simulator", 30);
+        mainLabel.setBounds(700, 5, 300, 50);
         this.add(mainLabel);
 
-        // Map info panel
-        UIPanel mapInfoPanel = new UIPanel();
-        UILabel menuLabel = new UILabel("Map info", 20);
-        mapColumnsTextField = new UITextField("Number of columns", "Set a value for the number of cells on the x-axis. Allowed range is 50-150.");
-        mapRowsTextField = new UITextField("Number of rows", "Set a value for the number of cells on the y-axis. Allowed range is 50-150.");
-        waterShareTextField = new UITextField("Water share", "Set a value for the share of water in the map. Allowed range is 0-1.");
-        mapInfoButton = new UIButton("Generate map");
-        mapInfoButton.addActionListener(this);
-
-        mapInfoPanel.setBounds(10, 70, 300, 220);
-
-        mapInfoPanel.add(menuLabel);
-        mapInfoPanel.add(mapColumnsTextField);
-        mapInfoPanel.add(mapRowsTextField);
-        mapInfoPanel.add(waterShareTextField);
-        mapInfoPanel.add(mapInfoButton);
-        this.add(mapInfoPanel);
-
-        addMouseListenerToTextField(mapColumnsTextField);
-        addMouseListenerToTextField(mapRowsTextField);
-        addMouseListenerToTextField(waterShareTextField);
-
-        // Weather info panel
-        UIPanel weatherInfoPanel = new UIPanel();
-        UILabel weatherInfoLabel = new UILabel("Weather info", 20);
-        windDirectionTextField = new UITextField("Wind direction", "Set the direction of the wind. Allowed inputs are the eight directions N, NE, E, etc.");
-        windVelocityTextField = new UITextField("Wind velocity", "Set the velocity of the wind in metres per second. Allowed range is 0-50.");
-        humidityTextField = new UITextField("Humidity", "Set the level of humidity. Allowed range is 0-10.");
-
-        windDirectionTextField.setEnabled(false);
-        windVelocityTextField.setEnabled(false);
-        humidityTextField.setEnabled(false);
-
-        weatherInfoPanel.setBounds(10, 300, 300, 180);
-
-        weatherInfoPanel.add(weatherInfoLabel);
-        weatherInfoPanel.add(windDirectionTextField);
-        weatherInfoPanel.add(windVelocityTextField);
-        weatherInfoPanel.add(humidityTextField);
-
-        this.add(weatherInfoPanel);
-
         // Simulation info panel
-        UIPanel simInfoPanel = new UIPanel();
-        UILabel simInfoLabel = new UILabel("Simulation info", 20);
-        tickRateTextField = new UITextField("Hours per seconds", "Set the number of simulation ticks to be performed per second. Allowed range is 1-10.");
-        simDurationTextField = new UITextField("Simulation duration (hours)", "Set the duration for which the simulation should run for. 1 tick simulates 1 hour. Allowed range is 2-1000.");
-        simInfoButton = new UIButton("Submit simulation info");
-        simInfoButton.addActionListener(this);
-        randomIgnitionButton = new UIButton("Toggle random ignition");
-        randomIgnitionButton.setForeground(Color.RED);
-        randomIgnitionButton.addActionListener(this);
-        randomIgnitionButton.setToolTipText("Activate to create random ignition point on the map during simulation(Humidity has to be 1 or lower).");
+        simInfoPanel = new UIPanel();
+        simInfoPanel.setLayout(new BoxLayout(simInfoPanel, BoxLayout.Y_AXIS));
+        simInfoPanel.setBounds(10, 70, 400, 400);
 
+        // Simulation info labels
+        simInfoLabel = new UILabel("Simulation info", 20);
+        currentAlgorithmLabel = new UILabel("Current algorithm:", 16);
+        currentAlgorithmEmptyLabel = new UILabel("", 18);
+        simInfoPanel.addLabel(currentAlgorithmEmptyLabel);
+        costLabel = new UILabel("Solution cost:", 16);
+        costNumberLabel = new UILabel("", 18);
+        simInfoPanel.addLabel(costNumberLabel);
+        timeStepLabel = new UILabel("Current time step:", 16);
+        timeStepNumberLabel = new UILabel("", 18);
+        simInfoPanel.addLabel(timeStepNumberLabel);
 
-        ignitionControlButton = new UIButton("Set ignition");
-        ignitionControlButton.setToolTipText("Set ignition = Left mouse click on the map to ignite a green cell, Exhaust- Left mouse click on the map to exhaust a red cell");
-        ignitionControlButton.addActionListener(this);
+        // Align all labels to the center
+        simInfoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        currentAlgorithmLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        currentAlgorithmEmptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        costLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        costNumberLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        timeStepLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        timeStepNumberLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        randomIgnitionButton.setPreferredSize(new Dimension(140, 30));
-        ignitionControlButton.setPreferredSize(new Dimension(140, 30));
-
-        tickRateTextField.setEnabled(false);
-        simDurationTextField.setEnabled(false);
-        simInfoButton.setEnabled(false);
-
-        randomIgnitionButton.setEnabled(false);
-        simInfoButton.setEnabled(false);
-        ignitionControlButton.setEnabled(false);
-
-        simInfoPanel.setBounds(10, 490, 300, 200);
-
+        // Add all elements to the simInfoPanel
+        simInfoPanel.add(Box.createVerticalStrut(5));
         simInfoPanel.add(simInfoLabel);
-        simInfoPanel.add(tickRateTextField);
-        simInfoPanel.add(simDurationTextField);
-        simInfoPanel.add(randomIgnitionButton);
-        simInfoPanel.add(ignitionControlButton);
-        simInfoPanel.add(simInfoButton);
+        simInfoPanel.add(Box.createVerticalStrut(20));
+        simInfoPanel.add(currentAlgorithmLabel);
+        simInfoPanel.add(Box.createVerticalStrut(10));
+        simInfoPanel.add(currentAlgorithmEmptyLabel);
+        simInfoPanel.add(Box.createVerticalStrut(50));
+        simInfoPanel.add(costLabel);
+        simInfoPanel.add(Box.createVerticalStrut(10));
+        simInfoPanel.add(costNumberLabel);
+        simInfoPanel.add(Box.createVerticalStrut(50));
+        simInfoPanel.add(timeStepLabel);
+        simInfoPanel.add(Box.createVerticalStrut(10));
+        simInfoPanel.add(timeStepNumberLabel);
 
         this.add(simInfoPanel);
 
-        // Restart button
-        restartButton = new UIButton("Restart");
-        restartButton.addActionListener(this);
 
-        // Exit button
-        exitButton = new UIButton("Exit program");
-        exitButton.addActionListener(this);
+        // Algorithm selection panel
+        algSelectionPanel = new UIPanel();
+        algSelectionPanel.setBounds(10, 480, 400, 290);
 
-        // Simulation control panel
-        UIPanel simControlPanel = new UIPanel();
-        startButton = new UIButton("Start simulation");
+        UILabel algSelectionLabel = new UILabel("        Algorithm selection        ", 20);
+        startAstarButton = new UIButton("A*");
+        startICTSButton = new UIButton("ICTS");
+        startCBSButton = new UIButton("CBS");
+        startCBSwPButton = new UIButton("CBSwP");
         pauseButton = new UIButton("Pause");
-        stopButton = new UIButton("Stop");
         resumeButton = new UIButton("Resume");
+        resetButton = new UIButton("Reset");
 
-        startButton.addActionListener(this);
+
+        algSelectionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        startAstarButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        startICTSButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        startCBSButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        startCBSwPButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        pauseButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        resumeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        resetButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        Dimension buttonSize = new Dimension(175, 50);
+        startAstarButton.setPreferredSize(buttonSize);
+        startICTSButton.setPreferredSize(buttonSize);
+        startCBSButton.setPreferredSize(buttonSize);
+        startCBSwPButton.setPreferredSize(buttonSize);
+        pauseButton.setPreferredSize(buttonSize);
+        resumeButton.setPreferredSize(buttonSize);
+        resetButton.setPreferredSize(buttonSize);
+
+        algSelectionPanel.add(algSelectionLabel);
+        simInfoPanel.add(Box.createVerticalStrut(5));
+        algSelectionPanel.add(startAstarButton);
+        algSelectionPanel.add(startICTSButton);
+        simInfoPanel.add(Box.createVerticalStrut(5));
+        algSelectionPanel.add(startCBSButton);
+        algSelectionPanel.add(startCBSwPButton);
+        simInfoPanel.add(Box.createVerticalStrut(5));
+        algSelectionPanel.add(pauseButton);
+        algSelectionPanel.add(resumeButton);
+        simInfoPanel.add(Box.createVerticalStrut(5));
+        algSelectionPanel.add(resetButton);
+
+        startAstarButton.addActionListener(this);
+        startICTSButton.addActionListener(this);
+        startCBSButton.addActionListener(this);
+        startCBSwPButton.addActionListener(this);
         pauseButton.addActionListener(this);
-        stopButton.addActionListener(this);
         resumeButton.addActionListener(this);
+        resetButton.addActionListener(this);
 
-        startButton.setEnabled(false);
         pauseButton.setEnabled(false);
-        stopButton.setEnabled(false);
         resumeButton.setEnabled(false);
+        resetButton.setEnabled(true);
 
-        startButton.setPreferredSize(new Dimension(250, 50));
-        pauseButton.setPreferredSize(new Dimension(125, 30));
-        resumeButton.setPreferredSize(new Dimension(125, 30));
-        stopButton.setPreferredSize(new Dimension(250, 40));
+        this.add(algSelectionPanel);
 
-        simControlPanel.setBounds(10, 700, 300, 160);
 
-        simControlPanel.add(startButton);
-        simControlPanel.add(pauseButton);
-        simControlPanel.add(resumeButton);
-        simControlPanel.add(stopButton);
+        // Ramp panel
+        rampPanel = new UIPanel();
+        rampPanel.setBounds(RAMP_PANEL_X, RAMP_PANEL_Y, RAMP_PANEL_WIDTH, RAMP_PANEL_HEIGHT);
 
-        this.add(simControlPanel);
+        this.add(rampPanel);
+        rampPanel.setLayout(null);
 
-        // Map panel
-        mapPanel = new UIPanel();
-        mapPanel.setBounds(320, 70, 750, 750);
-        mapPanel.setLayout(null);
+        paintRamp(rampPanel);
 
-        this.add(mapPanel);
+        // Assign a unique colour to each agent
+        Set<Agent> allAgents = astarSolution.getSolutionSet().getLast().getAgentLocations().keySet();
+        this.assignedColours = new ArrayList<>();
+        this.agentColours = new HashMap<>();
 
-        // Statistics panel
-        statPanel = new UIPanel();
-        statPanel.setLayout(new BoxLayout(statPanel, BoxLayout.Y_AXIS));
-        statPanel.setBounds(1080, 70, 400, 650);
-
-        // Create labels for the statistics to be displayed on
-        UILabel statLabel = new UILabel("Statistics", 20);
-        UILabel remainingVegCellsLabel = new UILabel("Remaining vegetation cells:", 16);
-        UILabel remainingVegCellsNumberLabel = new UILabel("", 18);
-        statPanel.addLabel(remainingVegCellsNumberLabel);
-        UILabel burningCellsLabel = new UILabel("Number of burning cells:", 16);
-        UILabel burningCellsNumberLabel = new UILabel("", 18);
-        statPanel.addLabel(burningCellsNumberLabel);
-        UILabel burntCellsLabel = new UILabel("Number of burnt cells (% of green area):", 16);
-        UILabel burntCellsNumberLabel = new UILabel("", 18);
-        statPanel.addLabel(burntCellsNumberLabel);
-        UILabel burntPerTickLabel = new UILabel("Average number of burnt cells per hour:", 16);
-        UILabel burntPerTickNumberLabel = new UILabel("", 18);
-        statPanel.addLabel(burntPerTickNumberLabel);
-
-        UILabel tickInfoLabel = new UILabel("Hour  of ", 16);
-        statPanel.addLabel(tickInfoLabel);
-
-        // Align all labels to the center
-        statLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        remainingVegCellsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        remainingVegCellsNumberLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        burningCellsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        burntCellsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        burntPerTickLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        burningCellsNumberLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        burntCellsNumberLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        burntPerTickNumberLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        tickInfoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        // Add all elements to the statPanel
-        statPanel.add(Box.createVerticalStrut(5));
-        statPanel.add(statLabel);
-        statPanel.add(Box.createVerticalStrut(20));
-        statPanel.add(remainingVegCellsLabel);
-        statPanel.add(Box.createVerticalStrut(10));
-        statPanel.add(remainingVegCellsNumberLabel);
-        statPanel.add(Box.createVerticalStrut(50));
-        statPanel.add(burningCellsLabel);
-        statPanel.add(Box.createVerticalStrut(10));
-        statPanel.add(burningCellsNumberLabel);
-        statPanel.add(Box.createVerticalStrut(50));
-        statPanel.add(burntCellsLabel);
-        statPanel.add(Box.createVerticalStrut(10));
-        statPanel.add(burntCellsNumberLabel);
-        statPanel.add(Box.createVerticalStrut(50));
-        statPanel.add(burntPerTickLabel);
-        statPanel.add(Box.createVerticalStrut(10));
-        statPanel.add(burntPerTickNumberLabel);
-        statPanel.add(Box.createVerticalStrut(50));
-        statPanel.add(tickInfoLabel);
-
-        UIPanel buttonPanel = new UIPanel();
-        buttonPanel.setLayout(new FlowLayout());
-        buttonPanel.setBounds(1080, 730, 400, 90);
-        restartButton.setPreferredSize(new Dimension(170, 75));
-        exitButton.setPreferredSize(new Dimension(170, 75));
-        exitButton.addActionListener(this);
-
-        buttonPanel.add(restartButton);
-        buttonPanel.add(exitButton);
-
-        this.add(buttonPanel);
-        this.add(statPanel);
+        for(Agent agent : allAgents) {
+            assignColourToAgent(agent);
+        }
 
         // General settings
         this.setLayout(null);
         this.setVisible(true);
     }
 
-    // Methods
-    // Method to add mouse click listener to text fields for clearing text
-    private void addMouseListenerToTextField(UITextField textField) {
-        textField.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
 
-                textField.setText(""); // Clear text when clicked
+    // Methods
+    private Color generateRandomColour() {
+        Random rand = new Random();
+        float hue = rand.nextFloat();
+        float sat = 0.6f + (rand.nextFloat() * 0.4f);
+        float bright = 0.6f + (rand.nextFloat() * 0.4f);
+
+        return Color.getHSBColor(hue, sat, bright);
+    }
+
+    private void assignColourToAgent(Agent agent) {
+        this.agentColours.computeIfAbsent(agent, _ -> generateRandomColour());
+    }
+
+    private int xStart(int vertexLength, int widthTracker) {
+        // Returns the x of where the next VertexPanel should start
+        return vertexLength * widthTracker;
+    }
+
+    private int yStart(int vertexLength, int heightTracker) {
+        // Returns the y of where the next queue VertexPanel should start
+        return (RAMP_PANEL_HEIGHT / 6) + vertexLength * heightTracker;
+    }
+
+    private void paintRamp(UIPanel rampPanel) {
+
+        // Ramp variables
+        // Width = ramp length + exit vertices
+        int rampWidth = (ramp.getRampLength() < MIN_RAMP_LENGTH_FOR_WIDTH)
+                ? MIN_RAMP_LENGTH_FOR_WIDTH + 2
+                : ramp.getRampLength() + 2;
+
+        int vertexLength = RAMP_PANEL_WIDTH / rampWidth;
+        int rampVerticalStart = (RAMP_PANEL_HEIGHT / 6);
+
+        int widthTracker = 0;
+
+        rampVertices = new HashMap<>();
+
+        // Ramp and exits
+        VertexPanel surfaceExit = new VertexPanel(xStart(vertexLength, widthTracker++), rampVerticalStart,
+                vertexLength, vertexLength, ramp.getSurfaceExit());
+        rampPanel.add(surfaceExit);
+        rampVertices.put(ramp.getSurfaceExit(), surfaceExit);
+
+        for (Integer vertex : ramp.getVerticesInActualRamp()) {
+            VertexPanel rampVertex = new VertexPanel(xStart(vertexLength, widthTracker++), rampVerticalStart,
+                    vertexLength, vertexLength, vertex);
+            rampPanel.add(rampVertex);
+            rampVertices.put(vertex, rampVertex);
+        }
+
+        VertexPanel undergroundExit = new VertexPanel(xStart(vertexLength, widthTracker), rampVerticalStart,
+                vertexLength, vertexLength, ramp.getUndergroundExit());
+        rampPanel.add(undergroundExit);
+        rampVertices.put(ramp.getUndergroundExit(), undergroundExit);
+
+        // Surface queue
+        widthTracker = 1;
+        int heightTracker = ramp.getVerticesInSurfaceQ().size();
+        for (Integer vertex : ramp.getVerticesInSurfaceQ()) {
+            VertexPanel surfaceQVertex = new VertexPanel(xStart(vertexLength, widthTracker),
+                    yStart(vertexLength, heightTracker--), vertexLength, vertexLength, vertex);
+            rampPanel.add(surfaceQVertex);
+            rampVertices.put(vertex, surfaceQVertex);
+        }
+
+        // Underground queue
+        widthTracker = ramp.getRampLength();
+        heightTracker = 1;
+        for (Integer vertex : ramp.getVerticesInUndergroundQ()) {
+            VertexPanel undergroundQVertex = new VertexPanel(xStart(vertexLength, widthTracker),
+                    yStart(vertexLength, heightTracker++), vertexLength, vertexLength, vertex);
+            rampPanel.add(undergroundQVertex);
+            rampVertices.put(vertex, undergroundQVertex);
+        }
+
+        // Passing bays
+        int[] passBaysAdjVertex = ramp.getPassBaysAdjVertex();
+        ArrayList<Integer> recordedAdjVertices = new ArrayList<>();
+        ArrayList<ArrayList<Integer>> passingBayVertices = ramp.getPassingBayVertices();
+        for (int i = 0; i < passBaysAdjVertex.length; i++) {
+            heightTracker = -1;
+            if (i == 0) {
+                VertexPanel passBayVertexFirst = new VertexPanel(xStart(vertexLength, passBaysAdjVertex[i]),
+                        yStart(vertexLength, heightTracker), vertexLength, vertexLength,
+                        passingBayVertices.get(i).getFirst());
+                VertexPanel passBayVertexSecond = new VertexPanel(xStart(vertexLength, passBaysAdjVertex[i] + 1),
+                        yStart(vertexLength, heightTracker), vertexLength, vertexLength,
+                        passingBayVertices.get(i).getLast());
+                rampPanel.add(passBayVertexFirst);
+                rampPanel.add(passBayVertexSecond);
+                rampVertices.put(passingBayVertices.get(i).getFirst(), passBayVertexFirst);
+                rampVertices.put(passingBayVertices.get(i).getLast(), passBayVertexSecond);
+
+                // If a second passing bay starts at the same ramp vertex, it should be painted below instead
+                recordedAdjVertices.add(passBaysAdjVertex[i]);
+            }
+            else {
+                heightTracker = (recordedAdjVertices.contains(passBaysAdjVertex[i])) ? 1 : -1;
+                VertexPanel passBayVertexFirst = new VertexPanel(xStart(vertexLength, passBaysAdjVertex[i]),
+                        yStart(vertexLength, heightTracker), vertexLength, vertexLength,
+                        passingBayVertices.get(i).getFirst());
+                VertexPanel passBayVertexSecond = new VertexPanel(xStart(vertexLength, passBaysAdjVertex[i] + 1),
+                        yStart(vertexLength, heightTracker), vertexLength, vertexLength,
+                        passingBayVertices.get(i).getLast());
+                rampPanel.add(passBayVertexFirst);
+                rampPanel.add(passBayVertexSecond);
+                rampVertices.put(passingBayVertices.get(i).getFirst(), passBayVertexFirst);
+                rampVertices.put(passingBayVertices.get(i).getLast(), passBayVertexSecond);
+            }
+        }
+    }
+
+    private void simulate(MAPFSolution solution) {
+        // Simulate the given solution
+
+        // Disable all buttons
+        startAstarButton.setEnabled(false);
+        startICTSButton.setEnabled(false);
+        startCBSButton.setEnabled(false);
+        startCBSwPButton.setEnabled(false);
+        resetButton.setEnabled(false);
+        pauseButton.setEnabled(true);
+
+        ArrayList<MAPFState> solutionStates = solution.getSolutionSet();
+
+        // Show the solution
+        simTimer = new Timer(400, new ActionListener() {
+
+            int timeStep = 0;
+            int surfaceExit = ramp.getSurfaceExit();
+            int undergroundExit = ramp.getUndergroundExit();
+            int cost = 0;
+            final int maxTimeStep = solutionStates.size();
+            ArrayList<VertexPanel> prevLocations = new ArrayList<>();
+            MAPFState currentState;
+            HashMap<Agent, Integer> agentLocations;
+            HashSet<Agent> agentInGoal = new HashSet<>();
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                // Get all agents' current locations
+                currentState = solutionStates.get(timeStep);
+                agentLocations = currentState.getAgentLocations();
+
+                // Clear any vertices
+                for(VertexPanel vertex : prevLocations) {
+                    vertex.clearAgent();
+                }
+                prevLocations.clear();
+
+                // Print the agents (as dots) in their respective vertex locations
+                for (Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
+                    Agent agent = entry.getKey();
+                    int location = entry.getValue();
+
+                    if (agent.direction == Constants.DOWN && location == undergroundExit) {
+                        agentInGoal.add(agent);
+                    }
+                    else if (agent.direction == Constants.UP && location == surfaceExit) {
+                        agentInGoal.add(agent);
+                    }
+
+                    if (!agentInGoal.contains(agent)) {
+                        costNumberLabel.setText(String.valueOf(++cost));
+                    }
+
+                    VertexPanel vertex = rampVertices.get(location);
+                    vertex.addAgent(agentColours.get(agent));
+                    prevLocations.add(vertex);
+                }
+
+                timeStepNumberLabel.setText(String.valueOf(timeStep++));
+
+                if(timeStep >= maxTimeStep) {
+                    startAstarButton.setEnabled(true);
+                    startICTSButton.setEnabled(true);
+                    startCBSButton.setEnabled(true);
+                    startCBSwPButton.setEnabled(true);
+                    pauseButton.setEnabled(false);
+                    resumeButton.setEnabled(false);
+                    resetButton.setEnabled(true);
+
+                    ((Timer) e.getSource()).stop();
+                }
             }
         });
+        simTimer.start();
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
 
+        if (e.getSource() == startAstarButton) {
+            currentAlgorithmEmptyLabel.setText("A*");
+
+            if (astarSolution != null) {
+                simulate(astarSolution);
+            }
+        }
+
+        else if (e.getSource() == startICTSButton) {
+            currentAlgorithmEmptyLabel.setText("ICTS");
+
+            if (ictsSolution != null) {
+                simulate(ictsSolution);
+            }
+        }
+
+        else if (e.getSource() == startCBSButton) {
+            currentAlgorithmEmptyLabel.setText("CBS");
+
+            if (cbsSolution != null) {
+                simulate(cbsSolution);
+            }
+        }
+
+        else if (e.getSource() == startCBSwPButton) {
+            currentAlgorithmEmptyLabel.setText("CBSw/P");
+
+            if (cbswpSolution != null) {
+                simulate(cbswpSolution);
+            }
+        }
+
+        else if (e.getSource() == pauseButton) {
+            if(simTimer != null && simTimer.isRunning()) {
+                simTimer.stop();
+            }
+            pauseButton.setEnabled(false);
+            resumeButton.setEnabled(true);
+        }
+
+        else if (e.getSource() == resumeButton) {
+            if (simTimer != null && !simTimer.isRunning()) {
+                simTimer.start();
+            }
+            pauseButton.setEnabled(true);
+            resumeButton.setEnabled(false);
+        }
+
+        else if (e.getSource() == resetButton) {
+            // Clear everything on the ramp
+            for(VertexPanel vertex : rampVertices.values()) {
+                vertex.clearAgent();
+            }
+            currentAlgorithmEmptyLabel.setText("");
+            costNumberLabel.setText("");
+            timeStepNumberLabel.setText("");
+        }
     }
 }
