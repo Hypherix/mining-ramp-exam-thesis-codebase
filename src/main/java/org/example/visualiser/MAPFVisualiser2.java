@@ -1,17 +1,35 @@
 package org.example.visualiser;
 
-import org.example.MAPFScenario;
-import org.example.MAPFSolution;
-import org.example.Ramp;
+import org.example.*;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.*;
+
+/*
+* TODO: Make reset button clear all VertexPanels
+*  Enable buttons after simulation is done.
+*  Show stats to the left (put it inside the timer loop)
+*
+* */
 
 public class MAPFVisualiser2 extends JFrame implements ActionListener {
 
     // DATA MEMBERS
+
+    // Constants
+    public static final int RAMP_PANEL_WIDTH = 1100;
+    public static final int RAMP_PANEL_HEIGHT = 700;
+    public static final int RAMP_PANEL_X = 420;
+    public static final int RAMP_PANEL_Y = 70;
+    public static final int MIN_RAMP_LENGTH_FOR_WIDTH = 10;
+    public static final int ASTAR = 0;
+    public static final int ICTS = 1;
+    public static final int CBS = 2;
+    public static final int CBSWP = 3;
 
     // Buttons
     UIButton startICTSButton;
@@ -32,10 +50,20 @@ public class MAPFVisualiser2 extends JFrame implements ActionListener {
     UIPanel algSelectionPanel;
     UIPanel rampPanel;
 
+    // Data structures used by simulate()
+    HashMap<Integer, VertexPanel> rampVertices;
+    HashMap<Agent, Color> agentColours;
+    ArrayList<Color> assignedColours;
 
     // Constructors
-    public MAPFVisualiser2(Ramp ramp/*MAPFSolution ictsSolution, MAPFSolution astarSolution,
-                           MAPFSolution cbsSolution, MAPFSolution cbswpSolution*/) {
+    public MAPFVisualiser2(Ramp ramp, MAPFSolution astarSolution, MAPFSolution ictsSolution,
+                           MAPFSolution cbsSolution, MAPFSolution cbswpSolution) {
+
+        // Store solutions as data members
+        this.astarSolution = astarSolution;
+        this.ictsSolution = ictsSolution;
+        this.cbsSolution = cbsSolution;
+        this.cbswpSolution = cbswpSolution;
 
         // UI main attributes
         this.setTitle("Ramp traffic simulator");
@@ -128,17 +156,31 @@ public class MAPFVisualiser2 extends JFrame implements ActionListener {
         simInfoPanel.add(Box.createVerticalStrut(5));
         algSelectionPanel.add(resetButton);
 
+        startAstarButton.addActionListener(this);
+        startICTSButton.addActionListener(this);
+        startCBSButton.addActionListener(this);
+        startCBSwPButton.addActionListener(this);
+
         this.add(algSelectionPanel);
 
 
         // Ramp panel
         rampPanel = new UIPanel();
-        rampPanel.setBounds(420, 70, 1100, 700);
+        rampPanel.setBounds(RAMP_PANEL_X, RAMP_PANEL_Y, RAMP_PANEL_WIDTH, RAMP_PANEL_HEIGHT);
 
         this.add(rampPanel);
+        rampPanel.setLayout(null);
 
-        paintRamp(ramp);
+        paintRamp(rampPanel, ramp);
 
+        // Assign a unique colour to each agent
+        Set<Agent> allAgents = astarSolution.getSolutionSet().getLast().getAgentLocations().keySet();
+        this.assignedColours = new ArrayList<>();
+        this.agentColours = new HashMap<>();
+
+        for(Agent agent : allAgents) {
+            assignColourToAgent(agent);
+        }
 
         // General settings
         this.setLayout(null);
@@ -146,18 +188,186 @@ public class MAPFVisualiser2 extends JFrame implements ActionListener {
     }
 
 
-
-
     // Methods
-    private void paintRamp(Ramp ramp) {
-        // Paint the ramp
-        // TODO NEXT
-        //  Afterwards, fix simulation
+    private Color generateRandomColour() {
+        Random rand = new Random();
+        float hue = rand.nextFloat();
+        float sat = 0.6f + (rand.nextFloat() * 0.4f);
+        float bright = 0.6f + (rand.nextFloat() * 0.4f);
 
+        return Color.getHSBColor(hue, sat, bright);
+    }
+
+    private void assignColourToAgent(Agent agent) {
+        this.agentColours.computeIfAbsent(agent, _ -> generateRandomColour());
+    }
+
+    private int xStart(int vertexLength, int widthTracker) {
+        // Returns the x of where the next VertexPanel should start
+        return vertexLength * widthTracker;
+    }
+
+    private int yStart(int vertexLength, int heightTracker) {
+        // Returns the y of where the next queue VertexPanel should start
+        return (RAMP_PANEL_HEIGHT / 6) + vertexLength * heightTracker;
+    }
+
+    private void paintRamp(UIPanel rampPanel, Ramp ramp) {
+
+        // Ramp variables
+        // Width = ramp length + exit vertices
+        int rampWidth = (ramp.getRampLength() < MIN_RAMP_LENGTH_FOR_WIDTH)
+                ? MIN_RAMP_LENGTH_FOR_WIDTH + 2
+                : ramp.getRampLength() + 2;
+
+        int vertexLength = RAMP_PANEL_WIDTH / rampWidth;
+        int rampVerticalStart = (RAMP_PANEL_HEIGHT / 6);
+
+        int widthTracker = 0;
+
+        rampVertices = new HashMap<>();
+
+        // Ramp and exits
+        VertexPanel surfaceExit = new VertexPanel(xStart(vertexLength, widthTracker++), rampVerticalStart,
+                vertexLength, vertexLength, ramp.getSurfaceExit());
+        rampPanel.add(surfaceExit);
+        rampVertices.put(ramp.getSurfaceExit(), surfaceExit);
+
+        for (Integer vertex : ramp.getVerticesInActualRamp()) {
+            VertexPanel rampVertex = new VertexPanel(xStart(vertexLength, widthTracker++), rampVerticalStart,
+                    vertexLength, vertexLength, vertex);
+            rampPanel.add(rampVertex);
+            rampVertices.put(vertex, rampVertex);
+        }
+
+        VertexPanel undergroundExit = new VertexPanel(xStart(vertexLength, widthTracker), rampVerticalStart,
+                vertexLength, vertexLength, ramp.getUndergroundExit());
+        rampPanel.add(undergroundExit);
+        rampVertices.put(ramp.getUndergroundExit(), undergroundExit);
+
+        // Surface queue
+        widthTracker = 1;
+        int heightTracker = ramp.getVerticesInSurfaceQ().size();
+        for (Integer vertex : ramp.getVerticesInSurfaceQ()) {
+            VertexPanel surfaceQVertex = new VertexPanel(xStart(vertexLength, widthTracker),
+                    yStart(vertexLength, heightTracker--), vertexLength, vertexLength, vertex);
+            rampPanel.add(surfaceQVertex);
+            rampVertices.put(vertex, surfaceQVertex);
+        }
+
+        // Underground queue
+        widthTracker = ramp.getRampLength();
+        heightTracker = 1;
+        for (Integer vertex : ramp.getVerticesInUndergroundQ()) {
+            VertexPanel undergroundQVertex = new VertexPanel(xStart(vertexLength, widthTracker),
+                    yStart(vertexLength, heightTracker++), vertexLength, vertexLength, vertex);
+            rampPanel.add(undergroundQVertex);
+            rampVertices.put(vertex, undergroundQVertex);
+        }
+
+        // Passing bays
+        int[] passBaysAdjVertex = ramp.getPassBaysAdjVertex();
+        ArrayList<Integer> recordedAdjVertices = new ArrayList<>();
+        ArrayList<ArrayList<Integer>> passingBayVertices = ramp.getPassingBayVertices();
+        for (int i = 0; i < passBaysAdjVertex.length; i++) {
+            heightTracker = -1;
+            if (i == 0) {
+                VertexPanel passBayVertexFirst = new VertexPanel(xStart(vertexLength, passBaysAdjVertex[i]),
+                        yStart(vertexLength, heightTracker), vertexLength, vertexLength,
+                        passingBayVertices.get(i).getFirst());
+                VertexPanel passBayVertexSecond = new VertexPanel(xStart(vertexLength, passBaysAdjVertex[i] + 1),
+                        yStart(vertexLength, heightTracker), vertexLength, vertexLength,
+                        passingBayVertices.get(i).getLast());
+                rampPanel.add(passBayVertexFirst);
+                rampPanel.add(passBayVertexSecond);
+                rampVertices.put(passingBayVertices.get(i).getFirst(), passBayVertexFirst);
+                rampVertices.put(passingBayVertices.get(i).getLast(), passBayVertexSecond);
+
+                // If a second passing bay starts at the same ramp vertex, it should be painted below instead
+                recordedAdjVertices.add(passBaysAdjVertex[i]);
+            }
+            else {
+                heightTracker = (recordedAdjVertices.contains(passBaysAdjVertex[i])) ? 1 : -1;
+                VertexPanel passBayVertexFirst = new VertexPanel(xStart(vertexLength, passBaysAdjVertex[i]),
+                        yStart(vertexLength, heightTracker), vertexLength, vertexLength,
+                        passingBayVertices.get(i).getFirst());
+                VertexPanel passBayVertexSecond = new VertexPanel(xStart(vertexLength, passBaysAdjVertex[i] + 1),
+                        yStart(vertexLength, heightTracker), vertexLength, vertexLength,
+                        passingBayVertices.get(i).getLast());
+                rampPanel.add(passBayVertexFirst);
+                rampPanel.add(passBayVertexSecond);
+                rampVertices.put(passingBayVertices.get(i).getFirst(), passBayVertexFirst);
+                rampVertices.put(passingBayVertices.get(i).getLast(), passBayVertexSecond);
+            }
+        }
+    }
+
+    private void simulate(MAPFSolution solution) {
+        // Simulate the given solution
+
+        // Disable all buttons
+        startAstarButton.setEnabled(false);
+        startICTSButton.setEnabled(false);
+        startCBSButton.setEnabled(false);
+        startCBSwPButton.setEnabled(false);
+
+        ArrayList<MAPFState> solutionStates = solution.getSolutionSet();
+
+        // Show the solution
+        Timer timer = new Timer(400, new ActionListener() {
+            int timeStep = 0;
+            int maxTimeStep = solutionStates.size();
+            ArrayList<VertexPanel> prevLocations = new ArrayList<>();
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                // Get all agents' current locations
+                MAPFState currentState = solutionStates.get(timeStep);
+                HashMap<Agent, Integer> agentLocations = currentState.getAgentLocations();
+
+                // Clear any vertices
+                for(VertexPanel vertex : prevLocations) {
+                    vertex.clearAgent();
+                }
+                prevLocations.clear();
+
+                // Print the agents (as dots) in their respective vertex locations
+                for (Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
+                    Agent agent = entry.getKey();
+                    int location = entry.getValue();
+
+                    VertexPanel vertex = rampVertices.get(location);
+                    vertex.addAgent(agentColours.get(agent));
+                    prevLocations.add(vertex);
+                }
+
+                timeStep++;
+                if(timeStep >= maxTimeStep) {
+                    ((Timer) e.getSource()).stop();
+                }
+            }
+        });
+        timer.start();
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
 
+        if (e.getSource() == startAstarButton) {
+            simulate(astarSolution);
+        }
+
+        if (e.getSource() == startICTSButton) {
+            simulate(ictsSolution);
+        }
+
+        if (e.getSource() == startCBSButton) {
+            simulate(cbsSolution);
+        }
+
+        if (e.getSource() == startCBSwPButton) {
+            simulate(cbswpSolution);
+        }
     }
 }

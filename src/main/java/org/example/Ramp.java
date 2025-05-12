@@ -542,4 +542,12 @@ public class Ramp {
     public ArrayList<Integer> getSecondPassBayVertices() {
         return this.secondPassBayVertices;
     }
+
+    public ArrayList<Integer> getVerticesInActualRamp() {
+        return this.verticesInActualRamp;
+    }
+
+    public int[] getPassBaysAdjVertex() {
+        return this.passBaysAdjVertex;
+    }
 }
