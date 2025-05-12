@@ -37,7 +37,7 @@ public class MAPFSolver {
 
     // Methods
 
-    public void solve() {
+    public MAPFSolution solve() {
         // Task: Prompts the algorithm to solve the MAPF scenario
         // As of now, the solve methods return void. When A* is implemented,
         // return a representation of a solution
@@ -115,8 +115,6 @@ public class MAPFSolver {
                 // in currentSolutionStates, remove it from currentSolutionStates
                 //currentSolutionStates.removeLast();
 
-
-                ArrayList<MAPFState> newCurrentSolutionStates = new ArrayList<>();
                 // Start from goal of new A* run
                 MAPFState goalState = currentSolution.getSolutionSet().getLast();
                 LinkedList<MAPFState> fullPath = new LinkedList<>();
@@ -140,6 +138,10 @@ public class MAPFSolver {
 
         if(this.solution != null) {
             this.solution.printSolution(false);
+            return solution;
+        }
+        else {
+            return null;
         }
     }
 }

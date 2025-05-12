@@ -20,15 +20,15 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {2, 4};
-        Ramp myRamp = new Ramp(7, 5, 5, passBays);
+        int[] passBays = {2};
+        Ramp myRamp = new Ramp(5, 5, 5, passBays);
 
 
 
         // ALL ALGORITHMS TEST
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
         AgentEntries agentEntries2 = new AgentEntries();
-        for(int i = 0; i < 4; i++) {
+        for(int i = 0; i < 5; i++) {
             Agent agent2;
             if(i % 2 == 0) {
                 agent2 = new Agent(i, 1, Constants.DOWN, true);
@@ -39,12 +39,12 @@ public class Main {
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
-        Agent agent2 = new Agent(4, 1, Constants.UP, true);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(2, agent2);
-        agent2 = new Agent(5, 1, Constants.DOWN, true);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(19, agent2);
+//        Agent agent2 = new Agent(2, 1, Constants.UP, true);
+//        agentList2.put(agent2.id, agent2);
+//        agentEntries2.addEntry(2, agent2);
+//        agent2 = new Agent(4, 1, Constants.DOWN, true);
+//        agentList2.put(agent2.id, agent2);
+//        agentEntries2.addEntry(18, agent2);
 
         MAPFScenario scenarioICTS = new MAPFScenario(myRamp, agentEntries2, 20);
         MAPFScenario scenarioAstar = new MAPFScenario(myRamp, agentEntries2, 20);
@@ -88,7 +88,7 @@ public class Main {
         System.out.println("#################### CBSwP ####################");
         long startTimeCBSwP = System.nanoTime();
         MAPFSolver solverCBSwP = new MAPFSolver(scenarioCBSwP, "CBSwP");
-        solverCBSwP.solve();
+//        solverCBSwP.solve();
         long endTimeCBSwP = System.nanoTime();
         duration = endTimeCBSwP - startTimeCBSwP;
         System.out.println("\nExecution time CBSwP: " + (duration / 1000000.0) + " ms");
