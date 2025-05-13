@@ -10,12 +10,26 @@ public class Agent {
 
 
     // Constructors
-    public Agent(int id, int velocity, int direction, boolean passBayAble, boolean higherPrio) {
+    public Agent(int id, int velocity, int direction, boolean passBayAble) {
         this.id = id;
         this.velocity = velocity;
         this.direction = direction;
-        this.higherPrio = higherPrio;
-        this.passBayAble = passBayAble;
+        this.higherPrio = false;
+
+        if (direction == Constants.UP) {
+            this.higherPrio = true;
+
+            if(passBayAble) {
+                this.passBayAble = true;
+            }
+            else {
+                this.passBayAble = false;
+            }
+        }
+        else if (direction == Constants.DOWN) {
+            this.passBayAble = true;
+        }
+
     }
 
     // Copy constructor

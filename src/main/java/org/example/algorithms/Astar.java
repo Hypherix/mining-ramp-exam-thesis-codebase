@@ -450,7 +450,7 @@ public class Astar implements MAPFAlgorithm {
     }
 
     @Override
-    public MAPFSolution solve(MAPFScenario scenario, boolean prioritise) {
+    public MAPFSolution solve(MAPFScenario scenario) {
         /*
         * Notes to self
         * - For each neighbour state, the g cost is that of the current state's g + num of all active agents (each action is g++)
@@ -474,13 +474,11 @@ public class Astar implements MAPFAlgorithm {
         MAPFState initialState = scenario.getInitialState();
         initialState.setFcost(initialState.getGcost() + initialState.getHcost());
 
+        int currTimeStep = initialState.getTimeStep();
+
         // Initialise priority queues
-        PriorityQueue<MAPFState> frontier = prioritise
-                ? new PriorityQueue<>(new StatePrioComparator())
-                : new PriorityQueue<>(new StateComparator());
-        PriorityQueue<MAPFState> explored = prioritise
-                ? new PriorityQueue<>(new StatePrioComparator())
-                : new PriorityQueue<>(new StateComparator());
+        PriorityQueue<MAPFState> frontier = new PriorityQueue<MAPFState>(new StateComparator());
+        PriorityQueue<MAPFState> explored = new PriorityQueue<MAPFState>(new StateComparator());
         frontier.add(initialState);
 
         // In case we are here due to a rollback. Add all initialState's frontier and explored states
@@ -584,12 +582,10 @@ public class Astar implements MAPFAlgorithm {
                     // This many agents have made an action --> gcost++ for each
                     int numOfActiveAgents = currentState.getNumOfActiveAgents();
                     int newGcost = currentState.getGcost() + numOfActiveAgents;
-                    int numOfActivePrioAgents = currentState.getNumOfActivePrioAgents();
-                    int newGcostPrio = currentState.getGcostPrio() + numOfActivePrioAgents;
 
                     // Create the neighbourState and assign currentState as its parent
-                    MAPFState neighbourState = new MAPFState(currentState.getRamp(), moveCombination, newGcost,
-                            newGcostPrio, currentState.getTimeStep() + 1);
+                    MAPFState neighbourState = new MAPFState(
+                            currentState.getRamp(), moveCombination, newGcost, currentState.getTimeStep() + 1);
                     neighbourState.setParent(currentState);
 
                     // If neighbourState has not been encountered before, set neighbour to be added to frontier
@@ -613,17 +609,13 @@ public class Astar implements MAPFAlgorithm {
             }
 
             // Create a snapshot of the explored queue to move over to each new neighbour
-            PriorityQueue<MAPFState> exploredSnapshot = prioritise
-                    ? new PriorityQueue<>(new StatePrioComparator())
-                    : new PriorityQueue<>(new StateComparator());
+            PriorityQueue<MAPFState> exploredSnapshot = new PriorityQueue<>(new StateComparator());
             exploredSnapshot.addAll(explored);
 
             // Now add all neighbours
             for(MAPFState neighbour : neighboursToAddToFrontier) {
 
-                PriorityQueue<MAPFState> neighboursToAddSnapshot = prioritise
-                        ? new PriorityQueue<>(new StatePrioComparator())
-                        : new PriorityQueue<>(new StateComparator());
+                PriorityQueue<MAPFState> neighboursToAddSnapshot = new PriorityQueue<>(new StateComparator());
                 neighboursToAddSnapshot.addAll(neighboursToAddToFrontier);
 
                 // First put all neighbours in concurrentStatesInFrontier
@@ -633,9 +625,7 @@ public class Astar implements MAPFAlgorithm {
                 neighbour.removeFromConcurrentStatesInFrontier(neighbour);
 
                 // Finally, also add the actual frontier to concurrentStatesInFrontier
-                PriorityQueue<MAPFState> frontierSnapshot = prioritise
-                        ? new PriorityQueue<>(new StatePrioComparator())
-                        : new PriorityQueue<>(new StateComparator());
+                PriorityQueue<MAPFState> frontierSnapshot = new PriorityQueue<>(new StateComparator());
                 frontierSnapshot.addAll(frontier);
                 neighbour.addAllToConcurrentStatesInFrontier(frontierSnapshot);
 

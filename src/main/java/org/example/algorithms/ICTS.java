@@ -528,8 +528,7 @@ public class ICTS implements MAPFAlgorithm {
     }
 
     @Override
-    public MAPFSolution solve(MAPFScenario scenario, boolean prioritise) {
-    // Note! parameter prioritise is not used by ICTS and should therefore always be set to false.
+    public MAPFSolution solve(MAPFScenario scenario) {
 
         ICTNode root = new ICTNode();
 
@@ -559,7 +558,7 @@ public class ICTS implements MAPFAlgorithm {
             MAPFScenario initialScenario = new MAPFScenario(
                     initialState.getRamp(), singleInitialState, 1);
             MAPFAlgorithm aStarSingle = AlgorithmFactory.getAlgorithm("astar");
-            MAPFSolution initialSolution = aStarSingle.solve(initialScenario, prioritise);
+            MAPFSolution initialSolution = aStarSingle.solve(initialScenario);
             initialSolution.printSolution(true);
             initialSolutions.add(initialSolution);
             initialOptimalCosts.add(initialSolution.getCost());

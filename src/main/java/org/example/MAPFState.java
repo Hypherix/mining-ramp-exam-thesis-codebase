@@ -24,9 +24,6 @@ public class MAPFState {
     private int fcost;      // = gcost + hcost
     private int gcost;      // sum of agent actions
     private int hcost;      // sum of agent location h values
-    private int fcostPrio;
-    private int gcostPrio;
-    private int hcostPrio;
     private int timeStep;
     public MAPFState parent;
     public ArrayList<Agent> activeAgents;      // Agents not in an exit
@@ -38,47 +35,11 @@ public class MAPFState {
 
     // Constructors
     public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost, int timeStep) {
-        // Used by ICTS since it does not care about higher priority agents. It is based on all agents' costs
-
         this.ramp = ramp;
         this.agentLocations = agentLocations;
         this.gcost = gcost;
         this.hcost = calculateHcost();
         this.fcost = this.gcost + this.hcost;
-        this.parent = null;
-        this.timeStep = timeStep;
-        this.concurrentStatesInFrontier = new PriorityQueue<>(new StateComparator());
-        this.concurrentStatesInExplored = new PriorityQueue<>(new StateComparator());
-        this.concurrentNodesInCTPrioQueue = new PriorityQueue<>(new CTNodeComparator());
-
-        // Categorise the agents as active or inactive
-        this.activeAgents = new ArrayList<>();
-        this.inactiveAgents = new ArrayList<>();
-        int surfaceExit = fetchSurfaceExit();
-        int undergroundExit = fetchUndergroundExit();
-        for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
-            Agent agent = entry.getKey();
-            int location = entry.getValue();
-            if (location == surfaceExit || location == undergroundExit) {
-                this.inactiveAgents.add(agent);
-            }
-            else {
-                this.activeAgents.add(agent);
-            }
-        }
-    }
-
-    public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost, int gcostPrio, int timeStep) {
-        // Used by everything but ICTS since they should be able to prioritise based on higherPrio agents
-
-        this.ramp = ramp;
-        this.agentLocations = agentLocations;
-        this.gcost = gcost;
-        this.hcost = calculateHcost();
-        this.fcost = this.gcost + this.hcost;
-        this.gcostPrio = gcostPrio;
-        this.hcostPrio = calculateHcostPrio();
-        this.fcostPrio = this.gcostPrio + this.hcostPrio;
         this.parent = null;
         this.timeStep = timeStep;
         this.concurrentStatesInFrontier = new PriorityQueue<>(new StateComparator());
@@ -137,8 +98,7 @@ public class MAPFState {
     }
 
     // Constructor with concurrentStatesInFrontier/Explored and parent set (for A* rollback)
-    public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost, int gcostPrio, int timeStep,
-                     MAPFState parent,
+    public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost, int timeStep, MAPFState parent,
                      PriorityQueue<MAPFState> concurrentStatesInFrontier,
                      PriorityQueue<MAPFState> concurrentStatesInExplored) {
         this.ramp = ramp;
@@ -146,9 +106,6 @@ public class MAPFState {
         this.gcost = gcost;
         this.hcost = calculateHcost();
         this.fcost = this.gcost + this.hcost;
-        this.gcostPrio = gcostPrio;
-        this.hcostPrio = calculateHcostPrio();
-        this.fcostPrio = this.gcostPrio + this.hcostPrio;
         this.parent = parent;
         this.timeStep = timeStep;
         this.concurrentStatesInFrontier = new PriorityQueue<>(new StateComparator());
@@ -175,16 +132,13 @@ public class MAPFState {
     }
 
     // Constructor with concurrentStatesInFrontier/Explored and parent set (for CBS rollback)
-    public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost, int gCostPrio, int timeStep,
+    public MAPFState(Ramp ramp, HashMap<Agent, Integer> agentLocations, int gcost, int timeStep,
                      PriorityQueue<CTNode> concurrentStatesInCTPrioQueue) {
         this.ramp = ramp;
         this.agentLocations = agentLocations;
         this.gcost = gcost;
         this.hcost = calculateHcost();
         this.fcost = this.gcost + this.hcost;
-        this.gcostPrio = gcostPrio;
-        this.hcostPrio = calculateHcostPrio();
-        this.fcostPrio = this.gcostPrio + this.hcostPrio;
         this.parent = parent;
         this.timeStep = timeStep;
         this.concurrentNodesInCTPrioQueue = new PriorityQueue<>(new CTNodeComparator());
@@ -225,9 +179,6 @@ public class MAPFState {
         this.fcost = other.fcost;
         this.gcost = other.gcost;
         this.hcost = other.hcost;
-        this.fcostPrio = other.fcostPrio;
-        this.gcostPrio = other.gcostPrio;
-        this.hcostPrio = other.hcostPrio;
         this.timeStep = other.timeStep;
 
         this.parent = other.parent;
@@ -258,11 +209,14 @@ public class MAPFState {
     }
 
 
+
     // Methods
     private int calculateHcost() {
         // Task: Calculate the total h of all agents
 
         int h = 0;
+        HashMap<Integer, Integer> hUpgoing = ramp.hUpgoing;
+        HashMap<Integer, Integer> hDowngoing = ramp.hDowngoing;
 
         for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
             Agent agent = entry.getKey();
@@ -282,28 +236,37 @@ public class MAPFState {
         return h;
     }
 
-    private int calculateHcostPrio() {
-        // Task: Calculate the total h of all agents with higherPrio
+    private int calculateCost() {
+        // Task: Go through each agent's location and calculate the sum of their f values
+        /*
+        *   TODO when A*: MAPFState cannot calculate its fcost, only h. g is equal to the agents'
+        *    total travel time. Thus, g and f are attained at simulation-time. THEREFORE:
+        *    calculateCost() is not to be called in the constructor. Change this method when A*
+        *    is progressed on to only work with h, and find a way to get g.
+        * */
+        // CURRENTLY NOT IN USE
 
+        int cost = 0;
         int h = 0;
-        for (Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
+
+        for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
             Agent agent = entry.getKey();
             int location = entry.getValue();
-            if (agent.higherPrio) {
-                if (agent.direction == Constants.DOWN) {
-                    h += ramp.hDowngoing.get(location);
-                }
-                else if (agent.direction == Constants.UP) {
-                    h += ramp.hUpgoing.get(location);
-                }
-                else {
-                    System.out.println("UNKNOWN DIRECTION WHEN CALCULATING STATE COST!");
-                }
+            if (agent.direction == Constants.DOWN) {
+                // If downgoing, add the agent location's downgoing f value to the fcost
+                h += ramp.hDowngoing.get(location);
+            }
+            else if (agent.direction == Constants.UP) {
+                // If upgoing, add upgoing f value
+                h += ramp.hUpgoing.get(location);
+            }
+            else {
+                System.out.println("UNKNOWN DIRECTION WHEN CALCULATING STATE COST!");
             }
         }
-        return h;
-    }
 
+        return cost;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -364,30 +327,6 @@ public class MAPFState {
         this.hcost = h;
     }
 
-    public void setFcostPrio(int fcostPrio) {
-        this.fcostPrio = fcostPrio;
-    }
-
-    public int getFcostPrio() {
-        return this.fcostPrio;
-    }
-
-    public void setGcostPrio(int gcostPrio) {
-        this.gcostPrio = gcostPrio;
-    }
-
-    public int getGcostPrio() {
-        return this.gcostPrio;
-    }
-
-    public void setHcostPrio(int hcostPrio) {
-        this.hcostPrio = hcostPrio;
-    }
-
-    public int getHcostPrio() {
-        return this.hcostPrio;
-    }
-
     public int fetchSurfaceExit() {
         return this.ramp.getSurfaceExit();
     }
@@ -398,16 +337,6 @@ public class MAPFState {
 
     public int getNumOfActiveAgents() {
         return this.activeAgents.size();
-    }
-
-    public int getNumOfActivePrioAgents() {
-        int count = 0;
-        for(Agent agent : this.activeAgents) {
-            if (agent.higherPrio) {
-                count++;
-            }
-        }
-        return count;
     }
 
     public int getNumOfInactiveAgents() {

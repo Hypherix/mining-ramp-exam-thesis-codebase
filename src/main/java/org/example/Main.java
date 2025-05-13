@@ -12,8 +12,6 @@ package org.example;
 *  DONE. Have not found any deviations --> passing bays causing issues?
 *
 * TODO: Visualisation
-*
-* TODO: Agent prio option
 */
 
 import org.example.visualiser.MAPFVisualiser;
@@ -24,8 +22,8 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {2};
-        Ramp myRamp = new Ramp(8, 5, 5, passBays);
+        int[] passBays = {1, 5, 9};
+        Ramp myRamp = new Ramp(21, 5, 5, passBays);
 
 
 
@@ -35,17 +33,17 @@ public class Main {
         for(int i = 0; i < 4; i++) {
             Agent agent2;
             if(i % 2 == 0) {
-                agent2 = new Agent(i, 1, Constants.DOWN, true, false);
+                agent2 = new Agent(i, 1, Constants.DOWN, true);
             }
             else {
-                agent2 = new Agent(i, 1, Constants.UP, false, true);
+                agent2 = new Agent(i, 1, Constants.UP, false);
             }
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
-//        Agent agent2 = new Agent(4, 1, Constants.UP, true, false);
-//        agentList2.put(agent2.id, agent2);
-//        agentEntries2.addEntry(8, agent2);
+        Agent agent2 = new Agent(4, 1, Constants.UP, true);
+        agentList2.put(agent2.id, agent2);
+        agentEntries2.addEntry(8, agent2);
 //        agent2 = new Agent(4, 1, Constants.DOWN, true);
 //        agentList2.put(agent2.id, agent2);
 //        agentEntries2.addEntry(18, agent2);
@@ -58,22 +56,22 @@ public class Main {
         long duration;
 
         // ICTS
-        System.out.println("#################### ICTS ####################");
-        long startTimeICTS = System.nanoTime();
-        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
-        MAPFSolution ictsSolution = solverICTS.solve(false);
-        long endTimeICTS = System.nanoTime();
-        duration = endTimeICTS - startTimeICTS;
-        ictsSolution.setObtainTime(duration);
-        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
-
-        System.out.println();
+//        System.out.println("#################### ICTS ####################");
+//        long startTimeICTS = System.nanoTime();
+//        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
+//        MAPFSolution ictsSolution = solverICTS.solve();
+//        long endTimeICTS = System.nanoTime();
+//        duration = endTimeICTS - startTimeICTS;
+//        ictsSolution.setObtainTime(duration);
+//        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
+//
+//        System.out.println();
 
         // A*
         System.out.println("#################### A* ####################");
         long startTimeAstar = System.nanoTime();
         MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
-        MAPFSolution astarSolution = solverAstar.solve(true);
+        MAPFSolution astarSolution = solverAstar.solve();
         long endTimeAstar = System.nanoTime();
         duration = endTimeAstar - startTimeAstar;
         astarSolution.setObtainTime(duration);
@@ -82,20 +80,20 @@ public class Main {
         System.out.println();
 
         // CBS
-        System.out.println("#################### CBS ####################");
-        long startTimeCBS = System.nanoTime();
-        MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
-        MAPFSolution cbsSolution = solverCBS.solve(false);
-        long endTimeCBS = System.nanoTime();
-        duration = endTimeCBS - startTimeCBS;
-        cbsSolution.setObtainTime(duration);
-        System.out.println("\nExecution time CBS: " + (duration / 1000000.0) + " ms");
+//        System.out.println("#################### CBS ####################");
+//        long startTimeCBS = System.nanoTime();
+//        MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
+//        MAPFSolution cbsSolution = solverCBS.solve();
+//        long endTimeCBS = System.nanoTime();
+//        duration = endTimeCBS - startTimeCBS;
+//        cbsSolution.setObtainTime(duration);
+//        System.out.println("\nExecution time CBS: " + (duration / 1000000.0) + " ms");
 
         // CBSwP
         System.out.println("#################### CBSwP ####################");
         long startTimeCBSwP = System.nanoTime();
         MAPFSolver solverCBSwP = new MAPFSolver(scenarioCBSwP, "CBSwP");
-        MAPFSolution cbswpSolution = solverCBSwP.solve(false);
+        MAPFSolution cbswpSolution = solverCBSwP.solve();
         long endTimeCBSwP = System.nanoTime();
         duration = endTimeCBSwP - startTimeCBSwP;
         cbswpSolution.setObtainTime(duration);

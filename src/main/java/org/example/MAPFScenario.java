@@ -182,7 +182,7 @@ public class MAPFScenario {
 
         if(timeStep == 0) {
             // If scenario is new, newAgentLocations are the only ones existing
-            return new MAPFState(ramp, newAgentLocations, 0, 0, timeStep);
+            return new MAPFState(ramp, newAgentLocations, 0, timeStep);
             //setInitialState(new MAPFState(ramp, newAgentLocations, 0, timeStep));
         }
         else {
@@ -202,14 +202,11 @@ public class MAPFScenario {
             this.initialState.addActiveAgents(newAgentsThisTimeStep);
 
             int newGcost;
-            int newGcostPrio;
             if(knownState == null) {
                 newGcost = fetchNumOfActiveAgents();
-                newGcostPrio = fetchNumOfActivePrioAgents();
             }
             else {
                 newGcost = knownState.getGcost();
-                newGcostPrio = knownState.getGcostPrio();
             }
 
             // If getConcurrentStatesInFrontier/Explored are filled, move them over as well...
@@ -217,7 +214,7 @@ public class MAPFScenario {
                 if(!knownState.getConcurrentStatesInFrontier().isEmpty() &&
                         !knownState.getConcurrentStatesInExplored().isEmpty()) {
 
-                    return new MAPFState(ramp, finalAgentLocations, newGcost, newGcostPrio, timeStep,
+                    return new MAPFState(ramp, finalAgentLocations, newGcost, timeStep,
                             knownState.parent,
                             knownState.getConcurrentStatesInFrontier(),
                             knownState.getConcurrentStatesInExplored());
@@ -225,7 +222,7 @@ public class MAPFScenario {
             }
 
             // ...else, return without them
-            return new MAPFState(ramp, finalAgentLocations, newGcost, newGcostPrio, timeStep);
+            return new MAPFState(ramp, finalAgentLocations, newGcost, timeStep);
             //setInitialState(new MAPFState(ramp, finalAgentLocations, newGcost, timeStep));
         }
     }
@@ -298,10 +295,6 @@ public class MAPFScenario {
 
     public int fetchNumOfActiveAgents() {
         return this.initialState.getNumOfActiveAgents();
-    }
-
-    public int fetchNumOfActivePrioAgents() {
-        return this.initialState.getNumOfActivePrioAgents();
     }
 
     public ArrayList<Integer> fetchVerticesInPassingBays() {
