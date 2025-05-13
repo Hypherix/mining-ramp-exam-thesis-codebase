@@ -274,7 +274,22 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
         paintRamp(rampPanel);
 
         // Assign a unique colour to each agent
-        Set<Agent> allAgents = astarSolution.getSolutionSet().getLast().getAgentLocations().keySet();
+        Set<Agent> allAgents = new HashSet<>();
+        if (!astarNull) {
+            allAgents = astarSolution.getSolutionSet().getLast().getAgentLocations().keySet();
+        }
+        else if (!ictsNull) {
+            allAgents = ictsSolution.getSolutionSet().getLast().getAgentLocations().keySet();
+        }
+        else if (!cbsNull) {
+            allAgents = cbsSolution.getSolutionSet().getLast().getAgentLocations().keySet();
+        }
+        else if (!cbswpNull) {
+            allAgents = cbswpSolution.getSolutionSet().getLast().getAgentLocations().keySet();
+        }
+        else {
+            System.out.println("VISUALISER: NO SOLUTIONS WERE FOUND");
+        }
         this.assignedColours = new ArrayList<>();
         this.agentColours = new HashMap<>();
 

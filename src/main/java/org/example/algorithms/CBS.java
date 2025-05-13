@@ -211,8 +211,24 @@ public class CBS implements MAPFAlgorithm {
                                         return new Conflict(downAgent, upAgent, s + 1,
                                                 passingBay.getFirst(), passingBay.getLast(), false);
                                     }
-                                    // If they did not enter simultaneously, it will be detected as an ordinary
-                                    // vertex conflict below
+                                    // If one entered later, prevent it from entering the passing bay at that time
+                                    else if (!passingBay.contains(firstPath.get(s))) {
+                                        if (firstAgent.direction == Constants.UP) {
+                                            return new Conflict(firstAgent, s + 1, passingBay.getLast());
+                                        }
+                                        else {
+                                            return new Conflict(firstAgent, s + 1, passingBay.getFirst());
+                                        }
+                                    }
+                                    else if (!passingBay.contains(secondPath.get(s))) {
+                                        if (secondAgent.direction == Constants.UP) {
+                                            return new Conflict(secondAgent, s + 1, passingBay.getLast());
+                                        }
+                                        else {
+                                            return new Conflict(secondAgent, s + 1, passingBay.getFirst());
+                                        }
+                                    }
+                                    s--;
                                 }
                             }
                         }
@@ -745,6 +761,7 @@ public class CBS implements MAPFAlgorithm {
         while (!ctPrioQueue.isEmpty()) {
             CTNode currentNode = ctPrioQueue.poll();
             numOfExpandedCTNodes++;
+
 //            System.out.println(currentNode.cost);
 
 //            if(currentNode.cost == 40) {
