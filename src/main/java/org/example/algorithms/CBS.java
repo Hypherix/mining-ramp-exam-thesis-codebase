@@ -19,6 +19,7 @@ public class CBS implements MAPFAlgorithm {
     int accumulatedExpandedStates;
     int numOfGeneratedCTNodes;
     int numOfExpandedCTNodes;
+    boolean prioritise;
 
     // Constructors
     public CBS() {
@@ -44,7 +45,8 @@ public class CBS implements MAPFAlgorithm {
             // Create an initial state for the scenario
             HashMap<Agent, Integer> initialAgentLocation = new HashMap<>();
             initialAgentLocation.put(agent, location);
-            MAPFState singleInitialState = new MAPFState(ramp, initialAgentLocation, 0, 0);
+            MAPFState singleInitialState = new MAPFState(
+                    ramp, initialAgentLocation, 0, 0, 0);
             // Fill the scenario with the node's constraints that A* must consider
             MAPFScenario singleInitialScenario = new MAPFScenario(
                     ramp, singleInitialState, 1,
@@ -52,7 +54,7 @@ public class CBS implements MAPFAlgorithm {
 
             // With the scenario, run A*
             MAPFAlgorithm aStarSingle = AlgorithmFactory.getAlgorithm("astar");
-            MAPFSolution singleInitialSolution = aStarSingle.solve(singleInitialScenario);
+            MAPFSolution singleInitialSolution = aStarSingle.solve(singleInitialScenario, this.prioritise);
 
             // Check if a single solution path was found, if not (i.e. null), return fail
             if (singleInitialSolution == null) {
@@ -78,6 +80,16 @@ public class CBS implements MAPFAlgorithm {
         Collection<ArrayList<Integer>> allPaths = node.agentPaths.values();
         for(ArrayList<Integer> path : allPaths) {
             node.cost += path.size() - 1;
+        }
+
+        // Go through all higherPrio agents and calculate their SIC cost
+        for (Map.Entry<Agent, ArrayList<Integer>> entry : node.agentPaths.entrySet()) {
+            Agent agent = entry.getKey();
+            ArrayList<Integer> path = entry.getValue();
+
+            if(agent.higherPrio) {
+                node.prioCost += path.size() - 1;
+            }
         }
 
         return true;
@@ -260,6 +272,7 @@ public class CBS implements MAPFAlgorithm {
             HashMap<Agent, Integer> agentLocations = new HashMap<>();
 
             int cost = 0;
+            int prioCost = 0;
             for(Map.Entry<Agent, ArrayList<Integer>> entry : agentPaths.entrySet()) {
                 Agent agent = entry.getKey();
                 int prevLocation = entry.getValue().get(i - 1);
@@ -270,14 +283,20 @@ public class CBS implements MAPFAlgorithm {
                 // If current location is not an exit vertex, cost++
                 if(!isAnExitVertex(location, ramp)) {
                     cost++;
+                    if (agent.higherPrio) {
+                        prioCost++;
+                    }
                 }
                 // If current location is an exit vertex, but previous was not, cost++
                 else if(!isAnExitVertex(prevLocation, ramp)) {
                     cost++;
+                    if (agent.higherPrio) {
+                        prioCost++;
+                    }
                 }
             }
 
-            MAPFState state = new MAPFState(ramp, agentLocations, cost, i,
+            MAPFState state = new MAPFState(ramp, agentLocations, cost, prioCost, i,
                     goalNode.getConcurrentNodesInCTPrioQueue());
 
             if(!solutionSet.isEmpty()) {
@@ -659,8 +678,10 @@ public class CBS implements MAPFAlgorithm {
 
     // Methods
     @Override
-    public MAPFSolution solve(MAPFScenario scenario) {
+    public MAPFSolution solve(MAPFScenario scenario, boolean prioritise) {
         // Task: Generates a MAPFSolution from the MAPFScenario
+
+        this.prioritise = prioritise;
 
         // Set the root CTNode agent paths and add it to the PrioQueue if not a goal node
 
@@ -680,7 +701,9 @@ public class CBS implements MAPFAlgorithm {
 
 
         // Create a PriorityQueue of CTNodes where the node with the lowest cost is prioritised
-        PriorityQueue<CTNode> ctPrioQueue = new PriorityQueue<>(new CTNodeComparator());
+        PriorityQueue<CTNode> ctPrioQueue = prioritise
+                ? new PriorityQueue<>(new CTNodePrioComparator())
+                : new PriorityQueue<>(new CTNodeComparator());
 
         // Enqueue the root
         ctPrioQueue.add(root);
@@ -786,9 +809,14 @@ public class CBS implements MAPFAlgorithm {
             }
 
             // Create a snapshot of the prioqueue including the child sibling
-            PriorityQueue<CTNode> ctPrioQueueSnapshot = new PriorityQueue<>(new CTNodeComparator());
+            PriorityQueue<CTNode> ctPrioQueueSnapshot = prioritise
+                    ? new PriorityQueue<>(new CTNodePrioComparator())
+                    : new PriorityQueue<>(new CTNodeComparator());
             ctPrioQueueSnapshot.addAll(ctPrioQueue);
-            PriorityQueue<CTNode> children = new PriorityQueue<>(new CTNodeComparator());
+
+            PriorityQueue<CTNode> children = prioritise
+                    ? new PriorityQueue<>(new CTNodePrioComparator())
+                    : new PriorityQueue<>(new CTNodeComparator());
             children.addAll(currentNode.children);
 
             for (CTNode child : currentNode.children) {

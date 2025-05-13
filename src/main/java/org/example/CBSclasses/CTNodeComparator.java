@@ -9,10 +9,10 @@ import java.util.Comparator;
 
 public class CTNodeComparator implements Comparator<CTNode> {
     public int compare(CTNode n1, CTNode n2) {
-        if(n1.cost < n2.cost) {
+        if (n1.cost < n2.cost) {
             return -1;
         }
-        else if(n1.cost > n2.cost) {
+        else if (n1.cost > n2.cost) {
             return 1;
         }
         return 0;

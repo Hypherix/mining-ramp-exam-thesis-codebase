@@ -80,7 +80,7 @@ public class CBSwP extends CBS {
             }
         }
 
-        // IF passbay conflict in same direction, create only one chlid for the later agent, with same partial ordering
+        // IF passbay conflict in same direction, create only one child for the later agent, with same partial ordering
         else {
             Agent agent = conflict.agent1;
             CTwPNode onlyChild = new CTwPNode(parent.vertexConstraints, parent.edgeConstraints);
