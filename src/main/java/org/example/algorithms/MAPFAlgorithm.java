@@ -12,5 +12,5 @@ import org.example.MAPFSolution;
 public interface MAPFAlgorithm {
 
     // Methods
-    public MAPFSolution solve(MAPFScenario scenario);
+    public MAPFSolution solve(MAPFScenario scenario, boolean prioritise);
 }

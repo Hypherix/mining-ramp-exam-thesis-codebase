@@ -37,20 +37,20 @@ public class MAPFSolver {
 
     // Methods
 
-    public MAPFSolution solve() {
+    public MAPFSolution solve(boolean prioritise) {
         // Task: Prompts the algorithm to solve the MAPF scenario
         // As of now, the solve methods return void. When A* is implemented,
         // return a representation of a solution
+        // Note! Parameter prioritise does not affect ICTS since it cannot prioritise
 
         HashMap<Integer, ArrayList<Agent>> agentEntries = scenario.fetchAgentEntries();
         int endTime = this.scenario.getDuration();
         MAPFSolution currentSolution;
-        MAPFSolution newSolution;
 
         // Need to implement so that for every time step, MAPFSolver checks its scenario if
         // new agents enter. In that case, run t
 
-        currentSolution = this.algorithm.solve(this.scenario);
+        currentSolution = this.algorithm.solve(this.scenario, prioritise);
 
         for(timeStep = 1; timeStep < endTime; timeStep++) {
             if (agentEntries.containsKey(timeStep)) {   // If there are new agents entering this timeStep
@@ -108,7 +108,7 @@ public class MAPFSolver {
                 // Also give the initial state the
 
                 // Invoke the algorithm anew
-                currentSolution = this.algorithm.solve(this.scenario);
+                currentSolution = this.algorithm.solve(this.scenario, prioritise);
 
 
                 // Since currentSolution's initial solution set state is the same as the last state
