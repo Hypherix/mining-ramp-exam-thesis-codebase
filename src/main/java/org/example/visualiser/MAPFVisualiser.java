@@ -63,6 +63,8 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
     UILabel timeToSolveNumberLabel;
     UILabel costLabel;
     UILabel costNumberLabel;
+    UILabel prioCostLabel;
+    UILabel prioCostNumberLabel;
     UILabel timeStepLabel;
     UILabel timeStepNumberLabel;
     UILabel ticksPerSecLabel;
@@ -121,7 +123,7 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
         // Simulation info panel
         simInfoPanel = new UIPanel();
         simInfoPanel.setLayout(new BoxLayout(simInfoPanel, BoxLayout.Y_AXIS));
-        simInfoPanel.setBounds(10, 70, 400, 350);
+        simInfoPanel.setBounds(10, 70, 400, 390);
 
         // Simulation info labels
         simInfoLabel = new UILabel("Simulation info", Font.BOLD, 20);
@@ -134,6 +136,9 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
         costLabel = new UILabel("Solution cost:", Font.BOLD, 16);
         costNumberLabel = new UILabel(" ", 18);
         simInfoPanel.addLabel(costNumberLabel);
+        prioCostLabel = new UILabel("Priority cost:", Font.BOLD, 16);
+        prioCostNumberLabel = new UILabel(" ", 18);
+        simInfoPanel.addLabel(prioCostNumberLabel);
         timeStepLabel = new UILabel("Current time step:", Font.BOLD, 16);
         timeStepNumberLabel = new UILabel(" ", 18);
         simInfoPanel.addLabel(timeStepNumberLabel);
@@ -148,6 +153,8 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
         timeToSolveNumberLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         costLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         costNumberLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        prioCostLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        prioCostNumberLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         timeStepLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         timeStepNumberLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         ticksPerSecLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -169,6 +176,10 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
         simInfoPanel.add(Box.createVerticalStrut(5));
         simInfoPanel.add(costNumberLabel);
         simInfoPanel.add(Box.createVerticalStrut(10));
+        simInfoPanel.add(prioCostLabel);
+        simInfoPanel.add(Box.createVerticalStrut(5));
+        simInfoPanel.add(prioCostNumberLabel);
+        simInfoPanel.add(Box.createVerticalStrut(10));
         simInfoPanel.add(timeStepLabel);
         simInfoPanel.add(Box.createVerticalStrut(5));
         simInfoPanel.add(timeStepNumberLabel);
@@ -182,7 +193,7 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
 
         // Algorithm selection panel
         algSelectionPanel = new UIPanel();
-        algSelectionPanel.setBounds(10, 430, 400, 300);
+        algSelectionPanel.setBounds(10, 470, 400, 300);
 
         algSelectionLabel = new UILabel("        Algorithm selection        ", Font.BOLD, 20);
         ticksPerSecText = new UITextField("Valid ticks: 1-20", "Specify the number of ticks per second (1-20)");
@@ -412,6 +423,7 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
             int surfaceExit = ramp.getSurfaceExit();
             int undergroundExit = ramp.getUndergroundExit();
             int cost = 0;
+            int prioCost = 0;
             final int maxTimeStep = solutionStates.size();
             ArrayList<VertexPanel> prevLocations = new ArrayList<>();
             MAPFState currentState;
@@ -443,12 +455,16 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
                         agentInGoal.add(agent);
                     }
 
-                    if (!agentInGoal.contains(agent)) {
+                    if(agent.higherPrio && !agentInGoal.contains(agent)) {
+                        prioCostNumberLabel.setText(String.valueOf(++prioCost));
+                        costNumberLabel.setText(String.valueOf(++cost));
+                    }
+                    else if (!agentInGoal.contains(agent)) {
                         costNumberLabel.setText(String.valueOf(++cost));
                     }
 
                     VertexPanel vertex = rampVertices.get(location);
-                    vertex.addAgent(agentColours.get(agent));
+                    vertex.addAgent(agentColours.get(agent), agent.higherPrio);
                     prevLocations.add(vertex);
                 }
 
@@ -574,6 +590,7 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
             currentAlgorithmEmptyLabel.setText(" ");
             timeToSolveNumberLabel.setText(" ");
             costNumberLabel.setText(" ");
+            prioCostNumberLabel.setText(" ");
             timeStepNumberLabel.setText(" ");
         }
     }
