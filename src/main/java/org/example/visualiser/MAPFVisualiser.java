@@ -117,6 +117,7 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
 
         // UI main label
         UILabel mainLabel = new UILabel("Ramp traffic simulator", Font.BOLD, 30);
+        mainLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainLabel.setBounds(700, 5, 300, 50);
         this.add(mainLabel);
 

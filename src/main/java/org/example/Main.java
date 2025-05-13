@@ -37,7 +37,7 @@ public class Main {
         for(int i = 0; i < 3; i++) {
             Agent agent2;
             if(i % 2 == 0) {
-                agent2 = new Agent(i, 1, Constants.DOWN, true, true);
+                agent2 = new Agent(i, 1, Constants.DOWN, true, false);
             }
             else {
                 agent2 = new Agent(i, 1, Constants.UP, false, false);
@@ -87,7 +87,7 @@ public class Main {
         System.out.println("#################### CBS ####################");
         long startTimeCBS = System.nanoTime();
         MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
-        MAPFSolution cbsSolution = solverCBS.solve(true);
+        MAPFSolution cbsSolution = solverCBS.solve(false);
         long endTimeCBS = System.nanoTime();
         duration = endTimeCBS - startTimeCBS;
         cbsSolution.setObtainTime(duration);
