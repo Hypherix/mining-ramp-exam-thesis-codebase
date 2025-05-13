@@ -10,7 +10,6 @@ public class MAPFSolution {
     // Data members
     private ArrayList<MAPFState> solutionSet;
     private int cost;
-    private int prioCost;
     private int generatedStates;
     private int expandedStates;
     private double obtainTime;
@@ -25,7 +24,7 @@ public class MAPFSolution {
     // Methods
 
     public void printSolution(boolean initial) {
-        // Task: Print the paths of each agent and calculates the costs in the same go
+        // Task: Print the paths of each agent
 
         HashMap<Agent, ArrayList<String>> agentPaths = new HashMap<>();
 
@@ -89,25 +88,15 @@ public class MAPFSolution {
             // For each action, increment cost. The starting locations do not cost anything
             // For each duplicate (hence cost++ in the end) surfaceExit or undergroundExit, decrement cost
             cost += path.size() - 1;
-            if (agent.higherPrio) {
-                prioCost += path.size() - 1;
-            }
-
             for(String location : path) {
                 if(!location.equals("-")) {
                     int locationInt = Integer.parseInt(location);
                     if(locationInt == surfaceExit || locationInt == undergroundExit) {
                         cost--;
-                        if(agent.higherPrio) {
-                            prioCost--;
-                        }
                     }
                 }
                 else {
                     cost--;
-                    if(agent.higherPrio) {
-                        prioCost--;
-                    }
                 }
             }
             cost++;
@@ -115,7 +104,6 @@ public class MAPFSolution {
 
         if(!initial) {
             System.out.println("Solution cost: " + cost);
-            System.out.println("Priority agents SIC: " + prioCost);
             System.out.println("Generated states (possibly added to frontier): " + generatedStates);
             System.out.println("Expanded states (polled from frontier): " + expandedStates);
         }
@@ -131,10 +119,6 @@ public class MAPFSolution {
 
     public int getCost() {
         return this.cost;
-    }
-
-    public int getPrioCost() {
-        return this.prioCost;
     }
 
     public int getGeneratedStates() {

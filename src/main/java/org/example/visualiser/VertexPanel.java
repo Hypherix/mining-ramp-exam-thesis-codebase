@@ -1,7 +1,5 @@
 package org.example.visualiser;
 
-import org.example.Agent;
-
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
@@ -11,7 +9,6 @@ public class VertexPanel extends JPanel {
     // Data member
     private final int id;
     private Color agentColour = null;
-    private boolean hasPriority = false;
     private final int width;
     private final int height;
 
@@ -33,10 +30,9 @@ public class VertexPanel extends JPanel {
 
     // Methods
 
-    public void addAgent(Color colour, boolean priority) {
+    public void addAgent(Color colour) {
         // Invoked whenever the simulation says that an agent is on this vertex
         this.agentColour = colour;
-        this.hasPriority = priority;
         repaint();          // Invokes the paintComponent method
     }
 
@@ -53,20 +49,11 @@ public class VertexPanel extends JPanel {
         super.paintComponent(g);
 
         if(this.agentColour != null) {
-            Graphics2D g2d = (Graphics2D) g.create();
-
             int radius = this.width / 2;
             int x = (this.width - radius) / 2;
             int y = (this.height - radius) / 2;
-            g2d.setColor(agentColour);
-            g2d.fillOval(x, y, radius, radius);
-
-            // Create a red border for all agents with higher priority
-            if (hasPriority) {
-                g2d.setColor(Color.RED);
-                g2d.setStroke(new BasicStroke(4));
-                g2d.drawOval(x, y, radius, radius);
-            }
+            g.setColor(agentColour);
+            g.fillOval(x, y, radius, radius);
         }
     }
 }
