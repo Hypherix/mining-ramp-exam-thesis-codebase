@@ -431,6 +431,9 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
             HashMap<Agent, Integer> agentLocations;
             HashSet<Agent> agentInGoal = new HashSet<>();
 
+            // Initialise prevAgentLocations with the first state's agentLocations
+            HashMap<Agent, Integer> prevAgentLocations = solutionStates.getFirst().getAgentLocations();
+
             @Override
             public void actionPerformed(ActionEvent e) {
 
@@ -449,19 +452,26 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
                     Agent agent = entry.getKey();
                     int location = entry.getValue();
 
+                    // Don't increment cost at first timeStep, whenever agents spawn, and when they are
+                    // already in goal
+                    if (timeStep == 0) {
+                        prioCostNumberLabel.setText(String.valueOf(0));
+                        costNumberLabel.setText(String.valueOf(0));
+                    }
+                    else if (agent.higherPrio && !agentInGoal.contains(agent)
+                            && prevAgentLocations.containsKey(agent)) {
+                        prioCostNumberLabel.setText(String.valueOf(++prioCost));
+                        costNumberLabel.setText(String.valueOf(++cost));
+                    }
+                    else if (!agentInGoal.contains(agent) && prevAgentLocations.containsKey(agent)) {
+                        costNumberLabel.setText(String.valueOf(++cost));
+                    }
+
                     if (agent.direction == Constants.DOWN && location == undergroundExit) {
                         agentInGoal.add(agent);
                     }
                     else if (agent.direction == Constants.UP && location == surfaceExit) {
                         agentInGoal.add(agent);
-                    }
-
-                    if(agent.higherPrio && !agentInGoal.contains(agent)) {
-                        prioCostNumberLabel.setText(String.valueOf(++prioCost));
-                        costNumberLabel.setText(String.valueOf(++cost));
-                    }
-                    else if (!agentInGoal.contains(agent)) {
-                        costNumberLabel.setText(String.valueOf(++cost));
                     }
 
                     VertexPanel vertex = rampVertices.get(location);
@@ -470,6 +480,7 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
                 }
 
                 timeStepNumberLabel.setText(String.valueOf(timeStep++));
+                prevAgentLocations = agentLocations;
 
                 if(timeStep >= maxTimeStep) {
                     if (!astarNull) {

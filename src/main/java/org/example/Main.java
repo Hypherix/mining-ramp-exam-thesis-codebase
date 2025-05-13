@@ -12,18 +12,10 @@ package org.example;
 *  DONE. Have not found any deviations --> passing bays causing issues?
 *
 * TODO: Visualisation
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 *  DONE
 *
 * TODO: Agent prio option
 *  Left is adding prio cost prints and showing it on the visualiser
->>>>>>> parent of 079f9f1 (Revert "Added priority cost prints and visuals")
-=======
-*
-* TODO: Agent prio option
->>>>>>> parent of 256f9d2 (Revert "Implemented option to prioritise higher priority agents")
 */
 
 import org.example.visualiser.MAPFVisualiser;
@@ -38,45 +30,26 @@ public class Main {
         Ramp myRamp = new Ramp(8, 5, 5, passBays);
 
 
-
         // ALL ALGORITHMS TEST
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
         AgentEntries agentEntries2 = new AgentEntries();
-        for(int i = 0; i < 3; i++) {
+        for(int i = 0; i < 8; i++) {
             Agent agent2;
             if(i % 2 == 0) {
-                agent2 = new Agent(i, 1, Constants.DOWN, true, false);
+                agent2 = new Agent(i, 1, Constants.DOWN, true, true);
             }
             else {
-<<<<<<< HEAD
-<<<<<<< HEAD
-                agent2 = new Agent(i, 1, Constants.UP, false);
-=======
                 agent2 = new Agent(i, 1, Constants.UP, false, false);
->>>>>>> parent of 079f9f1 (Revert "Added priority cost prints and visuals")
-=======
-                agent2 = new Agent(i, 1, Constants.UP, false, true);
->>>>>>> parent of 256f9d2 (Revert "Implemented option to prioritise higher priority agents")
             }
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
-<<<<<<< HEAD
-<<<<<<< HEAD
-        Agent agent2 = new Agent(4, 1, Constants.UP, true);
-=======
-        Agent agent2 = new Agent(3, 1, Constants.UP, true, false);
->>>>>>> parent of 079f9f1 (Revert "Added priority cost prints and visuals")
+        Agent agent2 = new Agent(8, 1, Constants.UP, true, false);
         agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(8, agent2);
-=======
-//        Agent agent2 = new Agent(4, 1, Constants.UP, true, false);
-//        agentList2.put(agent2.id, agent2);
-//        agentEntries2.addEntry(8, agent2);
->>>>>>> parent of 256f9d2 (Revert "Implemented option to prioritise higher priority agents")
-//        agent2 = new Agent(4, 1, Constants.DOWN, true);
-//        agentList2.put(agent2.id, agent2);
-//        agentEntries2.addEntry(18, agent2);
+        agentEntries2.addEntry(10, agent2);
+        agent2 = new Agent(9, 1, Constants.DOWN, true, true);
+        agentList2.put(agent2.id, agent2);
+        agentEntries2.addEntry(12, agent2);
 
         MAPFScenario scenarioICTS = new MAPFScenario(myRamp, agentEntries2, 20);
         MAPFScenario scenarioAstar = new MAPFScenario(myRamp, agentEntries2, 20);
@@ -86,14 +59,14 @@ public class Main {
         long duration;
 
         // ICTS
-        System.out.println("#################### ICTS ####################");
-        long startTimeICTS = System.nanoTime();
-        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
-        MAPFSolution ictsSolution = solverICTS.solve(false);
-        long endTimeICTS = System.nanoTime();
-        duration = endTimeICTS - startTimeICTS;
-        ictsSolution.setObtainTime(duration);
-        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
+//        System.out.println("#################### ICTS ####################");
+//        long startTimeICTS = System.nanoTime();
+//        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
+//        MAPFSolution ictsSolution = solverICTS.solve(false);
+//        long endTimeICTS = System.nanoTime();
+//        duration = endTimeICTS - startTimeICTS;
+//        ictsSolution.setObtainTime(duration);
+//        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
 
         System.out.println();
 
@@ -101,15 +74,7 @@ public class Main {
         System.out.println("#################### A* ####################");
         long startTimeAstar = System.nanoTime();
         MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
-<<<<<<< HEAD
-<<<<<<< HEAD
-        MAPFSolution astarSolution = solverAstar.solve();
-=======
-        MAPFSolution astarSolution = solverAstar.solve(false);
->>>>>>> parent of 079f9f1 (Revert "Added priority cost prints and visuals")
-=======
         MAPFSolution astarSolution = solverAstar.solve(true);
->>>>>>> parent of 256f9d2 (Revert "Implemented option to prioritise higher priority agents")
         long endTimeAstar = System.nanoTime();
         duration = endTimeAstar - startTimeAstar;
         astarSolution.setObtainTime(duration);
@@ -118,26 +83,26 @@ public class Main {
         System.out.println();
 
         // CBS
-        System.out.println("#################### CBS ####################");
-        long startTimeCBS = System.nanoTime();
-        MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
-        MAPFSolution cbsSolution = solverCBS.solve(false);
-        long endTimeCBS = System.nanoTime();
-        duration = endTimeCBS - startTimeCBS;
-        cbsSolution.setObtainTime(duration);
-        System.out.println("\nExecution time CBS: " + (duration / 1000000.0) + " ms");
+//        System.out.println("#################### CBS ####################");
+//        long startTimeCBS = System.nanoTime();
+//        MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
+//        MAPFSolution cbsSolution = solverCBS.solve(false);
+//        long endTimeCBS = System.nanoTime();
+//        duration = endTimeCBS - startTimeCBS;
+//        cbsSolution.setObtainTime(duration);
+//        System.out.println("\nExecution time CBS: " + (duration / 1000000.0) + " ms");
 
         // CBSwP
         System.out.println("#################### CBSwP ####################");
         long startTimeCBSwP = System.nanoTime();
         MAPFSolver solverCBSwP = new MAPFSolver(scenarioCBSwP, "CBSwP");
-        MAPFSolution cbswpSolution = solverCBSwP.solve(false);
+        MAPFSolution cbswpSolution = solverCBSwP.solve(true);
         long endTimeCBSwP = System.nanoTime();
         duration = endTimeCBSwP - startTimeCBSwP;
         cbswpSolution.setObtainTime(duration);
         System.out.println("\nExecution time CBSwP: " + (duration / 1000000.0) + " ms");
 
         // Visualiser
-        MAPFVisualiser visualiser = new MAPFVisualiser(myRamp, astarSolution, ictsSolution, cbsSolution, cbswpSolution);
+        MAPFVisualiser visualiser = new MAPFVisualiser(myRamp, astarSolution, null/*ictsSolution*/, null/*cbsSolution*/, cbswpSolution);
     }
 }
