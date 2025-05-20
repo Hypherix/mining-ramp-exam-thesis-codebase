@@ -461,8 +461,6 @@ public class Astar implements MAPFAlgorithm {
 
         // Fetch the scenario adjacency list and other key numbers
         HashMap<Integer, UpDownNeighbourList> adjList = scenario.fetchAdjList();
-        int surfaceStart = scenario.fetchSurfaceStart();
-        int undergroundStart = scenario.fetchUndergroundStart();
         int surfaceExit = scenario.fetchSurfaceExit();
         int undergroundExit = scenario.fetchUndergroundExit();
         ArrayList<Integer> verticesInSurfaceQ = scenario.fetchVerticesInSurfaceQ();
@@ -528,6 +526,8 @@ public class Astar implements MAPFAlgorithm {
         while(!frontier.isEmpty()) {
             MAPFState currentState = frontier.poll();
             expandedStates++;
+
+//            System.out.println(currentState.getFcost());
 
             // If rollback, and we poll a state with the same timestep as the rollback, AND the state is not
             // the initial state (i.e. nr of active agents are less than those in current state), insert the newly

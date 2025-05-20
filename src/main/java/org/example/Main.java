@@ -26,14 +26,14 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {2, 5, 8};
+        int[] passBays = {3};
         Ramp myRamp = new Ramp(10, 5, 5, passBays);
 
 
         // ALL ALGORITHMS TEST
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
         AgentEntries agentEntries2 = new AgentEntries();
-        for(int i = 0; i < 8; i++) {
+        for(int i = 0; i < 3; i++) {
             Agent agent2;
             if(i % 2 == 0) {
                 agent2 = new Agent(i, 1, Constants.DOWN, true, true);
@@ -44,12 +44,12 @@ public class Main {
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
-        Agent agent2 = new Agent(8, 1, Constants.UP, true, false);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(10, agent2);
-        agent2 = new Agent(9, 1, Constants.DOWN, true, true);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(12, agent2);
+//        Agent agent2 = new Agent(8, 1, Constants.UP, false, false);
+//        agentList2.put(agent2.id, agent2);
+//        agentEntries2.addEntry(10, agent2);
+//        agent2 = new Agent(9, 1, Constants.DOWN, true, true);
+//        agentList2.put(agent2.id, agent2);
+//        agentEntries2.addEntry(12, agent2);
 
         MAPFScenario scenarioICTS = new MAPFScenario(myRamp, agentEntries2, 20);
         MAPFScenario scenarioAstar = new MAPFScenario(myRamp, agentEntries2, 20);
@@ -59,26 +59,26 @@ public class Main {
         long duration;
 
         // ICTS
-//        System.out.println("#################### ICTS ####################");
-//        long startTimeICTS = System.nanoTime();
-//        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
-//        MAPFSolution ictsSolution = solverICTS.solve(false);
-//        long endTimeICTS = System.nanoTime();
-//        duration = endTimeICTS - startTimeICTS;
-//        ictsSolution.setObtainTime(duration);
-//        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
+        System.out.println("#################### ICTS ####################");
+        long startTimeICTS = System.nanoTime();
+        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
+        MAPFSolution ictsSolution = solverICTS.solve(false);
+        long endTimeICTS = System.nanoTime();
+        duration = endTimeICTS - startTimeICTS;
+        ictsSolution.setObtainTime(duration);
+        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
 
         System.out.println();
 
         // A*
-//        System.out.println("#################### A* ####################");
-//        long startTimeAstar = System.nanoTime();
-//        MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
-//        MAPFSolution astarSolution = solverAstar.solve(false);
-//        long endTimeAstar = System.nanoTime();
-//        duration = endTimeAstar - startTimeAstar;
-//        astarSolution.setObtainTime(duration);
-//        System.out.println("\nExecution time A*: " + (duration / 1000000.0) + " ms");
+        System.out.println("#################### A* ####################");
+        long startTimeAstar = System.nanoTime();
+        MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
+        MAPFSolution astarSolution = solverAstar.solve(false);
+        long endTimeAstar = System.nanoTime();
+        duration = endTimeAstar - startTimeAstar;
+        astarSolution.setObtainTime(duration);
+        System.out.println("\nExecution time A*: " + (duration / 1000000.0) + " ms");
 
         System.out.println();
 
@@ -103,6 +103,6 @@ public class Main {
         System.out.println("\nExecution time CBSwP: " + (duration / 1000000.0) + " ms");
 
         // Visualiser
-        MAPFVisualiser visualiser = new MAPFVisualiser(myRamp, null, null/*ictsSolution*/, null/*cbsSolution*/, cbswpSolution);
+        MAPFVisualiser visualiser = new MAPFVisualiser(myRamp, astarSolution, null/*ictsSolution*/, null/*cbsSolution*/, cbswpSolution);
     }
 }

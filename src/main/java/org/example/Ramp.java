@@ -311,7 +311,6 @@ public class Ramp {
         undergroundQFree = undergroundStart + 1;
     }
 
-
     private void categoriseVertices() {
         // Task: Categorise vertices depending on what part of the ramp they are in
 
@@ -347,7 +346,6 @@ public class Ramp {
         surfaceExit = currentVertex++;
         undergroundExit = currentVertex++;
     }
-
 
     private HashMap<Integer, Integer> getVerticesCosts(int sourceVertex) {
         // Task: Get the vertices costs (= their generation from a starting vertex)
@@ -408,7 +406,6 @@ public class Ramp {
 
         return vertexGeneration;
     }
-
 
     private void assignh(int vertex, HashMap<Integer, Integer> vertexGeneration, int direction) {
         // Task: Assign h values to a vertex based on its generation/cost
@@ -477,7 +474,6 @@ public class Ramp {
             System.out.println("UNKNOWN DIRECTION WHEN ASSIGNING FGH VALUES!");
         }
     }
-
 
     public void seth() {
         // Task: Set the h values of all vertices.

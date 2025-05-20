@@ -80,7 +80,7 @@ public class MAPFSolver {
 
                 // Get the state we want to revert to
                 MAPFState newCurrentState = currentSolutionStates.get(timeStep);
-                // Assign the scenario newCurrentState
+                // Assign the scenario newCurrentState as initial state
                 scenario.setInitialState(newCurrentState);
                 // Update totalAgentCount to reflect currentState's
                 scenario.setTotalAgentCount(newCurrentState.getAgentLocations().size());
