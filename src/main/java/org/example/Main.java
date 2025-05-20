@@ -26,8 +26,8 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {2};
-        Ramp myRamp = new Ramp(5, 5, 5, passBays);
+        int[] passBays = {2, 4};
+        Ramp myRamp = new Ramp(8, 5, 5, passBays);
 
 
         // ALL ALGORITHMS TEST
@@ -44,12 +44,18 @@ public class Main {
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
-//        Agent agent2 = new Agent(8, 1, Constants.UP, false, false);
-//        agentList2.put(agent2.id, agent2);
-//        agentEntries2.addEntry(10, agent2);
-//        agent2 = new Agent(9, 1, Constants.DOWN, true, true);
-//        agentList2.put(agent2.id, agent2);
-//        agentEntries2.addEntry(12, agent2);
+        Agent agent2 = new Agent(3, 1, Constants.UP, false, false);
+        agentList2.put(agent2.id, agent2);
+        agentEntries2.addEntry(8, agent2);
+        agent2 = new Agent(4, 1, Constants.DOWN, true, true);
+        agentList2.put(agent2.id, agent2);
+        agentEntries2.addEntry(9, agent2);
+        agent2 = new Agent(5, 1, Constants.UP, true, true);
+        agentList2.put(agent2.id, agent2);
+        agentEntries2.addEntry(10, agent2);
+        agent2 = new Agent(6, 1, Constants.DOWN, true, true);
+        agentList2.put(agent2.id, agent2);
+        agentEntries2.addEntry(11, agent2);
 
         MAPFScenario scenarioICTS = new MAPFScenario(myRamp, agentEntries2, 20);
         MAPFScenario scenarioAstar = new MAPFScenario(myRamp, agentEntries2, 20);
