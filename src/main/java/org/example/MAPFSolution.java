@@ -11,6 +11,7 @@ public class MAPFSolution {
     private ArrayList<MAPFState> solutionSet;
     private int cost;
     private int prioCost;
+    private int waitCost;
     private int generatedStates;
     private int expandedStates;
     private double obtainTime;
@@ -20,6 +21,9 @@ public class MAPFSolution {
         this.solutionSet = solution;
         this.generatedStates = generatedStates;
         this.expandedStates = expandedStates;
+        this.cost = 0;
+        this.prioCost = 0;
+        this.waitCost = 0;
     }
 
     // Methods
@@ -93,15 +97,26 @@ public class MAPFSolution {
                 prioCost += path.size() - 1;
             }
 
+            String prevLocation = "-1";
             for(String location : path) {
                 if(!location.equals("-")) {
                     int locationInt = Integer.parseInt(location);
+                    int prevLocationInt = Integer.parseInt(prevLocation);
+
+                    // If agent has reached an exit
                     if(locationInt == surfaceExit || locationInt == undergroundExit) {
                         cost--;
                         if(agent.higherPrio) {
                             prioCost--;
                         }
                     }
+                    // If agent waits, and not in an exit, increment waitCost
+                    else if (locationInt == prevLocationInt) {
+                        waitCost++;
+                    }
+
+                    // Update prevLocation
+                    prevLocation = location;
                 }
                 else {
                     cost--;
@@ -115,7 +130,8 @@ public class MAPFSolution {
 
         if(!initial) {
             System.out.println("Solution cost: " + cost);
-            System.out.println("Priority agents SIC: " + prioCost);
+            System.out.println("Priority agents SOC: " + prioCost);
+            System.out.println("Time steps spent waiting: " + waitCost);
             System.out.println("Generated states (possibly added to frontier): " + generatedStates);
             System.out.println("Expanded states (polled from frontier): " + expandedStates);
         }

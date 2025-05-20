@@ -26,8 +26,8 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {3};
-        Ramp myRamp = new Ramp(10, 5, 5, passBays);
+        int[] passBays = {2};
+        Ramp myRamp = new Ramp(5, 5, 5, passBays);
 
 
         // ALL ALGORITHMS TEST
@@ -83,14 +83,14 @@ public class Main {
         System.out.println();
 
         // CBS
-//        System.out.println("#################### CBS ####################");
-//        long startTimeCBS = System.nanoTime();
-//        MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
-//        MAPFSolution cbsSolution = solverCBS.solve(false);
-//        long endTimeCBS = System.nanoTime();
-//        duration = endTimeCBS - startTimeCBS;
-//        cbsSolution.setObtainTime(duration);
-//        System.out.println("\nExecution time CBS: " + (duration / 1000000.0) + " ms");
+        System.out.println("#################### CBS ####################");
+        long startTimeCBS = System.nanoTime();
+        MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
+        MAPFSolution cbsSolution = solverCBS.solve(false);
+        long endTimeCBS = System.nanoTime();
+        duration = endTimeCBS - startTimeCBS;
+        cbsSolution.setObtainTime(duration);
+        System.out.println("\nExecution time CBS: " + (duration / 1000000.0) + " ms");
 
         // CBSwP
         System.out.println("#################### CBSwP ####################");
@@ -103,6 +103,6 @@ public class Main {
         System.out.println("\nExecution time CBSwP: " + (duration / 1000000.0) + " ms");
 
         // Visualiser
-        MAPFVisualiser visualiser = new MAPFVisualiser(myRamp, astarSolution, null/*ictsSolution*/, null/*cbsSolution*/, cbswpSolution);
+        MAPFVisualiser visualiser = new MAPFVisualiser(myRamp, astarSolution, ictsSolution, cbsSolution, cbswpSolution);
     }
 }
