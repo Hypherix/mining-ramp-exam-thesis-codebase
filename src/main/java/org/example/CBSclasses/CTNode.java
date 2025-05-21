@@ -1,8 +1,8 @@
 package org.example.CBSclasses;
 
 /*
-* Comparable to ICTNode for ICTS
-* */
+ * Comparable to ICTNode for ICTS
+ * */
 
 import org.example.Agent;
 
@@ -12,6 +12,7 @@ public class CTNode {
 
     // Data members
     public int cost;
+    public int prioCost;
     public Agent newlyConstrainedAgent;
     public ArrayList<CTNode> children;
 
@@ -32,6 +33,7 @@ public class CTNode {
     // Constructors
     public CTNode() {
         this.cost = 0;
+        this.prioCost = 0;
         this.agentPaths = new HashMap<>();
         this.vertexConstraints = new HashMap<>();
         this.edgeConstraints = new HashMap<>();
@@ -44,6 +46,7 @@ public class CTNode {
         // Used for generating children where constraints are inherited
 
         this.cost = 0;
+        this.prioCost = 0;
         this.agentPaths = new HashMap<>();
         this.vertexConstraints = vertexConstraints;
         this.edgeConstraints = edgeConstraints;
