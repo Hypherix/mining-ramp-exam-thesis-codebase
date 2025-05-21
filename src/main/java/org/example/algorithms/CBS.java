@@ -6,11 +6,11 @@ import org.example.CBSclasses.*;
 import java.util.*;
 
 /*
- * TODO NEXT: Start here. Keep the algorithm and helper methods generic, to account for
- *  CBSwP usage. Ideally only generateChildNodes will be overridden by CBSwP.
- *  ALSO: (single-agent) A* shall be used as low-level search! Should be easier to implement
- *  than ICTS since much of CBS builds on A* logic.
- * */
+* TODO NEXT: Start here. Keep the algorithm and helper methods generic, to account for
+*  CBSwP usage. Ideally only generateChildNodes will be overridden by CBSwP.
+*  ALSO: (single-agent) A* shall be used as low-level search! Should be easier to implement
+*  than ICTS since much of CBS builds on A* logic.
+* */
 
 public class CBS implements MAPFAlgorithm {
 
@@ -19,7 +19,6 @@ public class CBS implements MAPFAlgorithm {
     int accumulatedExpandedStates;
     int numOfGeneratedCTNodes;
     int numOfExpandedCTNodes;
-    boolean prioritise;
 
     // Constructors
     public CBS() {
@@ -45,8 +44,7 @@ public class CBS implements MAPFAlgorithm {
             // Create an initial state for the scenario
             HashMap<Agent, Integer> initialAgentLocation = new HashMap<>();
             initialAgentLocation.put(agent, location);
-            MAPFState singleInitialState = new MAPFState(
-                    ramp, initialAgentLocation, 0, 0, 0);
+            MAPFState singleInitialState = new MAPFState(ramp, initialAgentLocation, 0, 0);
             // Fill the scenario with the node's constraints that A* must consider
             MAPFScenario singleInitialScenario = new MAPFScenario(
                     ramp, singleInitialState, 1,
@@ -54,7 +52,7 @@ public class CBS implements MAPFAlgorithm {
 
             // With the scenario, run A*
             MAPFAlgorithm aStarSingle = AlgorithmFactory.getAlgorithm("astar");
-            MAPFSolution singleInitialSolution = aStarSingle.solve(singleInitialScenario, this.prioritise);
+            MAPFSolution singleInitialSolution = aStarSingle.solve(singleInitialScenario);
 
             // Check if a single solution path was found, if not (i.e. null), return fail
             if (singleInitialSolution == null) {
@@ -80,16 +78,6 @@ public class CBS implements MAPFAlgorithm {
         Collection<ArrayList<Integer>> allPaths = node.agentPaths.values();
         for(ArrayList<Integer> path : allPaths) {
             node.cost += path.size() - 1;
-        }
-
-        // Go through all higherPrio agents and calculate their SIC cost
-        for (Map.Entry<Agent, ArrayList<Integer>> entry : node.agentPaths.entrySet()) {
-            Agent agent = entry.getKey();
-            ArrayList<Integer> path = entry.getValue();
-
-            if(agent.higherPrio) {
-                node.prioCost += path.size() - 1;
-            }
         }
 
         return true;
@@ -119,8 +107,9 @@ public class CBS implements MAPFAlgorithm {
 
         // Get exit vertices. Two agents located in an exit vertex should not count as a conflict
 
-        // Get passing bays
-        ArrayList<ArrayList<Integer>> passingBays = ramp.getPassingBayVertices();
+//        if (node.cost == 29) {
+//            System.out.println();
+//        }
 
         ArrayList<Agent> agents = new ArrayList<>(node.agentPaths.keySet());
         agents.sort(Comparator.comparing(agent -> agent.id));
@@ -150,90 +139,6 @@ public class CBS implements MAPFAlgorithm {
                         continue;
                     }
 
-                    // Whenever one agent enters a passing bay, check that the passing bay is not occupied. If so,
-                    // create a conflict that creates a constraint where the agent entering later cannot enter the
-                    // passing bay at that time (so a vertex conflict for that agent)
-                    for (ArrayList<Integer> passingBay : passingBays) {
-                        if (passingBay.contains(firstPosition) && passingBay.contains(secondPosition)) {
-
-                            // If both agents occupy the same passing bay, depending on the agent directions, create
-                            // constraints
-                            // If both are upgoing, get the later agent and prevent it from entering at that time step
-                            if(firstAgent.direction == Constants.UP && secondAgent.direction == Constants.UP) {
-                                int s = t - 1;
-                                while(s != 0) {
-                                    if(!passingBay.contains(firstPath.get(s))) {
-                                        // Create constraint for first agent entering the FIRST passingBay vertex
-                                        return new Conflict(firstAgent, s + 1, passingBay.getLast());
-                                    }
-                                    if(!passingBay.contains(secondPath.get(s))) {
-                                        // Create constraint for second agent entering the FIRST passingBay vertex
-                                        return new Conflict(secondAgent, s + 1, passingBay.getLast());
-                                    }
-                                    s--;
-                                }
-                            }
-                            // Likewise if downgoing
-                            else if(firstAgent.direction == Constants.DOWN && secondAgent.direction == Constants.DOWN) {
-                                int s = t - 1;
-                                while(s != 0) {
-                                    if(!passingBay.contains(firstPath.get(s))) {
-                                        // Create constraint for first agent entering the SECOND passingBay vertex
-                                        return new Conflict(firstAgent, s + 1, passingBay.getFirst());
-                                    }
-                                    if(!passingBay.contains(secondPath.get(s))) {
-                                        // Create constraint for second agent entering the SECOND passingBay vertex
-                                        return new Conflict(secondAgent, s + 1, passingBay.getFirst());
-                                    }
-                                    s--;
-                                }
-                            }
-                            // If different directions, there is a possibility that both enter the passing bay
-                            // simultaneously --> create conflict for both but in different vertices. Else same as above
-                            else if(firstAgent.direction != secondAgent.direction) {
-                                int s = t - 1;
-                                while (s != 0) {
-                                    // If both entered at time step t --> constraints for both
-                                    if (!passingBay.contains(firstPath.get(s)) && !passingBay.contains(secondPath.get(s))) {
-                                        // Constraints for both in different vertices
-                                        Agent downAgent;
-                                        Agent upAgent;
-
-                                        if(firstAgent.direction == Constants.DOWN) {
-                                            downAgent = firstAgent;
-                                            upAgent = secondAgent;
-                                        }
-                                        else {
-                                            upAgent = firstAgent;
-                                            downAgent = secondAgent;
-                                        }
-
-                                        return new Conflict(downAgent, upAgent, s + 1,
-                                                passingBay.getFirst(), passingBay.getLast(), false);
-                                    }
-                                    // If one entered later, prevent it from entering the passing bay at that time
-                                    else if (!passingBay.contains(firstPath.get(s))) {
-                                        if (firstAgent.direction == Constants.UP) {
-                                            return new Conflict(firstAgent, s + 1, passingBay.getLast());
-                                        }
-                                        else {
-                                            return new Conflict(firstAgent, s + 1, passingBay.getFirst());
-                                        }
-                                    }
-                                    else if (!passingBay.contains(secondPath.get(s))) {
-                                        if (secondAgent.direction == Constants.UP) {
-                                            return new Conflict(secondAgent, s + 1, passingBay.getLast());
-                                        }
-                                        else {
-                                            return new Conflict(secondAgent, s + 1, passingBay.getFirst());
-                                        }
-                                    }
-                                    s--;
-                                }
-                            }
-                        }
-                    }
-
                     // Check for a vertex conflict
                     if(firstPosition == secondPosition && !isAnExitVertex(firstPosition, ramp)) {
                         return new Conflict(firstAgent, secondAgent, t, firstPosition);
@@ -244,11 +149,11 @@ public class CBS implements MAPFAlgorithm {
                     int nextSecondPosition = secondPath.get(t + 1);
 
                     if (firstPosition == nextSecondPosition && secondPosition == nextFirstPosition
-                            && !isAnExitVertex(firstPosition, ramp)) {
+                        && !isAnExitVertex(firstPosition, ramp)) {
 
                         // The move in the edge conflict is the one that will be in the first agent's constraint.
                         // To get the second agent's constraint, simply reverse the vertices.
-                        return new Conflict(firstAgent, secondAgent, t + 1, firstPosition, nextFirstPosition, true);
+                        return new Conflict(firstAgent, secondAgent, t + 1, firstPosition, nextFirstPosition);
                     }
                 }
             }
@@ -282,13 +187,12 @@ public class CBS implements MAPFAlgorithm {
         solutionSet.addFirst(initialState);
 
         // First, pad the shorter paths with the exit vertex until all path sizes = solutionLength (i.e. the longest path size)
-        goalNode.agentPaths = padAgentPaths(goalNode.agentPaths);
+        goalNode.agentPaths = padAgentpaths(goalNode.agentPaths);
 
         for (int i = 1; i < solutionLength; i++) {
             HashMap<Agent, Integer> agentLocations = new HashMap<>();
 
             int cost = 0;
-            int prioCost = 0;
             for(Map.Entry<Agent, ArrayList<Integer>> entry : agentPaths.entrySet()) {
                 Agent agent = entry.getKey();
                 int prevLocation = entry.getValue().get(i - 1);
@@ -299,20 +203,14 @@ public class CBS implements MAPFAlgorithm {
                 // If current location is not an exit vertex, cost++
                 if(!isAnExitVertex(location, ramp)) {
                     cost++;
-                    if (agent.higherPrio) {
-                        prioCost++;
-                    }
                 }
                 // If current location is an exit vertex, but previous was not, cost++
                 else if(!isAnExitVertex(prevLocation, ramp)) {
                     cost++;
-                    if (agent.higherPrio) {
-                        prioCost++;
-                    }
                 }
             }
 
-            MAPFState state = new MAPFState(ramp, agentLocations, cost, prioCost, i,
+            MAPFState state = new MAPFState(ramp, agentLocations, cost, i,
                     goalNode.getConcurrentNodesInCTPrioQueue());
 
             if(!solutionSet.isEmpty()) {
@@ -328,8 +226,8 @@ public class CBS implements MAPFAlgorithm {
         // Task: Add a vertex constraint to a CTNode
 
         node.vertexConstraints
-                .computeIfAbsent(agent, _ -> new HashMap<>())
-                .computeIfAbsent(conflict.timeStep, _ -> new HashSet<>())
+                .computeIfAbsent(agent, k -> new HashMap<>())
+                .computeIfAbsent(conflict.timeStep, k -> new HashSet<>())
                 .add(conflict.vertex);
     }
 
@@ -349,8 +247,8 @@ public class CBS implements MAPFAlgorithm {
         }
 
         node.edgeConstraints
-                .computeIfAbsent(agent, _ -> new HashMap<>())
-                .computeIfAbsent(conflict.timeStep, _ -> new HashSet<>())
+                .computeIfAbsent(agent, k -> new HashMap<>())
+                .computeIfAbsent(conflict.timeStep, k -> new HashSet<>())
                 .add(constrainedEdge);
     }
 
@@ -449,46 +347,17 @@ public class CBS implements MAPFAlgorithm {
                     conflict.vertex);
 
         }
-        else if (conflict.type == Conflict.ConflictType.EDGE_OR_DIFF_DIRECTION_PASSBAY) {
+        else if (conflict.type == Conflict.ConflictType.EDGE) {
             // If an edge conflict, add edge constraint where agent1
             // can't move from fromVertex to toVertex at the conflict's timestep
-            if (conflict.isEdgeConflict) {
-                child.edgeConstraints = copyParentAndAddEdgeConstraint(
-                        parent.edgeConstraints,
-                        constrainedAgent,
-                        conflict.timeStep,
-                        conflict.fromVertex,
-                        conflict.toVertex,
-                        firstChild);
-            }
-
-            // If a passing bay conflict where the agents go in different directions
-            // and they enter simultaneously, add vertex constraints to both agents in the passing bay
-            else {
-                if (firstChild) {
-                    child.vertexConstraints = copyParentAndAddVertexConstraint(
-                            parent.vertexConstraints,
-                            constrainedAgent,
-                            conflict.timeStep,
-                            conflict.fromVertex);
-                }
-                else {
-                    child.vertexConstraints = copyParentAndAddVertexConstraint(
-                            parent.vertexConstraints,
-                            constrainedAgent,
-                            conflict.timeStep,
-                            conflict.toVertex);
-                }
-            }
-        }
-
-        else if (conflict.type == Conflict.ConflictType.PASSBAY_SAME_DIRECTION) {
-            // If a passing bay conflict in the same direction, create a vertex conflict for the later agent
-            child.vertexConstraints = copyParentAndAddVertexConstraint(
-                    parent.vertexConstraints,
+            child.edgeConstraints = copyParentAndAddEdgeConstraint(
+                    parent.edgeConstraints,
                     constrainedAgent,
                     conflict.timeStep,
-                    conflict.vertex);
+                    conflict.fromVertex,
+                    conflict.toVertex,
+                    firstChild);
+
         }
         parent.children.add(child);
     }
@@ -501,32 +370,21 @@ public class CBS implements MAPFAlgorithm {
         //  does the sibling get affected by its other sibling?
 
         // Get the agents affected by the conflict
-        if(conflict.type != Conflict.ConflictType.PASSBAY_SAME_DIRECTION) {
-            Agent agent1 = conflict.agent1;
-            Agent agent2 = conflict.agent2;
+        Agent agent1 = conflict.agent1;
+        Agent agent2 = conflict.agent2;
 
-            // First (left) child
-            CTNode leftChild = new CTNode(parent.vertexConstraints, parent.edgeConstraints);
-            generateChildHelper(parent, leftChild, conflict, agent1, true);
+        // First (left) child
+        CTNode leftChild = new CTNode(parent.vertexConstraints, parent.edgeConstraints);
+        generateChildHelper(parent, leftChild, conflict, agent1, true);
 
-            // Right (second) child
-            CTNode rightChild = new CTNode(parent.vertexConstraints, parent.edgeConstraints);
-            generateChildHelper(parent, rightChild, conflict, agent2, false);
+        // Right (second) child
+        CTNode rightChild = new CTNode(parent.vertexConstraints, parent.edgeConstraints);
+        generateChildHelper(parent, rightChild, conflict, agent2, false);
 
-            numOfGeneratedCTNodes += 2;
-        }
-
-        // If passbay conflict in same direction, create only one child for the later agent
-        else {
-            Agent agent = conflict.agent1;
-            CTNode onlyChild = new CTNode(parent.vertexConstraints, parent.edgeConstraints);
-            generateChildHelper(parent, onlyChild, conflict, agent, true);
-
-            numOfGeneratedCTNodes++;
-        }
+        numOfGeneratedCTNodes += 2;
     }
 
-    private HashMap<Agent, ArrayList<Integer>> padAgentPaths(HashMap<Agent, ArrayList<Integer>> agentPaths) {
+    private HashMap<Agent, ArrayList<Integer>> padAgentpaths(HashMap<Agent, ArrayList<Integer>> agentPaths) {
         // Task: Make the agent paths of equal length
 
         // Retrieve solution length
@@ -694,10 +552,8 @@ public class CBS implements MAPFAlgorithm {
 
     // Methods
     @Override
-    public MAPFSolution solve(MAPFScenario scenario, boolean prioritise) {
+    public MAPFSolution solve(MAPFScenario scenario) {
         // Task: Generates a MAPFSolution from the MAPFScenario
-
-        this.prioritise = prioritise;
 
         // Set the root CTNode agent paths and add it to the PrioQueue if not a goal node
 
@@ -711,15 +567,13 @@ public class CBS implements MAPFAlgorithm {
         CTNode root = createRootNode();
         boolean rootSuccess = setRootAgentPaths(root, agentLocations, initialState.getRamp());
         if(!rootSuccess) {
-            System.out.println("Could not find a solution at root CT level");
+            System.out.println("CBS: Could not find a solution at root CT level");
             return null;
         }
 
 
         // Create a PriorityQueue of CTNodes where the node with the lowest cost is prioritised
-        PriorityQueue<CTNode> ctPrioQueue = prioritise
-                ? new PriorityQueue<>(new CTNodePrioComparator())
-                : new PriorityQueue<>(new CTNodeComparator());
+        PriorityQueue<CTNode> ctPrioQueue = new PriorityQueue<>(new CTNodeComparator());
 
         // Enqueue the root
         ctPrioQueue.add(root);
@@ -761,7 +615,6 @@ public class CBS implements MAPFAlgorithm {
         while (!ctPrioQueue.isEmpty()) {
             CTNode currentNode = ctPrioQueue.poll();
             numOfExpandedCTNodes++;
-
 //            System.out.println(currentNode.cost);
 
 //            if(currentNode.cost == 40) {
@@ -775,36 +628,22 @@ public class CBS implements MAPFAlgorithm {
             // Check for conflicts in the currentNode agentPaths
             Conflict currentNodeConflict = getPathConflict(currentNode, initialState.getRamp());
 
-            // Pad the shorter paths with the exit vertex until all path sizes = solutionLength (i.e. the longest path size)
-            // This is needed for checking if queue behaviour is valid
-            HashMap<Agent, ArrayList<Integer>> copyUnpadded = copyAgentPaths(currentNode.agentPaths);
-
-            HashMap<Agent, ArrayList<Integer>> agentPathsCopy = padAgentPaths(copyUnpadded);
-
-            // Only add the child to the queue if it has a set of solution paths that does not
-            // violate normal queue behaviour
-            boolean valid = arePathsValid(agentPathsCopy, initialState.getRamp());
-
-            // currentNodeConflict is null if no conflicts were found --> goal node. Also check if solution is valid
-            if(currentNodeConflict == null && valid) {
+            // currentNodeConflict is null if no conflicts were found --> goal node
+            if(currentNodeConflict == null) {
                 ArrayList<MAPFState> solutionStates = buildSolution(scenario, currentNode);
 
                 MAPFSolution completeSolution = new MAPFSolution(solutionStates,
                         accumulatedGeneratedStates, accumulatedExpandedStates);
 
-                System.out.println("Goal node found after " + numOfGeneratedCTNodes + " were generated (possibly added to queue)" +
+                System.out.println("CBS: Goal node found after " + numOfGeneratedCTNodes + " were generated (possibly added to queue)" +
                         ", and " + numOfExpandedCTNodes + " CTNodes were expanded (polled from the queue)!");
 
                 return completeSolution;
             }
 
-            // If the node is conflict free but invalid, discard it since we can't generate children without a conflict
-            if (currentNodeConflict == null) {
-                continue;
-            }
-
             // Generate children to the non-goal node and enqueue to ctPrioQueue
             generateChildren(currentNode, currentNodeConflict);
+            numOfGeneratedCTNodes += 2; // TODO: Put in generateChildren instead
 
             // For each child, generate a path for the agent affected by the new constraint
             // First, get the agentLocation of the constrained agent
@@ -820,20 +659,26 @@ public class CBS implements MAPFAlgorithm {
                 // Get a new path for the constrained agent
                 boolean success = addAgentPaths(child, constrainedAgentLocation, initialState.getRamp());
 
-                if (success) {
+                // Pad the shorter paths with the exit vertex until all path sizes = solutionLength (i.e. the longest path size)
+                // This is needed for checking if queue behaviour is valid
+                HashMap<Agent, ArrayList<Integer>> copyUnpadded = copyAgentPaths(child.agentPaths);
+
+                HashMap<Agent, ArrayList<Integer>> agentPathsCopy = padAgentpaths(copyUnpadded);
+
+                // Only add the child to the queue if it has a set of solution paths that does not
+                // violate normal queue behaviour
+                boolean valid = arePathsValid(agentPathsCopy, initialState.getRamp());
+
+                if (success && valid) {
                     childrenToAddToPrioQueue.add(child);
+
                 }
             }
 
             // Create a snapshot of the prioqueue including the child sibling
-            PriorityQueue<CTNode> ctPrioQueueSnapshot = prioritise
-                    ? new PriorityQueue<>(new CTNodePrioComparator())
-                    : new PriorityQueue<>(new CTNodeComparator());
+            PriorityQueue<CTNode> ctPrioQueueSnapshot = new PriorityQueue<>(new CTNodeComparator());
             ctPrioQueueSnapshot.addAll(ctPrioQueue);
-
-            PriorityQueue<CTNode> children = prioritise
-                    ? new PriorityQueue<>(new CTNodePrioComparator())
-                    : new PriorityQueue<>(new CTNodeComparator());
+            PriorityQueue<CTNode> children = new PriorityQueue<>(new CTNodeComparator());
             children.addAll(currentNode.children);
 
             for (CTNode child : currentNode.children) {
@@ -845,21 +690,7 @@ public class CBS implements MAPFAlgorithm {
                 child.addAllToConcurrentNodesInPrioQueue(ctPrioQueueSnapshot);
             }
 
-            if (childrenToAddToPrioQueue.size() > 2) {
-                System.out.print("");
-            }
-
             // Finally, add the children to the ctPrioQueue
-
-//            for(CTNode child : childrenToAddToPrioQueue) {
-//                if (child.cost == currentNode.cost) {
-//                    System.out.println("\nChild with equal cost to parent found\nParent (cost " + child.cost + "):");
-//                    System.out.println(currentNode.agentPaths.values());
-//                    System.out.println("Child (cost " + child.cost + "):");
-//                    System.out.println(child.agentPaths.values());
-//                }
-//            }
-
             ctPrioQueue.addAll(childrenToAddToPrioQueue);
         }
 
