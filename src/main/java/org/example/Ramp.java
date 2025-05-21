@@ -108,6 +108,8 @@ public class Ramp {
                     addUpEdge(verticesHandled, verticesHandled + 1);
                     addDownEdge(verticesHandled, verticesHandled + gridLength);
                     addUpEdge(verticesHandled, verticesHandled + gridLength);
+                    addDownEdge(verticesHandled, verticesHandled);
+                    addUpEdge(verticesHandled, verticesHandled);
                     hDowngoing.put(verticesHandled, 3 + j);
                     hUpgoing.put(verticesHandled, 3 + j);
 
@@ -124,6 +126,9 @@ public class Ramp {
                     addUpEdge(verticesHandled, verticesHandled + 1);
                     addUpEdge(verticesHandled, verticesHandled + gridLength);
 
+                    addDownEdge(verticesHandled, verticesHandled);
+                    addUpEdge(verticesHandled, verticesHandled);
+
                     hDowngoing.put(verticesHandled, 3 + j);
                     hUpgoing.put(verticesHandled, 3 + j);
 
@@ -137,6 +142,9 @@ public class Ramp {
 
                     addUpEdge(verticesHandled, verticesHandled - 1);
                     addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addDownEdge(verticesHandled, verticesHandled);
+                    addUpEdge(verticesHandled, verticesHandled);
 
                     hDowngoing.put(verticesHandled, 3 + j);
                     hUpgoing.put(verticesHandled, 3 + j);
@@ -153,6 +161,9 @@ public class Ramp {
                     addUpEdge(verticesHandled, verticesHandled - gridLength);
                     addUpEdge(verticesHandled, verticesHandled + 1);
                     addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addDownEdge(verticesHandled, verticesHandled);
+                    addUpEdge(verticesHandled, verticesHandled);
 
                     hDowngoing.put(verticesHandled, 2 + j);
                     hUpgoing.put(verticesHandled, 2 + j);
@@ -171,6 +182,9 @@ public class Ramp {
                     addUpEdge(verticesHandled, verticesHandled - gridLength);
                     addUpEdge(verticesHandled, verticesHandled + gridLength);
 
+                    addDownEdge(verticesHandled, verticesHandled);
+                    addUpEdge(verticesHandled, verticesHandled);
+
                     hDowngoing.put(verticesHandled, 2 + j);
                     hUpgoing.put(verticesHandled, 2 + j);
 
@@ -185,6 +199,9 @@ public class Ramp {
                     addUpEdge(verticesHandled, verticesHandled - 1);
                     addUpEdge(verticesHandled, verticesHandled - gridLength);
                     addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addDownEdge(verticesHandled, verticesHandled);
+                    addUpEdge(verticesHandled, verticesHandled);
 
                     hDowngoing.put(verticesHandled, 2 + j);
                     hUpgoing.put(verticesHandled, 2 + j);
@@ -201,6 +218,9 @@ public class Ramp {
                     addUpEdge(verticesHandled, verticesHandled - gridLength);
                     addUpEdge(verticesHandled, verticesHandled + 1);
                     addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addDownEdge(verticesHandled, verticesHandled);
+                    addUpEdge(verticesHandled, verticesHandled);
 
                     hDowngoing.put(verticesHandled, 1 + j);
                     hUpgoing.put(verticesHandled, 1 + j);
@@ -219,6 +239,9 @@ public class Ramp {
                     addUpEdge(verticesHandled, verticesHandled - gridLength);
                     addUpEdge(verticesHandled, verticesHandled + gridLength);
 
+                    addDownEdge(verticesHandled, verticesHandled);
+                    addUpEdge(verticesHandled, verticesHandled);
+
                     hDowngoing.put(verticesHandled, 1 + j);
                     hUpgoing.put(verticesHandled, 1 + j);
 
@@ -233,6 +256,9 @@ public class Ramp {
                     addUpEdge(verticesHandled, verticesHandled - 1);
                     addUpEdge(verticesHandled, verticesHandled - gridLength);
                     addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addDownEdge(verticesHandled, verticesHandled);
+                    addUpEdge(verticesHandled, verticesHandled);
 
                     hDowngoing.put(verticesHandled, 1 + j);
                     hUpgoing.put(verticesHandled, 1 + j);
@@ -249,6 +275,9 @@ public class Ramp {
                     addUpEdge(verticesHandled, verticesHandled - gridLength);
                     addUpEdge(verticesHandled, verticesHandled + 1);
                     addUpEdge(verticesHandled, verticesHandled + gridLength);
+
+                    addDownEdge(verticesHandled, verticesHandled);
+                    addUpEdge(verticesHandled, verticesHandled);
 
                     hDowngoing.put(verticesHandled, 2 + j);
                     hUpgoing.put(verticesHandled, 2 + j);
@@ -267,6 +296,9 @@ public class Ramp {
                     addUpEdge(verticesHandled, verticesHandled - gridLength);
                     addUpEdge(verticesHandled, verticesHandled + gridLength);
 
+                    addDownEdge(verticesHandled, verticesHandled);
+                    addUpEdge(verticesHandled, verticesHandled);
+
                     hDowngoing.put(verticesHandled, 2 + j);
                     hUpgoing.put(verticesHandled, 2 + j);
 
@@ -282,6 +314,9 @@ public class Ramp {
                     addUpEdge(verticesHandled, verticesHandled - gridLength);
                     addUpEdge(verticesHandled, verticesHandled + gridLength);
 
+                    addDownEdge(verticesHandled, verticesHandled);
+                    addUpEdge(verticesHandled, verticesHandled);
+
                     hDowngoing.put(verticesHandled, 2 + j);
                     hUpgoing.put(verticesHandled, 2 + j);
 
@@ -295,6 +330,9 @@ public class Ramp {
                     addUpEdge(verticesHandled, verticesHandled + 1);
                     addDownEdge(verticesHandled, verticesHandled - gridLength);
                     addUpEdge(verticesHandled, verticesHandled - gridLength);
+
+                    addDownEdge(verticesHandled, verticesHandled);
+                    addUpEdge(verticesHandled, verticesHandled);
 
                     hDowngoing.put(verticesHandled, 3 + j);
                     hUpgoing.put(verticesHandled, 3 + j);
@@ -312,6 +350,9 @@ public class Ramp {
                     addUpEdge(verticesHandled, verticesHandled + 1);
                     addUpEdge(verticesHandled, verticesHandled - gridLength);
 
+                    addDownEdge(verticesHandled, verticesHandled);
+                    addUpEdge(verticesHandled, verticesHandled);
+
                     hDowngoing.put(verticesHandled, 3 + j);
                     hUpgoing.put(verticesHandled, 3 + j);
 
@@ -325,6 +366,9 @@ public class Ramp {
 
                     addUpEdge(verticesHandled, verticesHandled - 1);
                     addUpEdge(verticesHandled, verticesHandled - gridLength);
+
+                    addDownEdge(verticesHandled, verticesHandled);
+                    addUpEdge(verticesHandled, verticesHandled);
 
                     hDowngoing.put(verticesHandled, 3 + j);
                     hUpgoing.put(verticesHandled, 3 + j);

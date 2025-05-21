@@ -255,6 +255,8 @@ public class ICTS implements MAPFAlgorithm {
             while(!queue.isEmpty()) {
                 ArrayList<MDDNode> currentNodes = queue.poll();
 
+//                System.out.println(currentNodes.size());
+
                 int surfaceExit = ramp.getSurfaceExit();
                 int undergroundExit = ramp.getUndergroundExit();
 

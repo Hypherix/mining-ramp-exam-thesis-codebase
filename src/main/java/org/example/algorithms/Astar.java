@@ -531,6 +531,11 @@ public class Astar implements MAPFAlgorithm {
             MAPFState currentState = frontier.poll();
             expandedStates++;
 
+//            if(currentState.getFcost() == 18) {
+//                System.out.print("");
+//            }
+//            System.out.println(currentState.getFcost());
+
             // If rollback, and we poll a state with the same timestep as the rollback, AND the state is not
             // the initial state (i.e. nr of active agents are less than those in current state), insert the newly
             // entered agents

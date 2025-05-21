@@ -579,7 +579,7 @@ public class CBS implements MAPFAlgorithm {
         ctPrioQueue.add(root);
 
         // In case we are here due to a rollback. Add all initialState's ctPrioQueue's nodes
-        boolean prioQueuePrefilled = false;
+        boolean prioQueuePrefilled = true;
         if(!prioQueuePrefilled && !initialState.getConcurrentNodesInCTPrioQueue().isEmpty()) {
 
             ArrayList<CTNode> nodesToRemove = new ArrayList<>();
