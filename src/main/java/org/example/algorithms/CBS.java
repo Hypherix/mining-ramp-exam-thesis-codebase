@@ -101,7 +101,7 @@ public class CBS implements MAPFAlgorithm {
         return addAgentPaths(root, agentLocations, ramp);
     }
 
-    public boolean isAnExitVertex(int vertex, Ramp ramp) {
+    protected boolean isAnExitVertex(int vertex, Ramp ramp) {
         // Task: Return true if the input vertex is either the surface- or underground exit
 
         int surfaceExit = ramp.getSurfaceExit();
@@ -110,7 +110,7 @@ public class CBS implements MAPFAlgorithm {
         return vertex == surfaceExit || vertex == undergroundExit;
     }
 
-    public Conflict getPathConflict(CTNode node, Ramp ramp) {
+    protected Conflict getPathConflict(CTNode node, Ramp ramp) {
         // Task: Given a the root CTNode, return the first conflict amongst agents, else null.
         // TODO: Check if vertex is an exit vertex, in which case it should not count as a conflict
         //  Perhaps even implement that if both agent locations are at exits, continue to next pair for optimisation
@@ -258,7 +258,7 @@ public class CBS implements MAPFAlgorithm {
         return null;
     }
 
-    public ArrayList<MAPFState> buildSolution(MAPFScenario scenario, CTNode goalNode) {
+    protected ArrayList<MAPFState> buildSolution(MAPFScenario scenario, CTNode goalNode) {
         // Task: Given a goal CTNode, construct an ArrayList<MAPFState> with all solution paths
 
         // TODO NEXT: generated/expanded state counts are data members of CBS. Needed is solution cost
@@ -324,7 +324,7 @@ public class CBS implements MAPFAlgorithm {
         return solutionSet;
     }
 
-    private void addVertexConstraint(CTNode node, Agent agent, Conflict conflict) {
+    protected void addVertexConstraint(CTNode node, Agent agent, Conflict conflict) {
         // Task: Add a vertex constraint to a CTNode
 
         node.vertexConstraints
@@ -333,7 +333,7 @@ public class CBS implements MAPFAlgorithm {
                 .add(conflict.vertex);
     }
 
-    private void addEdgeConstraint(CTNode node, Agent agent, Conflict conflict, boolean leftChild) {
+    protected void addEdgeConstraint(CTNode node, Agent agent, Conflict conflict, boolean leftChild) {
         // Task: Add an edge constraint to a CTNode
         // If firstChild == true, constrained edge is fromVertex->toVertex. Vice versa if false
 
@@ -358,8 +358,7 @@ public class CBS implements MAPFAlgorithm {
             HashMap<Agent, HashMap<Integer, Set<Integer>>> parentConstraints,
             Agent agent,
             int timeStep,
-            int prohibitedVertex
-    ) {
+            int prohibitedVertex) {
         // Step 1: Shallow copy of the outer map
         HashMap<Agent, HashMap<Integer, Set<Integer>>> newConstraints = new HashMap<>(parentConstraints);
 
@@ -387,8 +386,7 @@ public class CBS implements MAPFAlgorithm {
             int timeStep,
             int fromVertex,
             int toVertex,
-            boolean firstChild
-    ) {
+            boolean firstChild) {
         // Step 1: Shallow copy of the outer map
         HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> newConstraints = new HashMap<>(parentConstraints);
 

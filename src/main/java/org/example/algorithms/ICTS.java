@@ -16,7 +16,6 @@ public class ICTS implements MAPFAlgorithm {
 
     // Data members
     private ICT tree;
-    private int numOfAgents;
 
     // Constructors
     public ICTS() {
