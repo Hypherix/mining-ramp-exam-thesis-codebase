@@ -26,7 +26,7 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {2, 4};
+        int[] passBays = {2, 5};
         Ramp myRamp = new Ramp(8, 5, 5, passBays);
 
 
@@ -36,7 +36,7 @@ public class Main {
         for(int i = 0; i < 3; i++) {
             Agent agent2;
             if(i % 2 == 0) {
-                agent2 = new Agent(i, 1, Constants.DOWN, true, true);
+                agent2 = new Agent(i, 1, Constants.DOWN, true, false);
             }
             else {
                 agent2 = new Agent(i, 1, Constants.UP, true, false);
@@ -49,13 +49,13 @@ public class Main {
         agentEntries2.addEntry(8, agent2);
         agent2 = new Agent(4, 1, Constants.DOWN, true, true);
         agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(9, agent2);
-        agent2 = new Agent(5, 1, Constants.UP, true, true);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(10, agent2);
-        agent2 = new Agent(6, 1, Constants.DOWN, true, true);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(11, agent2);
+        agentEntries2.addEntry(5, agent2);
+//        agent2 = new Agent(5, 1, Constants.UP, true, true);
+//        agentList2.put(agent2.id, agent2);
+//        agentEntries2.addEntry(10, agent2);
+//        agent2 = new Agent(6, 1, Constants.DOWN, true, true);
+//        agentList2.put(agent2.id, agent2);
+//        agentEntries2.addEntry(11, agent2);
 
         MAPFScenario scenarioICTS = new MAPFScenario(myRamp, agentEntries2, 20);
         MAPFScenario scenarioAstar = new MAPFScenario(myRamp, agentEntries2, 20);
@@ -64,49 +64,63 @@ public class Main {
 
         long duration;
 
-        // ICTS
-        System.out.println("#################### ICTS ####################");
-        long startTimeICTS = System.nanoTime();
-        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
-        MAPFSolution ictsSolution = solverICTS.solve(false);
-        long endTimeICTS = System.nanoTime();
-        duration = endTimeICTS - startTimeICTS;
-        ictsSolution.setObtainTime(duration);
-        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
+
+
+
+        System.out.println();
+
+        // CBSwP
+        System.out.println("#################### CBSwP ####################");
+        MAPFSolver solverCBSwP = new MAPFSolver(scenarioCBSwP, "CBSwP");
+        long startTimeCBSwP = System.nanoTime();
+        MAPFSolution cbswpSolution = solverCBSwP.solve(false);
+        long endTimeCBSwP = System.nanoTime();
+        long cbswpDuration = endTimeCBSwP - startTimeCBSwP;
+        cbswpSolution.setObtainTime(cbswpDuration);
+        System.out.println("\nExecution time CBSw/P: " + cbswpSolution.getObtainTime() + " ms");
 
         System.out.println();
 
         // A*
         System.out.println("#################### A* ####################");
-        long startTimeAstar = System.nanoTime();
         MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
+        long startTimeAstar = System.nanoTime();
         MAPFSolution astarSolution = solverAstar.solve(false);
         long endTimeAstar = System.nanoTime();
-        duration = endTimeAstar - startTimeAstar;
-        astarSolution.setObtainTime(duration);
-        System.out.println("\nExecution time A*: " + (duration / 1000000.0) + " ms");
+        long astarDuration = endTimeAstar - startTimeAstar;
+        astarSolution.setObtainTime(astarDuration);
+        System.out.println("\nExecution time A*: " + astarSolution.getObtainTime() + " ms");
+
+        System.out.println();
+
+        // ICTS
+        System.out.println("#################### ICTS ####################");
+        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
+        long startTimeICTS = System.nanoTime();
+        MAPFSolution ictsSolution = solverICTS.solve(false);
+        long endTimeICTS = System.nanoTime();
+        long ictsDuration = endTimeICTS - startTimeICTS;
+        ictsSolution.setObtainTime(ictsDuration);
+        System.out.println("\nExecution time ICTS: " + ictsSolution.getObtainTime() + " ms");
 
         System.out.println();
 
         // CBS
         System.out.println("#################### CBS ####################");
-        long startTimeCBS = System.nanoTime();
         MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
+        long startTimeCBS = System.nanoTime();
         MAPFSolution cbsSolution = solverCBS.solve(false);
         long endTimeCBS = System.nanoTime();
-        duration = endTimeCBS - startTimeCBS;
-        cbsSolution.setObtainTime(duration);
-        System.out.println("\nExecution time CBS: " + (duration / 1000000.0) + " ms");
+        long cbsDuration = endTimeCBS - startTimeCBS;
+        cbsSolution.setObtainTime(cbsDuration);
+        System.out.println("\nExecution time CBS: " + cbsSolution.getObtainTime() + " ms");
 
-        // CBSwP
-        System.out.println("#################### CBSwP ####################");
-        long startTimeCBSwP = System.nanoTime();
-        MAPFSolver solverCBSwP = new MAPFSolver(scenarioCBSwP, "CBSwP");
-        MAPFSolution cbswpSolution = solverCBSwP.solve(false);
-        long endTimeCBSwP = System.nanoTime();
-        duration = endTimeCBSwP - startTimeCBSwP;
-        cbswpSolution.setObtainTime(duration);
-        System.out.println("\nExecution time CBSwP: " + (duration / 1000000.0) + " ms");
+
+        System.out.println("\nExecution time ICTS: " + Math.round(ictsSolution.getObtainTime()) + " ms, and cost: " + ictsSolution.getCost());
+        System.out.println("Execution time A*: " + Math.round(astarSolution.getObtainTime()) + " ms, and cost: " + astarSolution.getCost());
+        System.out.println("Execution time CBS: " + Math.round(cbsSolution.getObtainTime()) + " ms, and cost: " + cbsSolution.getCost());
+        System.out.println("Execution time CBSwP: " + Math.round(cbswpSolution.getObtainTime()) + " ms, and cost: " + cbswpSolution.getCost());
+
 
         // Visualiser
         MAPFVisualiser visualiser = new MAPFVisualiser(myRamp, astarSolution, ictsSolution, cbsSolution, cbswpSolution);
