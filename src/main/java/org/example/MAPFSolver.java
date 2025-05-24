@@ -24,12 +24,14 @@ public class MAPFSolver {
     private MAPFAlgorithm algorithm;
     private MAPFSolution solution;
     private int timeStep;
+    private String algorithmString;
 
 
     // Constructors
     public MAPFSolver(MAPFScenario scenario, String algorithm) {
         this.scenario = scenario;
-        timeStep = 0;
+        this.timeStep = 0;
+        this.algorithmString = algorithm;
 
         // Invoke the factory pattern to fetch the correct algorithm object
         this.algorithm = AlgorithmFactory.getAlgorithm(algorithm);
@@ -50,7 +52,13 @@ public class MAPFSolver {
         // Need to implement so that for every time step, MAPFSolver checks its scenario if
         // new agents enter. In that case, run t
 
+        long startFirstTime = System.nanoTime();
         currentSolution = this.algorithm.solve(this.scenario, prioritise);
+        long endFirstTime = System.nanoTime();
+        long firstDuration = endFirstTime - startFirstTime;
+        System.out.println("Execution time " + this.algorithmString + ": " + (firstDuration / 1000000) + " ms");
+
+        double totalReplanTime = 0;
 
         for(timeStep = 1; timeStep < endTime; timeStep++) {
             if (agentEntries.containsKey(timeStep)) {   // If there are new agents entering this timeStep
@@ -108,8 +116,12 @@ public class MAPFSolver {
                 // Also give the initial state the
 
                 // Invoke the algorithm anew
+                long startReplanTime = System.nanoTime();
                 currentSolution = this.algorithm.solve(this.scenario, prioritise);
-
+                long endReplanTime = System.nanoTime();
+                long replanDuration = endReplanTime - startReplanTime;
+                System.out.println("Execution time " + this.algorithmString + " replan: " + (replanDuration / 1000000) + " ms");
+                totalReplanTime += (double) replanDuration;
 
                 // Since currentSolution's initial solution set state is the same as the last state
                 // in currentSolutionStates, remove it from currentSolutionStates
@@ -133,6 +145,7 @@ public class MAPFSolver {
                 //currentSolution.setSolutionSet(newCurrentSolutionStates);
             }
         }
+        System.out.println(this.algorithmString + " total replan time: " + Math.round(totalReplanTime / 1000000) + " ms");
 
         this.solution = currentSolution;
 
