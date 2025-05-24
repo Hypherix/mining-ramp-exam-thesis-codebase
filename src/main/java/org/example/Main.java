@@ -92,7 +92,7 @@ public class Main {
         System.out.println("#################### CBSwP ####################");
         MAPFSolver solverCBSwP = new MAPFSolver(scenarioCBSwP, "CBSwP");
         long startTimeCBSwP = System.nanoTime();
-        MAPFSolution cbswpSolution = solverCBSwP.solve(true);
+        MAPFSolution cbswpSolution = solverCBSwP.solve(false);
         long endTimeCBSwP = System.nanoTime();
         long cbswpDuration = endTimeCBSwP - startTimeCBSwP;
         cbswpSolution.setObtainTime(cbswpDuration);
@@ -104,7 +104,7 @@ public class Main {
         System.out.println("#################### A* ####################");
         MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
         long startTimeAstar = System.nanoTime();
-        MAPFSolution astarSolution = solverAstar.solve(true);
+        MAPFSolution astarSolution = solverAstar.solve(false);
         long endTimeAstar = System.nanoTime();
         long astarDuration = endTimeAstar - startTimeAstar;
         astarSolution.setObtainTime(astarDuration);
@@ -113,35 +113,35 @@ public class Main {
         System.out.println();
 
         // ICTS
-        System.out.println("#################### ICTS ####################");
-        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
-        long startTimeICTS = System.nanoTime();
-        MAPFSolution ictsSolution = solverICTS.solve(true);
-        long endTimeICTS = System.nanoTime();
-        long ictsDuration = endTimeICTS - startTimeICTS;
-        ictsSolution.setObtainTime(ictsDuration);
-        System.out.println("\nExecution time ICTS: " + ictsSolution.getObtainTime() + " ms");
-
-        System.out.println();
+//        System.out.println("#################### ICTS ####################");
+//        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
+//        long startTimeICTS = System.nanoTime();
+//        MAPFSolution ictsSolution = solverICTS.solve(true);
+//        long endTimeICTS = System.nanoTime();
+//        long ictsDuration = endTimeICTS - startTimeICTS;
+//        ictsSolution.setObtainTime(ictsDuration);
+//        System.out.println("\nExecution time ICTS: " + ictsSolution.getObtainTime() + " ms");
+//
+//        System.out.println();
 
         // CBS
         System.out.println("#################### CBS ####################");
         MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
         long startTimeCBS = System.nanoTime();
-        MAPFSolution cbsSolution = solverCBS.solve(true);
+        MAPFSolution cbsSolution = solverCBS.solve(false);
         long endTimeCBS = System.nanoTime();
         long cbsDuration = endTimeCBS - startTimeCBS;
         cbsSolution.setObtainTime(cbsDuration);
         System.out.println("\nExecution time CBS: " + cbsSolution.getObtainTime() + " ms");
 
 
-        System.out.println("\nExecution time ICTS: " + Math.round(ictsSolution.getObtainTime()) + " ms, and cost: " + ictsSolution.getCost());
+//        System.out.println("\nExecution time ICTS: " + Math.round(ictsSolution.getObtainTime()) + " ms, and cost: " + ictsSolution.getCost());
         System.out.println("Execution time A*: " + Math.round(astarSolution.getObtainTime()) + " ms, and cost: " + astarSolution.getCost());
         System.out.println("Execution time CBS: " + Math.round(cbsSolution.getObtainTime()) + " ms, and cost: " + cbsSolution.getCost());
         System.out.println("Execution time CBSwP: " + Math.round(cbswpSolution.getObtainTime()) + " ms, and cost: " + cbswpSolution.getCost());
 
 
         // Visualiser
-        MAPFVisualiser visualiser = new MAPFVisualiser(myRamp, astarSolution, ictsSolution, cbsSolution, cbswpSolution);
+//        MAPFVisualiser visualiser = new MAPFVisualiser(myRamp, astarSolution, ictsSolution, cbsSolution, cbswpSolution);
     }
 }

@@ -12,6 +12,7 @@ public class MAPFSolution {
     private int cost;
     private int prioCost;
     private int waitCost;
+    private int prioWaitCost;
     private int generatedStates;
     private int expandedStates;
     private double obtainTime;
@@ -24,6 +25,7 @@ public class MAPFSolution {
         this.cost = 0;
         this.prioCost = 0;
         this.waitCost = 0;
+        this.prioWaitCost = 0;
     }
 
     // Methods
@@ -113,6 +115,10 @@ public class MAPFSolution {
                     // If agent waits, and not in an exit, increment waitCost
                     else if (locationInt == prevLocationInt) {
                         waitCost++;
+
+                        if(agent.higherPrio) {
+                            prioWaitCost++;
+                        }
                     }
 
                     // Update prevLocation
@@ -132,6 +138,7 @@ public class MAPFSolution {
             System.out.println("Solution cost: " + cost);
             System.out.println("Priority agents SOC: " + prioCost);
             System.out.println("Time steps spent waiting: " + waitCost);
+            System.out.println("Time steps prio spent waiting: " + prioWaitCost);
             System.out.println("Generated states (possibly added to frontier): " + generatedStates);
             System.out.println("Expanded states (polled from frontier): " + expandedStates);
         }
