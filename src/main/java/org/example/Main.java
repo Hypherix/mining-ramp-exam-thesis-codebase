@@ -29,7 +29,7 @@ public class Main {
         // ALL ALGORITHMS TEST
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
         AgentEntries agentEntries2 = new AgentEntries();
-        for(int i = 0; i < 6; i++) {
+        for(int i = 0; i < 7; i++) {
             Agent agent2;
             Random rand = new Random();
             int start = rand.nextInt(25);
@@ -91,79 +91,62 @@ public class Main {
         long cbsTotalDuration = 0;
         long cbswpTotalDuration = 0;
 
-        int iterations = 10;
 
-        for (int i = 0; i < iterations; i++) {
-            // ICTS
-//            System.out.println("#################### ICTS ####################");
-//            long startTimeICTS = System.nanoTime();
-//            MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
-//            solverICTS.solve();
-//            long endTimeICTS = System.nanoTime();
-//            duration = endTimeICTS - startTimeICTS;
-//            ictsTotalDuration += duration;
-//            System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
+        // CBS
+        System.out.println("#################### CBS ####################");
+        MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
+        long startTimeCBS = System.nanoTime();
+        solverCBS.solve();
+        long endTimeCBS = System.nanoTime();
+        duration = endTimeCBS - startTimeCBS;
+        cbsTotalDuration += duration;
+        System.out.println("\nExecution time CBS: " + (duration / 1000000.0) + " ms");
 
-            System.out.println();
-
-            // CBS
-            System.out.println("#################### CBS ####################");
-            long startTimeCBS = System.nanoTime();
-            MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
-            solverCBS.solve();
-            long endTimeCBS = System.nanoTime();
-            duration = endTimeCBS - startTimeCBS;
-            cbsTotalDuration += duration;
-//            System.out.println("\nExecution time CBS: " + (duration / 1000000.0) + " ms");
-
-            // CBSwP
-            System.out.println("#################### CBSwP ####################");
-            long startTimeCBSwP = System.nanoTime();
-            MAPFSolver solverCBSwP = new MAPFSolver(scenarioCBSwP, "CBSwP");
-            solverCBSwP.solve();
-            long endTimeCBSwP = System.nanoTime();
-            duration = endTimeCBSwP - startTimeCBSwP;
-            cbswpTotalDuration += duration;
-//            System.out.println("\nExecution time CBSwP: " + (duration / 1000000.0) + " ms");
-        }
+        // CBSwP
+        System.out.println("#################### CBSwP ####################");
+        MAPFSolver solverCBSwP = new MAPFSolver(scenarioCBSwP, "CBSwP");
+        long startTimeCBSwP = System.nanoTime();
+        solverCBSwP.solve();
+        long endTimeCBSwP = System.nanoTime();
+        duration = endTimeCBSwP - startTimeCBSwP;
+        cbswpTotalDuration += duration;
+        System.out.println("\nExecution time CBSwP: " + (duration / 1000000.0) + " ms");
 
         System.out.println();
 
 //        System.out.println("Average ICTS execution time: " + ((ictsTotalDuration / 1000000.0) / iterations));
 //        System.out.println("Average A* execution time: " + ((astarTotalDuration / 1000000.0) / iterations));
-        System.out.println("Average CBS execution time: " + ((cbsTotalDuration / 1000000.0) / iterations));
-        System.out.println("Average CBSw/P execution time: " + ((cbswpTotalDuration / 1000000.0) / iterations));
 
-        for (int i = 0; i < iterations; i++) {
-            // ICTS
-            System.out.println("#################### ICTS ####################");
-            long startTimeICTS = System.nanoTime();
-            MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
-            solverICTS.solve();
-            long endTimeICTS = System.nanoTime();
-            duration = endTimeICTS - startTimeICTS;
-            ictsTotalDuration += duration;
-//            System.out.println("\nExecution time A*: " + (duration / 1000000.0) + " ms");
 
-            System.out.println();
-        }
 
-        System.out.println("Average ICTS execution time: " + ((ictsTotalDuration / 1000000.0) / iterations));
+        // ICTS
+        System.out.println("#################### ICTS ####################");
+        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
+        long startTimeICTS = System.nanoTime();
+        solverICTS.solve();
+        long endTimeICTS = System.nanoTime();
+        duration = endTimeICTS - startTimeICTS;
+        ictsTotalDuration += duration;
+        System.out.println("\nExecution time ICTS: " + (duration / 1000000.0) + " ms");
 
-        for (int i = 0; i < iterations; i++) {
-            // A*
-            System.out.println("#################### A* ####################");
-            long startTimeAstar = System.nanoTime();
-            MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
-            solverAstar.solve();
-            long endTimeAstar = System.nanoTime();
-            duration = endTimeAstar - startTimeAstar;
-            astarTotalDuration += duration;
-//            System.out.println("\nExecution time A*: " + (duration / 1000000.0) + " ms");
+        System.out.println();
 
-            System.out.println();
-        }
 
-        System.out.println("Average A* execution time: " + ((astarTotalDuration / 1000000.0) / iterations));
+        // A*
+        System.out.println("#################### A* ####################");
+        MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
+        long startTimeAstar = System.nanoTime();
+        solverAstar.solve();
+        long endTimeAstar = System.nanoTime();
+        duration = endTimeAstar - startTimeAstar;
+        astarTotalDuration += duration;
+        System.out.println("\nExecution time A*: " + (duration / 1000000.0) + " ms");
+
+        System.out.println();
+
+        System.out.println("Average ICTS execution time: " + (ictsTotalDuration / 1000000.0));
+        System.out.println("Average A* execution time: " + (astarTotalDuration / 1000000.0));
+        System.out.println("Average CBS execution time: " + (cbsTotalDuration / 1000000.0));
+        System.out.println("Average CBSw/P execution time: " + (cbswpTotalDuration / 1000000.0));
     }
 }
