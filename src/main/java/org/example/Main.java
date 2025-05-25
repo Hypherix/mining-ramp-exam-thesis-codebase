@@ -27,14 +27,14 @@ public class Main {
     public static void main(String[] args) {
         //long startTime = System.nanoTime();
 
-        int[] passBays = {5};
-        Ramp myRamp = new Ramp(8, 10, 10, passBays);
+        int[] passBays = {};
+        Ramp myRamp = new Ramp(20, 10, 10, passBays);
 
 
         // ALL ALGORITHMS TEST
         HashMap<Integer, Agent> agentList2 = new HashMap<>();
         AgentEntries agentEntries2 = new AgentEntries();
-        int agentCount = 3;
+        int agentCount = 19;
         for(int i = 0; i < agentCount; i++) {
             Agent agent2;
             if(i % 2 == 0) {
@@ -43,21 +43,21 @@ public class Main {
             else {
                 agent2 = new Agent(i, 1, Constants.UP, true, false);
             }
-            if (i == 1) {
-                agent2.higherPrio = true;
-            }
+//            if (i == 1 || i == 3) {
+//                agent2.higherPrio = true;
+//            }
             agentList2.put(agent2.id, agent2);
             agentEntries2.addEntry(0, agent2);
         }
-        Agent agent2 = new Agent(agentCount++, 1, Constants.DOWN, false, false);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(1, agent2);
-        agent2 = new Agent(agentCount++, 1, Constants.UP, true, true);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(5, agent2);
-        agent2 = new Agent(agentCount++, 1, Constants.DOWN, true, false);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(9, agent2);
+//        Agent agent2 = new Agent(agentCount++, 1, Constants.DOWN, true, false);
+//        agentList2.put(agent2.id, agent2);
+//        agentEntries2.addEntry(1, agent2);
+//        agent2 = new Agent(agentCount++, 1, Constants.UP, true, true);
+//        agentList2.put(agent2.id, agent2);
+//        agentEntries2.addEntry(5, agent2);
+//        agent2 = new Agent(agentCount++, 1, Constants.DOWN, true, false);
+//        agentList2.put(agent2.id, agent2);
+//        agentEntries2.addEntry(9, agent2);
 
 //        Random rand = new Random();
 //        int numOfArrivals = 3;
@@ -84,7 +84,7 @@ public class Main {
         long duration;
 
 
-
+        boolean prioritise = false;
 
         System.out.println();
 
@@ -92,7 +92,7 @@ public class Main {
         System.out.println("#################### CBSwP ####################");
         MAPFSolver solverCBSwP = new MAPFSolver(scenarioCBSwP, "CBSwP");
         long startTimeCBSwP = System.nanoTime();
-        MAPFSolution cbswpSolution = solverCBSwP.solve(false);
+        MAPFSolution cbswpSolution = solverCBSwP.solve(prioritise);
         long endTimeCBSwP = System.nanoTime();
         long cbswpDuration = endTimeCBSwP - startTimeCBSwP;
         cbswpSolution.setObtainTime(cbswpDuration);
@@ -101,16 +101,16 @@ public class Main {
         System.out.println();
 
         // A*
-        System.out.println("#################### A* ####################");
-        MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
-        long startTimeAstar = System.nanoTime();
-        MAPFSolution astarSolution = solverAstar.solve(false);
-        long endTimeAstar = System.nanoTime();
-        long astarDuration = endTimeAstar - startTimeAstar;
-        astarSolution.setObtainTime(astarDuration);
-        System.out.println("\nExecution time A*: " + astarSolution.getObtainTime() + " ms");
-
-        System.out.println();
+//        System.out.println("#################### A* ####################");
+//        MAPFSolver solverAstar = new MAPFSolver(scenarioAstar, "astar");
+//        long startTimeAstar = System.nanoTime();
+//        MAPFSolution astarSolution = solverAstar.solve(prioritise);
+//        long endTimeAstar = System.nanoTime();
+//        long astarDuration = endTimeAstar - startTimeAstar;
+//        astarSolution.setObtainTime(astarDuration);
+//        System.out.println("\nExecution time A*: " + astarSolution.getObtainTime() + " ms");
+//
+//        System.out.println();
 
         // ICTS
 //        System.out.println("#################### ICTS ####################");
@@ -125,19 +125,19 @@ public class Main {
 //        System.out.println();
 
         // CBS
-        System.out.println("#################### CBS ####################");
-        MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
-        long startTimeCBS = System.nanoTime();
-        MAPFSolution cbsSolution = solverCBS.solve(false);
-        long endTimeCBS = System.nanoTime();
-        long cbsDuration = endTimeCBS - startTimeCBS;
-        cbsSolution.setObtainTime(cbsDuration);
-        System.out.println("\nExecution time CBS: " + cbsSolution.getObtainTime() + " ms");
+//        System.out.println("#################### CBS ####################");
+//        MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
+//        long startTimeCBS = System.nanoTime();
+//        MAPFSolution cbsSolution = solverCBS.solve(prioritise);
+//        long endTimeCBS = System.nanoTime();
+//        long cbsDuration = endTimeCBS - startTimeCBS;
+//        cbsSolution.setObtainTime(cbsDuration);
+//        System.out.println("\nExecution time CBS: " + cbsSolution.getObtainTime() + " ms");
 
 
 //        System.out.println("\nExecution time ICTS: " + Math.round(ictsSolution.getObtainTime()) + " ms, and cost: " + ictsSolution.getCost());
-        System.out.println("Execution time A*: " + Math.round(astarSolution.getObtainTime()) + " ms, and cost: " + astarSolution.getCost());
-        System.out.println("Execution time CBS: " + Math.round(cbsSolution.getObtainTime()) + " ms, and cost: " + cbsSolution.getCost());
+//        System.out.println("Execution time A*: " + Math.round(astarSolution.getObtainTime()) + " ms, and cost: " + astarSolution.getCost());
+//        System.out.println("Execution time CBS: " + Math.round(cbsSolution.getObtainTime()) + " ms, and cost: " + cbsSolution.getCost());
         System.out.println("Execution time CBSwP: " + Math.round(cbswpSolution.getObtainTime()) + " ms, and cost: " + cbswpSolution.getCost());
 
 
