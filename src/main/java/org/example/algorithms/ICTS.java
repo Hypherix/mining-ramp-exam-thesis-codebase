@@ -577,9 +577,6 @@ public class ICTS implements MAPFAlgorithm {
             root.agentPaths.add(agentPath);
         }
 
-        // TODO Optimisation? Run MDDToSolutionPaths() on each pair of agents. If one of them do not return
-        //  a solution, dont bother with generating a solution for the whole ICTNode
-
         // Check if root is goal node, i.e. if a joint solution can be found from the MDDs
         ArrayList<ArrayList<Integer>> solutionPaths = MDDToSolutionPaths(root, initialState.getRamp());
         numOfExploredICTNodes++;
@@ -607,11 +604,6 @@ public class ICTS implements MAPFAlgorithm {
 
             // Generate an MDD for each agent i, imposing all costVector.get(i) possible actions
             // Run BFS for x moves only and return the solution. Then call createMDDFromPath() to get MDD
-            /*
-            * TODO NEXT: Create a BFS method. It takes the ramp, agent start location, and goal location.
-                Try all x action combinations and record the end location. If end location == goal location
-                save the path, create a MAPFSolution for it, and run createMDDFromPath() to get MDD
-            * */
 
             ArrayList<ArrayList<MAPFSolution>> childSolutions = new ArrayList<>();
 
