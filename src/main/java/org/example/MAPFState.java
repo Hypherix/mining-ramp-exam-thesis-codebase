@@ -31,9 +31,6 @@ public class MAPFState {
     public MAPFState parent;
     public ArrayList<Agent> activeAgents;      // Agents not in an exit
     public ArrayList<Agent> inactiveAgents;    // Agents in an exit
-    private PriorityQueue<MAPFState> concurrentStatesInFrontier;    // Needed for rollback to MAPFState (A*)
-    private PriorityQueue<MAPFState> concurrentStatesInExplored;    // Needed for rollback to MAPFState (A*)
-    private PriorityQueue<CTNode> concurrentNodesInCTPrioQueue;    // Needed for CBS rollback
 
 
     // Constructors
@@ -78,9 +75,6 @@ public class MAPFState {
         this.fcostPrio = this.gcostPrio + this.hcostPrio;
         this.parent = null;
         this.timeStep = timeStep;
-        this.concurrentStatesInFrontier = new PriorityQueue<>(new StateComparator());
-        this.concurrentStatesInExplored = new PriorityQueue<>(new StateComparator());
-        this.concurrentNodesInCTPrioQueue = new PriorityQueue<>(new CTNodeComparator());
 
         // Categorise the agents as active or inactive
         this.activeAgents = new ArrayList<>();
@@ -214,7 +208,6 @@ public class MAPFState {
         }
         return h;
     }
-
 
     @Override
     public boolean equals(Object o) {

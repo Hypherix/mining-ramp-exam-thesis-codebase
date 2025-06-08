@@ -11,13 +11,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.*;
 
-/*
-* TODO: Make reset button clear all VertexPanels
-*  Enable buttons after simulation is done.
-*  Show stats to the left (put it inside the timer loop)
-*
-* */
-
 public class MAPFVisualiser extends JFrame implements ActionListener {
 
     // DATA MEMBERS

@@ -39,7 +39,7 @@ public class Main {
         agent2 = new Agent(agentCount++, 1, Constants.UP, true, true);
         agentEntries.addEntry(5, agent2);
         agent2 = new Agent(agentCount++, 1, Constants.DOWN, true, false);
-        agentEntries.addEntry(9, agent2);
+        agentEntries.addEntry(18, agent2);
 
 //        Random rand = new Random();
 //        int numOfArrivals = 3;

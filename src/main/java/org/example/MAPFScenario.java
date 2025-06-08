@@ -9,8 +9,11 @@ import java.util.*;
 /*
  * Contents
  *   - Ramp (graph)
- *   - HashMap where key is time step and values are arrays of start vertices and velocities for new agents
- *   - Duration that specifies max lifetime of the scenario
+ *   - Initial MAPFState
+ *   - Duration
+ *   - Total agent count
+ *   - The agent entries
+ *   - Constraints (used by CBS)
  * */
 
 public class MAPFScenario {
@@ -18,7 +21,7 @@ public class MAPFScenario {
     // Data members
     private Ramp ramp;
     private MAPFState initialState;
-    private int duration;       // Specifies the latest timeStep at which new agents can enter
+    private int duration;               // Specifies the latest timeStep at which new agents can enter
     private int totalAgentCount;
 
     private AgentEntries agentEntries;
@@ -201,19 +204,6 @@ public class MAPFScenario {
                 newGcostPrio = knownState.getGcostPrio();
             }
 
-//            // If getConcurrentStatesInFrontier/Explored are filled, move them over as well...
-//            if(knownState != null) {
-//                if(!knownState.getConcurrentStatesInFrontier().isEmpty() &&
-//                        !knownState.getConcurrentStatesInExplored().isEmpty()) {
-//
-//                    return new MAPFState(ramp, finalAgentLocations, newGcost, newGcostPrio, timeStep,
-//                            knownState.parent,
-//                            knownState.getConcurrentStatesInFrontier(),
-//                            knownState.getConcurrentStatesInExplored());
-//                }
-//            }
-
-            // ...else, return without them
             return new MAPFState(ramp, finalAgentLocations, newGcost, newGcostPrio, timeStep);
         }
     }
