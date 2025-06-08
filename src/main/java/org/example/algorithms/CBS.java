@@ -312,8 +312,7 @@ public class CBS implements MAPFAlgorithm {
                 }
             }
 
-            MAPFState state = new MAPFState(ramp, agentLocations, cost, prioCost, i,
-                    goalNode.getConcurrentNodesInCTPrioQueue());
+            MAPFState state = new MAPFState(ramp, agentLocations, cost, prioCost, i);
 
             if(!solutionSet.isEmpty()) {
                 state.parent = solutionSet.getLast();
@@ -721,38 +720,6 @@ public class CBS implements MAPFAlgorithm {
 
         // Enqueue the root
         ctPrioQueue.add(root);
-
-        // In case we are here due to a rollback. Add all initialState's ctPrioQueue's nodes
-        boolean prioQueuePrefilled = false;
-        if(!prioQueuePrefilled && !initialState.getConcurrentNodesInCTPrioQueue().isEmpty()) {
-
-            ArrayList<CTNode> nodesToRemove = new ArrayList<>();
-            // First, give the nodes new agentPaths (with the new agents included)
-            for (CTNode node : initialState.getConcurrentNodesInCTPrioQueue()) {
-                // Clear the node's agentPaths
-                node.agentPaths.clear();
-
-                // Then add with updated agentLocations
-                boolean success = addAgentPaths(node, agentLocations, initialState.getRamp());
-
-                // If no valid agentPaths can be procured with the new agents included, remove the CTNode later
-                if(!success) {
-                    nodesToRemove.add(node);
-                }
-            }
-
-            ctPrioQueue.addAll(initialState.getConcurrentNodesInCTPrioQueue());
-
-            ctPrioQueue.removeAll(nodesToRemove);
-
-            // Remove the children of all ctPrioQueue entries
-            for (CTNode node : ctPrioQueue) {
-                node.children.clear();
-            }
-        }
-        // Don't try to prefill the queue with initialState concurrent nodes again
-        prioQueuePrefilled = true;
-
 
         // Search through the CT until a goal node is found
 

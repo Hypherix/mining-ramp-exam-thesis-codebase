@@ -9,10 +9,8 @@ import java.util.*;
 /*
  * Contents
  *   - Ramp (graph)
- *   - HashMap where key is time step and values are
- *     arrays of start vertices and velocities for new agents
+ *   - HashMap where key is time step and values are arrays of start vertices and velocities for new agents
  *   - Duration that specifies max lifetime of the scenario
- *
  * */
 
 public class MAPFScenario {
@@ -32,6 +30,7 @@ public class MAPFScenario {
     private HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> edgeConstraints;
 
 
+    // Constructors
 
     public MAPFScenario(Ramp ramp, AgentEntries agentEntries, int duration) {
         this.ramp = ramp;
@@ -55,7 +54,6 @@ public class MAPFScenario {
                         HashMap<Agent, HashMap<Integer, Set<Integer>>> vertexConstraints,
                         HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> edgeConstraints) {
         // Used in CBS
-        // TODO: REVISE PARAMETER LIST
 
         this.ramp = ramp;
         this.initialState = initialState;
@@ -65,7 +63,6 @@ public class MAPFScenario {
 
         this.vertexConstraints = vertexConstraints;
         this.edgeConstraints = edgeConstraints;
-
     }
 
     // Methods
@@ -88,9 +85,7 @@ public class MAPFScenario {
         }
 
         Collection<Integer> occupiedVertices = agentLocations.values();
-
         ArrayList<Integer> verticesInSurfaceQ = ramp.getVerticesInSurfaceQ();
-
         for(int i = verticesInSurfaceQ.size() - 1; i >= 0; i--) {
             Integer vertex = verticesInSurfaceQ.get(i);
             if(!occupiedVertices.contains(vertex)) {
@@ -120,7 +115,6 @@ public class MAPFScenario {
         }
 
         Collection<Integer> occupiedVertices = agentLocations.values();
-
         ArrayList<Integer> verticesInUndergroundQ = ramp.getVerticesInUndergroundQ();
         for(Integer vertex : verticesInUndergroundQ) {
             if(!occupiedVertices.contains(vertex)) {
@@ -134,12 +128,9 @@ public class MAPFScenario {
     private void putNewAgentsInQueue(Ramp ramp, ArrayList<Agent> newAgentsThisTimeStep,
                                     HashMap<Agent, Integer> newAgentLocations, int timeStep,
                                      MAPFState knownState) {
-        // Task: If multiple agents in the same start vertex, put them in queue instead
+        // Task: If multiple agents are in the same start vertex, put them in queue instead.
         // newAgentLocations is a hashmap of the agent id and its start vertex (either surface or underground)
         // of ONLY the new agents that are joining the ramp.
-        // TODO? Note! After attaining the free vertices in the beginning, this method does NOT check if
-        //  the queues get full when trying to add further agents. To make this method check it,
-        //  make it call getSurface/UndergroundQFree() for each respective if-statement in the for loop
         // knownState is null if we work with agent locations from the scenario initialState,
         // knownState is not null if we work with agent locations from a knownState
 
@@ -170,9 +161,8 @@ public class MAPFScenario {
         // Extract every new agent entering this TimeStep
         ArrayList<Agent> newAgentsThisTimeStep = entries.get(timeStep);
 
-        HashMap<Agent, Integer> newAgentLocations = new HashMap<>();
-
         // If multiple starting agents, they will occupy the same start vertex --> put in queue instead
+        HashMap<Agent, Integer> newAgentLocations = new HashMap<>();
         putNewAgentsInQueue(this.ramp, newAgentsThisTimeStep, newAgentLocations, timeStep, knownState);
 
         // Get the number of new agents at this timeStep
@@ -183,7 +173,6 @@ public class MAPFScenario {
         if(timeStep == 0) {
             // If scenario is new, newAgentLocations are the only ones existing
             return new MAPFState(ramp, newAgentLocations, 0, 0, timeStep);
-            //setInitialState(new MAPFState(ramp, newAgentLocations, 0, timeStep));
         }
         else {
             // Add new newAgentLocations to the already existing newAgentLocations if scenario is not new
@@ -212,25 +201,22 @@ public class MAPFScenario {
                 newGcostPrio = knownState.getGcostPrio();
             }
 
-            // If getConcurrentStatesInFrontier/Explored are filled, move them over as well...
-            if(knownState != null) {
-                if(!knownState.getConcurrentStatesInFrontier().isEmpty() &&
-                        !knownState.getConcurrentStatesInExplored().isEmpty()) {
-
-                    return new MAPFState(ramp, finalAgentLocations, newGcost, newGcostPrio, timeStep,
-                            knownState.parent,
-                            knownState.getConcurrentStatesInFrontier(),
-                            knownState.getConcurrentStatesInExplored());
-                }
-            }
+//            // If getConcurrentStatesInFrontier/Explored are filled, move them over as well...
+//            if(knownState != null) {
+//                if(!knownState.getConcurrentStatesInFrontier().isEmpty() &&
+//                        !knownState.getConcurrentStatesInExplored().isEmpty()) {
+//
+//                    return new MAPFState(ramp, finalAgentLocations, newGcost, newGcostPrio, timeStep,
+//                            knownState.parent,
+//                            knownState.getConcurrentStatesInFrontier(),
+//                            knownState.getConcurrentStatesInExplored());
+//                }
+//            }
 
             // ...else, return without them
             return new MAPFState(ramp, finalAgentLocations, newGcost, newGcostPrio, timeStep);
-            //setInitialState(new MAPFState(ramp, finalAgentLocations, newGcost, timeStep));
         }
     }
-
-
 
 
     Ramp getRamp() {
@@ -320,26 +306,8 @@ public class MAPFScenario {
         return this.ramp.getVerticesInUndergroundQ();
     }
 
-    public void addVertexConstraint(Agent agent, int vertex, int timeStep) {
-        this.vertexConstraints
-                .computeIfAbsent(agent, k -> new HashMap<>())
-                .computeIfAbsent(timeStep, k -> new HashSet<>())
-                .add(vertex);
-    }
-
     public HashMap<Agent, HashMap<Integer, Set<Integer>>> getVertexConstraints() {
         return this.vertexConstraints;
-    }
-
-    public void addEdgeConstraint(Agent agent, int fromVertex, int toVertex, int timeStep) {
-        ArrayList<Integer> edge = new ArrayList<>();
-        edge.add(fromVertex);
-        edge.add(toVertex);
-
-        this.edgeConstraints
-                .computeIfAbsent(agent, k -> new HashMap<>())
-                .computeIfAbsent(timeStep, k -> new HashSet<>())
-                .add(edge);
     }
 
     public HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> getEdgeConstraints() {

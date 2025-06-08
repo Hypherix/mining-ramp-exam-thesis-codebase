@@ -3,7 +3,7 @@ package org.example;
 public class Agent {
     // Data members
     public int id;
-    public int velocity;
+    public int velocity;        // currently not used
     public int direction;
     public boolean higherPrio;
     public boolean passBayAble;
@@ -31,6 +31,8 @@ public class Agent {
     // Methods
     @Override
     public boolean equals(Object o) {
+        // Used to compare two agent instances
+
         if (this == o) {        // True if same reference
             return true;
         }
@@ -39,7 +41,6 @@ public class Agent {
         }
 
         Agent otherAgent = (Agent) o;
-
         return id == otherAgent.id;
     }
 

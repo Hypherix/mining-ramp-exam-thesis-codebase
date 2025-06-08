@@ -1,66 +1,45 @@
 package org.example;
 
-/*
-* TODO: The algorithms tend to give different solutions, sometimes with different results.
-*  This is especially the case with more agents, larger ramps and re-planning.
-*  Of course, the nature of the rollback differs between the algorithms.
-*  Honestly, not really sure what to make of it at the moment
-*
-* TODO ALSO: Test CBSwP with root constraints non-empty.
-*
-* TODO: Create 6x6 grid with 4 connections and try the algorithms to see if they deviate
-*  DONE. Have not found any deviations --> passing bays causing issues?
-*
-* TODO: Visualisation
-*  DONE
-*
-* TODO: Agent prio option
-*  Left is adding prio cost prints and showing it on the visualiser
-*/
-
 import org.example.visualiser.MAPFVisualiser;
 
-import java.util.HashMap;
-import java.util.Random;
+/*
+ * The way it works at the moment is that an agent must be created, then inserted
+ * in to an agent entries map. The agent entries map, together with a ramp, is then
+ * used to create a MAPFScenario. The MAPFScenario is fed to a MAPFAlgorithm.
+*/
 
 public class Main {
     public static void main(String[] args) {
-        //long startTime = System.nanoTime();
 
-        int[] passBays = {2, 6};
-        Ramp myRamp = new Ramp(10, 5, 5, passBays);
+        // Design the ramp
+        int[] passBays = {2};       // the array numbers specify the ramp vertex that the pass bay will be adjacent to
+        Ramp myRamp = new Ramp(5, 5, 5, passBays);
 
-
-        // ALL ALGORITHMS TEST
-        HashMap<Integer, Agent> agentList2 = new HashMap<>();
-        AgentEntries agentEntries2 = new AgentEntries();
-        int agentCount = 4;
+        // Set up agents and their arrivals
+        AgentEntries agentEntries = new AgentEntries();
+        int agentCount = 3;
         for(int i = 0; i < agentCount; i++) {
-            Agent agent2;
+            Agent agent;
             if(i % 2 == 0) {
-                agent2 = new Agent(i, 1, Constants.DOWN, true, false);
+                agent = new Agent(i, 1, Constants.DOWN, true, false);
             }
             else {
-                agent2 = new Agent(i, 1, Constants.UP, true, false);
+                agent = new Agent(i, 1, Constants.UP, true, false);
             }
 //            if (i == 0 || i == 3 || i == 4 || i == 8 || i ==  7) {
-//                agent2.passBayAble = true;
+//                agent.passBayAble = true;
 //            }
 //            else {
-//                agent2.passBayAble = false;
+//                agent.passBayAble = false;
 //            }
-            agentList2.put(agent2.id, agent2);
-            agentEntries2.addEntry(0, agent2);
+            agentEntries.addEntry(0, agent);
         }
         Agent agent2 = new Agent(agentCount++, 1, Constants.DOWN, true, false);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(1, agent2);
+        agentEntries.addEntry(1, agent2);
         agent2 = new Agent(agentCount++, 1, Constants.UP, true, true);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(5, agent2);
+        agentEntries.addEntry(5, agent2);
         agent2 = new Agent(agentCount++, 1, Constants.DOWN, true, false);
-        agentList2.put(agent2.id, agent2);
-        agentEntries2.addEntry(9, agent2);
+        agentEntries.addEntry(9, agent2);
 
 //        Random rand = new Random();
 //        int numOfArrivals = 3;
@@ -76,18 +55,18 @@ public class Main {
 //                agent2 = new Agent(i, 1, Constants.UP, true, false);
 //            }
 //            agentList2.put(agent2.id, agent2);
-//            agentEntries2.addEntry(middle, agent2);
+//            agentEntries.addEntry(middle, agent2);
 //        }
 
-        MAPFScenario scenarioICTS = new MAPFScenario(myRamp, agentEntries2, 20);
-        MAPFScenario scenarioAstar = new MAPFScenario(myRamp, agentEntries2, 20);
-        MAPFScenario scenarioCBS = new MAPFScenario(myRamp, agentEntries2, 20);
-        MAPFScenario scenarioCBSwP = new MAPFScenario(myRamp, agentEntries2, 20);
+        // Instantiate scenarios
+        MAPFScenario scenarioICTS = new MAPFScenario(myRamp, agentEntries, 20);
+        MAPFScenario scenarioAstar = new MAPFScenario(myRamp, agentEntries, 20);
+        MAPFScenario scenarioCBS = new MAPFScenario(myRamp, agentEntries, 20);
+        MAPFScenario scenarioCBSwP = new MAPFScenario(myRamp, agentEntries, 20);
 
-        long duration;
+        // Invoke algorithms
 
-
-        boolean prioritise = false;
+        boolean prioritise = false;         // toggle algorithms to prioritise
 
         System.out.println();
 
@@ -116,35 +95,35 @@ public class Main {
         System.out.println();
 
         // ICTS
-//        System.out.println("#################### ICTS ####################");
-//        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
-//        long startTimeICTS = System.nanoTime();
-//        MAPFSolution ictsSolution = solverICTS.solve(true);
-//        long endTimeICTS = System.nanoTime();
-//        long ictsDuration = endTimeICTS - startTimeICTS;
-//        ictsSolution.setObtainTime(ictsDuration);
-//        System.out.println("\nExecution time ICTS: " + ictsSolution.getObtainTime() + " ms");
-//
-//        System.out.println();
-//
-//        // CBS
-//        System.out.println("#################### CBS ####################");
-//        MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
-//        long startTimeCBS = System.nanoTime();
-//        MAPFSolution cbsSolution = solverCBS.solve(prioritise);
-//        long endTimeCBS = System.nanoTime();
-//        long cbsDuration = endTimeCBS - startTimeCBS;
-//        cbsSolution.setObtainTime(cbsDuration);
-//        System.out.println("\nExecution time CBS: " + cbsSolution.getObtainTime() + " ms");
+        System.out.println("#################### ICTS ####################");
+        MAPFSolver solverICTS = new MAPFSolver(scenarioICTS, "ICTS");
+        long startTimeICTS = System.nanoTime();
+        MAPFSolution ictsSolution = solverICTS.solve(true);
+        long endTimeICTS = System.nanoTime();
+        long ictsDuration = endTimeICTS - startTimeICTS;
+        ictsSolution.setObtainTime(ictsDuration);
+        System.out.println("\nExecution time ICTS: " + ictsSolution.getObtainTime() + " ms");
+
+        System.out.println();
+
+        // CBS
+        System.out.println("#################### CBS ####################");
+        MAPFSolver solverCBS = new MAPFSolver(scenarioCBS, "CBS");
+        long startTimeCBS = System.nanoTime();
+        MAPFSolution cbsSolution = solverCBS.solve(prioritise);
+        long endTimeCBS = System.nanoTime();
+        long cbsDuration = endTimeCBS - startTimeCBS;
+        cbsSolution.setObtainTime(cbsDuration);
+        System.out.println("\nExecution time CBS: " + cbsSolution.getObtainTime() + " ms");
 
 
-//        System.out.println("\nExecution time ICTS: " + Math.round(ictsSolution.getObtainTime()) + " ms, and cost: " + ictsSolution.getCost());
+        System.out.println("\nExecution time ICTS: " + Math.round(ictsSolution.getObtainTime()) + " ms, and cost: " + ictsSolution.getCost());
         System.out.println("Execution time A*: " + Math.round(astarSolution.getObtainTime()) + " ms, and cost: " + astarSolution.getCost());
-//        System.out.println("Execution time CBS: " + Math.round(cbsSolution.getObtainTime()) + " ms, and cost: " + cbsSolution.getCost());
+        System.out.println("Execution time CBS: " + Math.round(cbsSolution.getObtainTime()) + " ms, and cost: " + cbsSolution.getCost());
         System.out.println("Execution time CBSwP: " + Math.round(cbswpSolution.getObtainTime()) + " ms, and cost: " + cbswpSolution.getCost());
 
 
         // Visualiser
-        MAPFVisualiser visualiser = new MAPFVisualiser(myRamp, astarSolution, null, null, cbswpSolution);
+        MAPFVisualiser visualiser = new MAPFVisualiser(myRamp, astarSolution, ictsSolution, cbsSolution, cbswpSolution);
     }
 }
