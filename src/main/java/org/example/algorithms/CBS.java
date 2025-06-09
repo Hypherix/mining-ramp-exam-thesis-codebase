@@ -5,12 +5,6 @@ import org.example.CBSclasses.*;
 
 import java.util.*;
 
-/*
-* TODO NEXT: Start here. Keep the algorithm and helper methods generic, to account for
-*  CBSwP usage. Ideally only generateChildNodes will be overridden by CBSwP.
-*  ALSO: (single-agent) A* shall be used as low-level search! Should be easier to implement
-*  than ICTS since much of CBS builds on A* logic.
-* */
 
 public class CBS implements MAPFAlgorithm {
 
@@ -28,6 +22,9 @@ public class CBS implements MAPFAlgorithm {
         numOfGeneratedCTNodes = 0;
         numOfExpandedCTNodes = 0;
     }
+
+
+    // Methods
 
     protected CTNode createRootNode() {
         return new CTNode();
@@ -76,13 +73,13 @@ public class CBS implements MAPFAlgorithm {
             node.addAgentPath(agent, agentPath);
         }
 
-        // Go through all paths and calculate the SIC cost
+        // Go through all paths and calculate the SOC
         Collection<ArrayList<Integer>> allPaths = node.agentPaths.values();
         for(ArrayList<Integer> path : allPaths) {
             node.cost += path.size() - 1;
         }
 
-        // Go through all higherPrio agents and calculate their SIC cost
+        // Go through all higherPrio agents and calculate their SOC
         for (Map.Entry<Agent, ArrayList<Integer>> entry : node.agentPaths.entrySet()) {
             Agent agent = entry.getKey();
             ArrayList<Integer> path = entry.getValue();
@@ -111,13 +108,7 @@ public class CBS implements MAPFAlgorithm {
     }
 
     protected Conflict getPathConflict(CTNode node, Ramp ramp) {
-        // Task: Given a the root CTNode, return the first conflict amongst agents, else null.
-        // TODO: Check if vertex is an exit vertex, in which case it should not count as a conflict
-        //  Perhaps even implement that if both agent locations are at exits, continue to next pair for optimisation
-        // TODO ALSO: Perhaps isAnExitVertex is not needed in all if statements since the first if statement
-        //  rules out any of the vertices being exit vertices
-
-        // Get exit vertices. Two agents located in an exit vertex should not count as a conflict
+        // Task: Given the root CTNode, return the first conflict amongst agents, else null.
 
         // Get passing bays
         ArrayList<ArrayList<Integer>> passingBays = ramp.getPassingBayVertices();
@@ -261,11 +252,6 @@ public class CBS implements MAPFAlgorithm {
     protected ArrayList<MAPFState> buildSolution(MAPFScenario scenario, CTNode goalNode) {
         // Task: Given a goal CTNode, construct an ArrayList<MAPFState> with all solution paths
 
-        // TODO NEXT: generated/expanded state counts are data members of CBS. Needed is solution cost
-        //  calculation.
-        //  DO NOT FORGET TO SET PARENTS TO THE STATES!
-        //  Find a fitting MAPFState constructor and ensure that all costs and such are correct
-
         MAPFState initialState = scenario.getInitialState();
         Ramp ramp = initialState.getRamp();
 
@@ -282,7 +268,7 @@ public class CBS implements MAPFAlgorithm {
         solutionSet.addFirst(initialState);
 
         // First, pad the shorter paths with the exit vertex until all path sizes = solutionLength (i.e. the longest path size)
-        goalNode.agentPaths = padAgentPaths(goalNode.agentPaths);
+        padAgentPaths(goalNode.agentPaths);
 
         for (int i = 1; i < solutionLength; i++) {
             HashMap<Agent, Integer> agentLocations = new HashMap<>();
@@ -323,56 +309,28 @@ public class CBS implements MAPFAlgorithm {
         return solutionSet;
     }
 
-    protected void addVertexConstraint(CTNode node, Agent agent, Conflict conflict) {
-        // Task: Add a vertex constraint to a CTNode
-
-        node.vertexConstraints
-                .computeIfAbsent(agent, _ -> new HashMap<>())
-                .computeIfAbsent(conflict.timeStep, _ -> new HashSet<>())
-                .add(conflict.vertex);
-    }
-
-    protected void addEdgeConstraint(CTNode node, Agent agent, Conflict conflict, boolean leftChild) {
-        // Task: Add an edge constraint to a CTNode
-        // If firstChild == true, constrained edge is fromVertex->toVertex. Vice versa if false
-
-        ArrayList<Integer> constrainedEdge = new ArrayList<>();
-
-        if(leftChild) {
-            constrainedEdge.add(conflict.fromVertex);
-            constrainedEdge.add(conflict.toVertex);
-        }
-        else {
-            constrainedEdge.add(conflict.toVertex);
-            constrainedEdge.add(conflict.fromVertex);
-        }
-
-        node.edgeConstraints
-                .computeIfAbsent(agent, _ -> new HashMap<>())
-                .computeIfAbsent(conflict.timeStep, _ -> new HashSet<>())
-                .add(constrainedEdge);
-    }
-
     protected HashMap<Agent, HashMap<Integer, Set<Integer>>> copyParentAndAddVertexConstraint(
             HashMap<Agent, HashMap<Integer, Set<Integer>>> parentConstraints,
             Agent agent,
             int timeStep,
             int prohibitedVertex) {
-        // Step 1: Shallow copy of the outer map
+        // Task: Copy the parent's constraints and add a vertex constraint to the child
+
+        // Shallow copy of the outer map
         HashMap<Agent, HashMap<Integer, Set<Integer>>> newConstraints = new HashMap<>(parentConstraints);
 
-        // Step 2: Deep copy the specific agent's constraint map (or start fresh)
+        // Deep copy the specific agent's constraint map (or start fresh)
         HashMap<Integer, Set<Integer>> agentConstraints = parentConstraints.get(agent);
         HashMap<Integer, Set<Integer>> agentConstraintsCopy = (agentConstraints != null)
                 ? new HashMap<>(agentConstraints)
                 : new HashMap<>();
 
-        // Step 3: Deep copy the vertex set for this time step (or start fresh)
+        // Deep copy the vertex set for this time step (or start fresh)
         Set<Integer> vertexSet = agentConstraints != null ? agentConstraints.get(timeStep) : null;
         Set<Integer> vertexSetCopy = (vertexSet != null) ? new HashSet<>(vertexSet) : new HashSet<>();
         vertexSetCopy.add(prohibitedVertex);
 
-        // Step 4: Put back into agent's map, then into top-level map
+        // Put back into agent's map, then into top-level map
         agentConstraintsCopy.put(timeStep, vertexSetCopy);
         newConstraints.put(agent, agentConstraintsCopy);
 
@@ -386,20 +344,22 @@ public class CBS implements MAPFAlgorithm {
             int fromVertex,
             int toVertex,
             boolean firstChild) {
-        // Step 1: Shallow copy of the outer map
+        // Task: Copy the parent's constraints and add an edge constraint to the child
+
+        // Shallow copy of the outer map
         HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> newConstraints = new HashMap<>(parentConstraints);
 
-        // Step 2: Deep copy the agent's edge constraint map (or start fresh)
+        // Deep copy the agent's edge constraint map (or start fresh)
         HashMap<Integer, Set<ArrayList<Integer>>> agentConstraints = parentConstraints.get(agent);
         HashMap<Integer, Set<ArrayList<Integer>>> agentConstraintsCopy = (agentConstraints != null)
                 ? new HashMap<>(agentConstraints)
                 : new HashMap<>();
 
-        // Step 3: Deep copy the edge set for this time step (or start fresh)
+        // Deep copy the edge set for this time step (or start fresh)
         Set<ArrayList<Integer>> edgeSet = agentConstraints != null ? agentConstraints.get(timeStep) : null;
         Set<ArrayList<Integer>> edgeSetCopy = (edgeSet != null) ? new HashSet<>(edgeSet) : new HashSet<>();
 
-        // Step 4: Add new edge constraint
+        // Add new edge constraint
         ArrayList<Integer> constrainedEdge = new ArrayList<>();
         // If second child, create a constraint for the reverse move
         if(firstChild) {
@@ -413,7 +373,7 @@ public class CBS implements MAPFAlgorithm {
 
         edgeSetCopy.add(constrainedEdge);
 
-        // Step 5: Put back into agent's map, then into top-level map
+        // Put back into agent's map, then into top-level map
         agentConstraintsCopy.put(timeStep, edgeSetCopy);
         newConstraints.put(agent, agentConstraintsCopy);
 
@@ -444,7 +404,6 @@ public class CBS implements MAPFAlgorithm {
                     constrainedAgent,
                     conflict.timeStep,
                     conflict.vertex);
-
         }
         else if (conflict.type == Conflict.ConflictType.EDGE_OR_DIFF_DIRECTION_PASSBAY) {
             // If an edge conflict, add edge constraint where agent1
@@ -493,10 +452,6 @@ public class CBS implements MAPFAlgorithm {
     protected void generateChildren(CTNode parent, Conflict conflict) {
         // Generate two children to parent based on the conflict
 
-        // TODO: Currently, children get shallow copy of parent constraints. Editing child constraints
-        //  affect the parent also. Maybe not a problem since we dont work with parents anymore? Or
-        //  does the sibling get affected by its other sibling?
-
         // Get the agents affected by the conflict
         if(conflict.type != Conflict.ConflictType.PASSBAY_SAME_DIRECTION) {
             Agent agent1 = conflict.agent1;
@@ -523,7 +478,7 @@ public class CBS implements MAPFAlgorithm {
         }
     }
 
-    private HashMap<Agent, ArrayList<Integer>> padAgentPaths(HashMap<Agent, ArrayList<Integer>> agentPaths) {
+    private void padAgentPaths(HashMap<Agent, ArrayList<Integer>> agentPaths) {
         // Task: Make the agent paths of equal length
 
         // Retrieve solution length
@@ -541,8 +496,6 @@ public class CBS implements MAPFAlgorithm {
                 path.addLast(pathExitVertex);
             }
         }
-
-        return agentPaths;
     }
 
     private HashMap<Agent, ArrayList<Integer>> copyAgentPaths(HashMap<Agent, ArrayList<Integer>> agentPaths) {
@@ -563,6 +516,7 @@ public class CBS implements MAPFAlgorithm {
     }
 
     private boolean isQueueBehaviorValid(HashMap<Agent, ArrayList<Integer>> agentPaths, Ramp ramp) {
+        // Task: Check that queue behaviour is valid, i.e. always move forward if able
 
         ArrayList<Integer> verticesInSurfaceQ = ramp.getVerticesInSurfaceQ();
         ArrayList<Integer> verticesInUndergroundQ = ramp.getVerticesInUndergroundQ();
@@ -689,7 +643,6 @@ public class CBS implements MAPFAlgorithm {
         return queueValid && passingBaysValid;
     }
 
-    // Methods
     @Override
     public MAPFSolution solve(MAPFScenario scenario, boolean prioritise) {
         // Task: Generates a MAPFSolution from the MAPFScenario
@@ -712,7 +665,6 @@ public class CBS implements MAPFAlgorithm {
             return null;
         }
 
-
         // Create a PriorityQueue of CTNodes where the node with the lowest cost is prioritised
         PriorityQueue<CTNode> ctPrioQueue = prioritise
                 ? new PriorityQueue<>(new CTNodePrioComparator())
@@ -727,24 +679,13 @@ public class CBS implements MAPFAlgorithm {
             CTNode currentNode = ctPrioQueue.poll();
             numOfExpandedCTNodes++;
 
-//            System.out.println(currentNode.cost);
-
-//            if(currentNode.cost == 40) {
-//                System.out.println("agentPaths:");
-//                for(ArrayList<Integer> path : currentNode.agentPaths.values()) {
-//                    System.out.println(path);
-//                }
-//                System.out.println();
-//            }
-
             // Check for conflicts in the currentNode agentPaths
             Conflict currentNodeConflict = getPathConflict(currentNode, initialState.getRamp());
 
             // Pad the shorter paths with the exit vertex until all path sizes = solutionLength (i.e. the longest path size)
             // This is needed for checking if queue behaviour is valid
-            HashMap<Agent, ArrayList<Integer>> copyUnpadded = copyAgentPaths(currentNode.agentPaths);
-
-            HashMap<Agent, ArrayList<Integer>> agentPathsCopy = padAgentPaths(copyUnpadded);
+            HashMap<Agent, ArrayList<Integer>> agentPathsCopy = copyAgentPaths(currentNode.agentPaths);
+            padAgentPaths(agentPathsCopy);
 
             // Only add the child to the queue if it has a set of solution paths that does not
             // violate normal queue behaviour
@@ -773,7 +714,6 @@ public class CBS implements MAPFAlgorithm {
 
             // For each child, generate a path for the agent affected by the new constraint
             // First, get the agentLocation of the constrained agent
-            ArrayList<CTNode> childrenToAddToPrioQueue = new ArrayList<>();
             for (CTNode child : currentNode.children) {
                 Agent constrainedAgent = child.newlyConstrainedAgent;
                 HashMap<Agent, Integer> constrainedAgentLocation = new HashMap<>();
@@ -786,51 +726,12 @@ public class CBS implements MAPFAlgorithm {
                 boolean success = addAgentPaths(child, constrainedAgentLocation, initialState.getRamp());
 
                 if (success) {
-                    childrenToAddToPrioQueue.add(child);
+                    ctPrioQueue.add(child);
                 }
             }
-
-            // Create a snapshot of the prioqueue including the child sibling
-            PriorityQueue<CTNode> ctPrioQueueSnapshot = prioritise
-                    ? new PriorityQueue<>(new CTNodePrioComparator())
-                    : new PriorityQueue<>(new CTNodeComparator());
-            ctPrioQueueSnapshot.addAll(ctPrioQueue);
-
-            PriorityQueue<CTNode> children = prioritise
-                    ? new PriorityQueue<>(new CTNodePrioComparator())
-                    : new PriorityQueue<>(new CTNodeComparator());
-            children.addAll(currentNode.children);
-
-            for (CTNode child : currentNode.children) {
-                // First add the sibling to the child
-                child.setConcurrentNodesInCTPrioQueue(children);
-                child.removeFromConcurrentNodesInCTPrioQueue(child);    // Remove itself
-
-                // Finally, also add the actual current ctPrioQueue
-                child.addAllToConcurrentNodesInPrioQueue(ctPrioQueueSnapshot);
-            }
-
-            if (childrenToAddToPrioQueue.size() > 2) {
-                System.out.print("");
-            }
-
-            // Finally, add the children to the ctPrioQueue
-
-//            for(CTNode child : childrenToAddToPrioQueue) {
-//                if (child.cost == currentNode.cost) {
-//                    System.out.println("\nChild with equal cost to parent found\nParent (cost " + child.cost + "):");
-//                    System.out.println(currentNode.agentPaths.values());
-//                    System.out.println("Child (cost " + child.cost + "):");
-//                    System.out.println(child.agentPaths.values());
-//                }
-//            }
-
-            ctPrioQueue.addAll(childrenToAddToPrioQueue);
         }
 
-        System.out.println("No solution :(");
+        System.out.println("CBS: No solution found :(");
         return null;
     }
 }
-
-// TODO: NEED TO IMPLEMENT MAX ONE AGENT IN PASSING BAY!!! AT SIMILAR PLACE AS QUEUE BEHAVIOUR CHECK

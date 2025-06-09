@@ -1,14 +1,8 @@
 package org.example.algorithms;
-
 import org.example.*;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
-/*
-* NOTES!
-* Surface and underground exit nodes are not handled in a special way when assigning fgh values.
-* */
 
 public class Astar implements MAPFAlgorithm {
 
@@ -55,51 +49,10 @@ public class Astar implements MAPFAlgorithm {
         }
     }
 
-    private static boolean isStateEqual(MAPFState state1, MAPFState state2) {
-        // Task: Check if two states are equal in terms of the identical agents occupying the identical vertices
-        // Thus, only compare their agentLocations
-        // Agent class overrides equals() by comparing their id:s
-
-        HashMap<Agent, Integer> agentLocations1 = state1.getAgentLocations();
-        HashMap<Agent, Integer> agentLocations2 = state2.getAgentLocations();
-
-        return agentLocations1.equals(agentLocations2);
-    }
-
-    private LinkedHashMap<Agent, Integer> sortAgentLocationsInQueue(HashMap<Agent, Integer> agentLocationsInQueue, String queue) {
-        // Task: Sort the agentLocationsInQueue, depending on if in surface queue or underground queue
-
-        LinkedHashMap<Agent, Integer> sortedAgentLocationsInQueue = new LinkedHashMap<>();
-
-        if(queue.equals("surface")) {
-            sortedAgentLocationsInQueue = agentLocationsInQueue.entrySet()
-                    .stream()
-                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            Map.Entry::getValue,
-                            (e1, e2) -> e1,
-                            LinkedHashMap::new
-                    ));
-        }
-        else if(queue.equals("underground")) {
-            sortedAgentLocationsInQueue = agentLocationsInQueue.entrySet()
-                    .stream()
-                    .sorted(Map.Entry.comparingByValue())
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            Map.Entry::getValue,
-                            (e1, e2) -> e1,
-                            LinkedHashMap::new
-                    ));
-        }
-        return sortedAgentLocationsInQueue;
-    }
-
     private static void generateCartesianProductHelper(
             ArrayList<HashMap.Entry<Agent, ArrayList<Integer>>> entries,    // List of all agents possible moves (neighbours)
-            int index,      // Tracks what agent we're currently at
-            HashMap<Agent, Integer> current,    // Current recursion branch move combinations
+            int index,                                                      // Tracks what agent we are currently at
+            HashMap<Agent, Integer> current,                                // Current recursion branch move combinations
             ArrayList<HashMap<Agent, Integer>> result) {
         // Task: Perform the actual recursion
 
@@ -113,7 +66,6 @@ public class Astar implements MAPFAlgorithm {
         HashMap.Entry<Agent, ArrayList<Integer>> entry = entries.get(index);
         Agent agent = entry.getKey();
         ArrayList<Integer> possibleMoves = entry.getValue();
-
         for (Integer move : possibleMoves) {
             current.put(agent, move);
             generateCartesianProductHelper(entries, index + 1, current, result);
@@ -140,6 +92,7 @@ public class Astar implements MAPFAlgorithm {
         int undergroundStart = ramp.getUndergroundStart();
         int undergroundExit = ramp.getUndergroundExit();
         HashMap<Integer, UpDownNeighbourList> adjList = ramp.getAdjList();
+        ArrayList<Integer> firstPassBayVertices = ramp.getFirstPassBayVertices();
         ArrayList<Integer> secondPassBayVertices = ramp.getSecondPassBayVertices();
 
         HashMap<Agent, ArrayList<Integer>> agentMoves = new HashMap<>();
@@ -175,10 +128,20 @@ public class Astar implements MAPFAlgorithm {
                 moves.add(undergroundExit);
                 agentMoves.put(agent, moves);
             }
-            // TODO: CHECK THAT THE TWO ELSE IFS ARE CORRECT. IF SO, REMOVE EDGE TO SAME VERTEX IN QUEUES IN initialiseAdjList!!
             // If the agent is not in a start vertex, retrieve neighbours as usual
             else if(agent.direction == Constants.DOWN) {
                 moves = adjList.get(vertex).getDownNeighbours();
+
+                // If downgoing agent can't enter passing bays, remove the move entering a passing bay
+                if(!agent.passBayAble) {
+                    ArrayList<Integer> tempMoves = new ArrayList<>(moves);
+                    for(Integer move : tempMoves) {
+                        if(firstPassBayVertices.contains(move)) {
+                            moves.remove(move);
+                        }
+                    }
+                }
+
                 agentMoves.put(agent, moves);
             }
             else if(agent.direction == Constants.UP) {
@@ -212,7 +175,7 @@ public class Astar implements MAPFAlgorithm {
         // If two agents are in a queue and the one in front moves, the one behind should always also move.
         // Note that this does not concern the first agent in either queue, since this agent must be allowed to stay
         // even though the vertex ahead is free. This is because an agent should only leave the queue when appropriate
-        // (when in the ramp, it cannot stay in place or go back). Therefore, verticesInQ will exclude the first vertex
+        // (on the ramp, it cannot stay in place or go back). Therefore, verticesInQ will exclude the first vertex
 
         ArrayList<HashMap<Agent, Integer>> validCombinations = new ArrayList<>();
 
@@ -223,7 +186,6 @@ public class Astar implements MAPFAlgorithm {
             for(ArrayList<Integer> queue : List.of(verticesInSurfaceQ, verticesInUndergroundQ)) {
 
                 HashMap<Integer, Agent> queuePositionToAgent = new HashMap<>();
-
                 for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
                     Agent agent = entry.getKey();
                     int location = entry.getValue();
@@ -293,39 +255,6 @@ public class Astar implements MAPFAlgorithm {
         return validCombinations;
     }
 
-    private void sortMoveCombinations(ArrayList<HashMap<Agent, Integer>> moveCombinations) {
-        // Task: Sort the moveCombinations by agent properties. Upgoing agents first, then downgoing
-        // agents with higher priority. Last downgoing agents without priority
-
-        for (int i = 0; i < moveCombinations.size(); i++) {
-            HashMap<Agent, Integer> originalHashMap = moveCombinations.get(i);
-
-            // Sort the move combinations
-            ArrayList<Map.Entry<Agent, Integer>> sortedEntries = new ArrayList<>(originalHashMap.entrySet());
-            sortedEntries.sort(Comparator.comparingInt((Map.Entry<Agent, Integer> entry) -> {
-                Agent agent = entry.getKey();
-                if(agent.direction == 1) {
-                    return 0;
-                }
-                else if(agent.direction == 0 && agent.higherPrio) {
-                    return 1;
-                }
-                else {
-                    return 2;
-                }
-            }));
-
-            // LinkedHashMap preserves the order
-            LinkedHashMap<Agent, Integer> orderedHashMap = new LinkedHashMap<>();
-            for(Map.Entry<Agent, Integer> entry : sortedEntries) {
-                orderedHashMap.put(entry.getKey(), entry.getValue());
-            }
-
-            // Replace the unordered with the ordered
-            moveCombinations.set(i, orderedHashMap);
-        }
-    }
-
     private void printMoveCombinations(ArrayList<HashMap<Agent, Integer>> moveCombinations) {
         // Task: Make a legible print of moveCombinations
 
@@ -350,7 +279,7 @@ public class Astar implements MAPFAlgorithm {
             System.out.println("}");
         }
 
-        System.out.println("");
+        System.out.println();
     }
 
     private static boolean isStateAllowed(
@@ -368,7 +297,6 @@ public class Astar implements MAPFAlgorithm {
         HashMap<Agent, HashMap<Integer, Set<Integer>>> vertexConstraints = scenario.getVertexConstraints();
         HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> edgeConstraints = scenario.getEdgeConstraints();
 
-        // TODO TEST: The following 2 if statements regarding CBS constraint retrieval have not been tested!!
         // If A* invoked by CBS, check if any vertex constraints exist
         if (vertexConstraints != null) {
             // If vertexConstraints != null, we are here from CBS. CBS only invokes A* on one agent. Retrieve
@@ -452,15 +380,13 @@ public class Astar implements MAPFAlgorithm {
     @Override
     public MAPFSolution solve(MAPFScenario scenario, boolean prioritise) {
         /*
-        * Notes to self
         * - For each neighbour state, the g cost is that of the current state's g + num of all active agents (each action is g++)
         * - h is calculated by the state upon construction by looking at the ramp and the agentLocations
         * */
 
         ArrayList<MAPFState> solution = new ArrayList<>();
 
-        // Fetch the scenario adjacency list and other key numbers
-        HashMap<Integer, UpDownNeighbourList> adjList = scenario.fetchAdjList();
+        // Fetch key ramp information
         int surfaceExit = scenario.fetchSurfaceExit();
         int undergroundExit = scenario.fetchUndergroundExit();
         ArrayList<Integer> verticesInSurfaceQ = scenario.fetchVerticesInSurfaceQ();
@@ -508,9 +434,6 @@ public class Astar implements MAPFAlgorithm {
 
             moveCombinations = removeInvalidMoveCombinations(moveCombinations, currentStateAgentLocations,
                     verticesInSurfaceQ, verticesInUndergroundQ);
-
-            // TODO NOTE: This does not seem to do anything. It does not result in higher priority agents from going first
-//            sortMoveCombinations(moveCombinations);
 
 //            printMoveCombinations(moveCombinations);
 

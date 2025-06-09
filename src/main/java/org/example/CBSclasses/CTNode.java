@@ -25,10 +25,6 @@ public class CTNode {
     // <Agent, <timeStep, set of (fromVertex, toVertex)>>
     public HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> edgeConstraints;
 
-    // Store all concurrent ctPrioQueue nodes
-    private PriorityQueue<CTNode> concurrentNodesInCTPrioQueue;    // Needed for CBS rollback
-
-
 
     // Constructors
     public CTNode() {
@@ -38,7 +34,6 @@ public class CTNode {
         this.vertexConstraints = new HashMap<>();
         this.edgeConstraints = new HashMap<>();
         this.children = new ArrayList<>();
-        this.concurrentNodesInCTPrioQueue = new PriorityQueue<>(new CTNodeComparator());
     }
 
     public CTNode(HashMap<Agent, HashMap<Integer, Set<Integer>>> vertexConstraints,
@@ -83,21 +78,5 @@ public class CTNode {
 
     public HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> getEdgeConstraints() {
         return this.edgeConstraints;
-    }
-
-    public void addAllToConcurrentNodesInPrioQueue(PriorityQueue<CTNode> nodesToAdd) {
-        this.concurrentNodesInCTPrioQueue.addAll(nodesToAdd);
-    }
-
-    public PriorityQueue<CTNode> getConcurrentNodesInCTPrioQueue() {
-        return this.concurrentNodesInCTPrioQueue;
-    }
-
-    public void setConcurrentNodesInCTPrioQueue(PriorityQueue<CTNode> concurrentNodesInCTPrioQueue) {
-        this.concurrentNodesInCTPrioQueue = concurrentNodesInCTPrioQueue;
-    }
-
-    public void removeFromConcurrentNodesInCTPrioQueue(CTNode concurrentNode) {
-        this.concurrentNodesInCTPrioQueue.remove(concurrentNode);
     }
 }

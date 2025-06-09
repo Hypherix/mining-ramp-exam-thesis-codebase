@@ -14,5 +14,4 @@ public class MDD {
     public int getRootVertex() {
         return this.root.vertex;
     }
-
 }

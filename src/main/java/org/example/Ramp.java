@@ -30,6 +30,7 @@ public class Ramp {
     private ArrayList<Integer> passingBays;         // number of passing bays
     private ArrayList<Integer> verticesInPassingBays;   // ALL vertices that are in passing bays
     private ArrayList<ArrayList<Integer>> passingBayVertices;   // all passing bays and their respective vertices
+    private ArrayList<Integer> firstPassBayVertices;       // all vertices closest to the surface in passing bays
     private ArrayList<Integer> secondPassBayVertices;       // all vertices closest to the underground in passing bays
     private int surfaceStart;
     private int undergroundStart;
@@ -54,6 +55,7 @@ public class Ramp {
         this.undergroundStart = surfaceQLength + rampLength - 1;
         this.verticesInPassingBays = new ArrayList<>();
         this.passingBayVertices = new ArrayList<>();
+        this.firstPassBayVertices = new ArrayList<>();
         this.secondPassBayVertices = new ArrayList<>();
 
 
@@ -281,6 +283,7 @@ public class Ramp {
 
             this.verticesInPassingBays.add(verticesInRamp);
             this.verticesInPassingBays.add(verticesInRamp + 1);
+            this.firstPassBayVertices.add(verticesInRamp);
             this.secondPassBayVertices.add(verticesInRamp + 1);
 
             ArrayList<Integer> thisPassingBay = new ArrayList<>();
@@ -532,6 +535,10 @@ public class Ramp {
 
     public ArrayList<ArrayList<Integer>> getPassingBayVertices() {
         return this.passingBayVertices;
+    }
+
+    public ArrayList<Integer> getFirstPassBayVertices() {
+        return this.firstPassBayVertices;
     }
 
     public ArrayList<Integer> getSecondPassBayVertices() {

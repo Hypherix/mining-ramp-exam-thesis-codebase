@@ -51,7 +51,7 @@ public class CBSwP extends CBS {
                     // Copy each entry from parent's partial orderings to leftChild's partialOrderings
                     leftChildOrderings.put(entry.getKey(), new ArrayList<>(entry.getValue()));
                 }
-                leftChildOrderings.computeIfAbsent(agent2, k -> new ArrayList<>()).add(agent1);
+                leftChildOrderings.computeIfAbsent(agent2, _ -> new ArrayList<>()).add(agent1);
                 leftChild.partialOrderings = leftChildOrderings;
 
                 generateChildHelper(parent, leftChild, conflict, agent1, true);
@@ -71,7 +71,7 @@ public class CBSwP extends CBS {
                     // Copy each entry from parent's partial orderings to leftChild's partialOrderings
                     rightChildOrderings.put(entry.getKey(), new ArrayList<>(entry.getValue()));
                 }
-                rightChildOrderings.computeIfAbsent(agent1, k -> new ArrayList<>()).add(agent2);
+                rightChildOrderings.computeIfAbsent(agent1, _ -> new ArrayList<>()).add(agent2);
                 rightChild.partialOrderings = rightChildOrderings;
 
                 generateChildHelper(parent, rightChild, conflict, agent2, false);
@@ -97,8 +97,5 @@ public class CBSwP extends CBS {
 
             numOfGeneratedCTNodes++;
         }
-
-
     }
-
 }

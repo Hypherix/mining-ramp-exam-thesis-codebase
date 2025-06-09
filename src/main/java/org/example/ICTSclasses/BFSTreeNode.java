@@ -16,6 +16,6 @@ public class BFSTreeNode {
         this.children = new ArrayList<>();
     }
 
-    // Method
+    // Methods
 
 }

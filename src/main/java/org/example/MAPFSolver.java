@@ -13,7 +13,6 @@ import java.util.LinkedList;
  * Contents:
  *   - MAPFScenario
  *   - Algorithm to use
- *
  * */
 
 
@@ -22,7 +21,6 @@ public class MAPFSolver {
     // Data members
     private MAPFScenario scenario;
     private MAPFAlgorithm algorithm;
-    private MAPFSolution solution;
     private int timeStep;
     private String algorithmString;
 
@@ -84,8 +82,10 @@ public class MAPFSolver {
 
                 // Get the state we want to revert to
                 MAPFState newCurrentState = currentSolutionStates.get(timeStep);
+
                 // Assign the scenario newCurrentState as initial state
                 scenario.setInitialState(newCurrentState);
+
                 // Update totalAgentCount to reflect currentState's
                 scenario.setTotalAgentCount(newCurrentState.getAgentLocations().size());
 
@@ -118,11 +118,10 @@ public class MAPFSolver {
         }
         System.out.println(this.algorithmString + " total replan time: " + Math.round(totalReplanTime / 1000000) + " ms");
 
-        this.solution = currentSolution;
 
-        if(this.solution != null) {
-            this.solution.printSolution(false);
-            return solution;
+        if(currentSolution != null) {
+            currentSolution.printSolution(false);
+            return currentSolution;
         }
         else {
             return null;

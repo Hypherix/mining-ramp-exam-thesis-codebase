@@ -24,7 +24,7 @@ public class ICTS implements MAPFAlgorithm {
 
     // Methods
     private int getLocationFromAgentLocations(HashMap<Agent, Integer> agentLocations) {
-        // Task: From agentLocations with ONE entry, get the location
+        // Task: From agentLocations with always ONE entry, get the location
 
         Collection<Integer> location = agentLocations.values();
         return location.iterator().next();
@@ -179,9 +179,10 @@ public class ICTS implements MAPFAlgorithm {
     private boolean hasIllogicalQueueBehavior(ArrayList<ArrayList<Integer>> agentPaths,
                                               ArrayList<Integer> surfaceQ,
                                               ArrayList<Integer> undergroundQ) {
+        // Check if the agent paths violate expected queue behaviour, i.e. always moving forward when able to
 
         int numAgents = agentPaths.size();
-        int pathLength = agentPaths.getFirst().size(); // Assumes all paths are same length
+        int pathLength = agentPaths.getFirst().size();
 
         for (ArrayList<Integer> queue : List.of(surfaceQ, undergroundQ)) {
             if (queue.size() < 2) {
@@ -213,7 +214,7 @@ public class ICTS implements MAPFAlgorithm {
                         int backMove = agentPaths.get(backAgent).get(t);
                         int frontMove = agentPaths.get(frontAgent).get(t);
 
-                        // If fron agent moves but back agent stays, illogical behaviour
+                        // If front agent moves but back agent stays, illogical behaviour
                         if (frontMove != frontVertex && backMove == backVertex) {
                             return true;
                         }
@@ -269,7 +270,7 @@ public class ICTS implements MAPFAlgorithm {
                     }
                 }
 
-                if(goalNode) {      // Could be moved to the if statement in the for each loop above
+                if(goalNode) {
 
                     // Reconstruct the solution path
                     ArrayList<ArrayList<MDDNode>> solutionPath = new ArrayList<>();
@@ -316,13 +317,13 @@ public class ICTS implements MAPFAlgorithm {
                         mddNode.children.add(new MDDNode(mddNode));
                     }
 
-                    childrenLists.add(mddNode.children);    // TODO PROBLEM: if mddNode is of a goal location, it has no children --> no jointChildren --> queue is empty --> no solution found
+                    childrenLists.add(mddNode.children);
                 }
 
                 // Get the cartesian/cross product of the children
                 // currentNodes is input as previous, so inside the method, previous will be the current
-                // an empty arrayList is input as partial, so partial is empty and will be built on
-                // this repeats for each recursive call where previous becomes current, and partial is empty and is
+                // an empty arrayList is input as partial, so partial is empty and will be built on.
+                // This repeats for each recursive call where previous becomes current, and partial is empty and is
                 // built on (which for that iteration is the current)
                 generateJointChildren(childrenLists, 0, new ArrayList<>(), currentNodes, queue, visited, parentMap, ramp);
             }
@@ -392,8 +393,6 @@ public class ICTS implements MAPFAlgorithm {
                 parent.children.add(child);
 
                 this.tree.addCostVector(childCostVector);
-
-                continue;
             }
 
             //System.out.println("ICT child node with cost vector " + childCostVector + " was pruned");
@@ -406,28 +405,26 @@ public class ICTS implements MAPFAlgorithm {
         ArrayList<Integer> neighbours = new ArrayList<>();
         HashMap<Integer, UpDownNeighbourList> adjList = ramp.getAdjList();
 
-        // If location is an exit, let it be able to stay there (we are happy with paths that get to the goal in
-        // fewer actions specified by the cost
-        if(location == ramp.getSurfaceExit() || location == ramp.getUndergroundExit())
-        {
+        // If location is an exit, let it be able to stay there (we allow paths that get to the goal in
+        // fewer actions specified by the cost to stay in the goal)
+        if(location == ramp.getSurfaceExit() || location == ramp.getUndergroundExit()) {
             neighbours.add(location);
         }
         else if(agent.direction == Constants.DOWN) {
             neighbours = adjList.get(location).getDownNeighbours();
+
+            // If downgoing agent can't enter passing bays, remove the move entering a passing bay
+            if(!agent.passBayAble) {
+                neighbours.removeIf(neighbour -> ramp.getFirstPassBayVertices().contains(neighbour));
+            }
         }
         else {
             neighbours = adjList.get(location).getUpNeighbours();
 
             // If upgoing agent can't enter passing bays, remove the move entering a passing bay
             if(!agent.passBayAble) {
-                for(Integer neighbour : neighbours) {
-                    if(ramp.getSecondPassBayVertices().contains(neighbour)) {
-                        neighbours.remove(neighbour);
-                    }
-                }
+                neighbours.removeIf(neighbour -> ramp.getSecondPassBayVertices().contains(neighbour));
             }
-
-            // TODO: Check if able to enter passing bays
         }
 
         return neighbours;
@@ -602,7 +599,7 @@ public class ICTS implements MAPFAlgorithm {
         while(!ictQueue.isEmpty()) {
             ICTNode currentNode = ictQueue.poll();
 
-            // Generate an MDD for each agent i, imposing all costVector.get(i) possible actions
+            // Generate an MDD for each agent i, imposing all combinations of costVector.get(i) possible actions
             // Run BFS for x moves only and return the solution. Then call createMDDFromPath() to get MDD
 
             ArrayList<ArrayList<MAPFSolution>> childSolutions = new ArrayList<>();
@@ -621,9 +618,7 @@ public class ICTS implements MAPFAlgorithm {
                 childSolutions.add(getValidSolutions(ramp, agent, location, cost));
             }
 
-
             // Add the agent's solutions as an arraylist as one element in the currentNode agentPaths
-
 
             // Each agent may have multiple possible solution paths. For each set of agent solutions, generate an MDD
             // and store that MDD in an arrayList. That arrayList is then stored, together with arrayLists of other

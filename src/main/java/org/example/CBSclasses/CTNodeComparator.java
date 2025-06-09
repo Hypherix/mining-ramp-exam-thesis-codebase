@@ -4,7 +4,7 @@ import java.util.Comparator;
 /*
 * Enables comparison between CTNodes based on their costs.
 * Needed for implementation of CBS priority queue
-* Lowest cost CT node is polled first --> greedy best-first search
+* Lowest cost CT node is polled first --> best-first search
 * */
 
 public class CTNodeComparator implements Comparator<CTNode> {
