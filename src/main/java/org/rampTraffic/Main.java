@@ -26,12 +26,6 @@ public class Main {
             else {
                 agent = new Agent(i, 1, Constants.UP, true, false);
             }
-//            if (i == 0 || i == 3 || i == 4 || i == 8 || i ==  7) {
-//                agent.passBayAble = true;
-//            }
-//            else {
-//                agent.passBayAble = false;
-//            }
             agentEntries.addEntry(0, agent);
         }
         Agent agent2 = new Agent(agentCount++, 1, Constants.DOWN, true, false);
@@ -40,23 +34,6 @@ public class Main {
         agentEntries.addEntry(5, agent2);
         agent2 = new Agent(agentCount++, 1, Constants.DOWN, true, false);
         agentEntries.addEntry(18, agent2);
-
-//        Random rand = new Random();
-//        int numOfArrivals = 3;
-//        for(int i = agentCount; i < (agentCount + numOfArrivals); i++) {
-//            Agent agent2;
-//            int early = rand.nextInt(1, 5);                // Early arrivals: time step 1-4
-//            int middle = rand.nextInt(5, 9);    // Middle arrivals: time step 5-8
-//            int late = rand.nextInt(10, 14);    // Late arrivals: time step 10-13
-//            if(i % 2 == 0) {
-//                agent2 = new Agent(i, 1, Constants.DOWN, true, false);
-//            }
-//            else {
-//                agent2 = new Agent(i, 1, Constants.UP, true, false);
-//            }
-//            agentList2.put(agent2.id, agent2);
-//            agentEntries.addEntry(middle, agent2);
-//        }
 
         // Instantiate scenarios
         MAPFScenario scenarioICTS = new MAPFScenario(myRamp, agentEntries, 20);
