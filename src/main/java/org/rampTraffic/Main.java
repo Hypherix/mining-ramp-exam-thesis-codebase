@@ -13,7 +13,7 @@ public class Main {
 
         // Design the ramp
         int[] passBays = {2};       // the array numbers specify the ramp vertex that the pass bay will be adjacent to
-        Ramp myRamp = new Ramp(5, 5, 5, passBays);
+        Ramp myRamp = new Ramp(7, 5, 5, passBays);
 
         // Set up agents and their arrivals
         AgentEntries agentEntries = new AgentEntries();

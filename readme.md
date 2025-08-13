@@ -1,5 +1,9 @@
 # Mining Ramp Traffic Simulator
 
+<div align='center'>
+	<img src='./doc/ui_snapshot.png'/>
+</div>
+
 ## Introduction
 This program simulates a mining ramp. A mining ramp is a ramp used by mining vehicles, either those from the surface wanting to reach the mine or those from the mine wanting to return to the surface. The peculiarity of the mining ramp is that it is heavily bottlenecked in that it only consists of one lane. To alleviate this bottleneck, passing bays may be placed throughout the ramp.
 
@@ -7,28 +11,35 @@ The mining vehicles can enter the scenario at different times throughout its lif
 
 As mentioned, the scenario has a lifespan. Within this lifespan duration, the scenario checks if new vehicles will enter the ramp, in which case it puts the vehicles in their respective queues. The scenario ends as soon as (1) all vehicles have reached their destinations, and (2) the lifespan duration has expired.
 
+The following list includes the main constraints of the scenario:
+1. The ramp only has one lane, which is the main bottlenect. This means to no two a can pass by each other whilst simultaneously moving along the ramp. As mentioned, passing bays can be used to alleviate this bottlenect. A passing bay can fit at most one vehicle at a time.
+2. Whereas agents are allowed to wait inside a passing bay, they may not wait or turn directions whilst on the ramp itself.
+3. Some vehicles must never stop once they enter the ramp. Such vehicles are therefore not able to enter passing bays, meaning that any oncoming vehicles must give way, either by staying in the queue or, if it has already entered the ramp, by occupying a passing bay.
+4. Implied by the previous constraint is that some vehicles have higher priority than others. In a practical scenario, such a prioritised vehicle might be one that carries workers to the underground whenever they are urgently needed, or one that is heading to the surface when the mine suffers lack of space.
+5. The queues must maintain a valid queue behaviour. More specifically, if an agent inside the queue stays in the same vertex with the vertex in fron being free, this is an invalid behaviour. All vehicles must always move forward if such a move is possible inside the queue.
+
 ## User Controls
 
 The software gives the user ability to control the features of the mining ramp, the vehicles and their properties, and the scenario lifespan duration. The mining ramp has the following adjustable properties:
-+ length
-+ passing bays and their locations
-+ queue lengths
++ Length
++ Passing bays and their locations
++ Queue lengths
 
 Each vehicle has the following adjustable properties:
-+ direction of travel
-+ ability to use passing bays
-+ priority status
-+ velocity (a bit misleading since only velocity = 1 works in this version)
++ Direction of travel
++ Ability to use passing bays
++ Priority status
++ Velocity (a bit misleading since only velocity = 1 works in this version)
 
 As is explained later, the user decides what algorithms to apply on a scenario. Whenever the algorithms have run, a UI appears which allows the user to graphically see the solutions of the algorithms time step by time step.
 
 ## Algorithms
 
-The algorithms implemented in this software closely follows those described in their respective original papers. Due to the extensive constraints and bottlenecks of the mining ramp scenario, however, the algorithm have been slightly modified to be compatible with the scenario.
+The algorithms implemented in this software closely follows those described in their respective original papers. Due to the extensive constraints and bottlenecks of the mining ramp scenario, however, the algorithm have been slightly modified to be compatible with the scenario. More specifically, the algorithms have been extended to conform to the constraints listed in the introduction.
 
 ### A*
 
-The first algorithm is an ordinary A\* extended to work with multiple agents. There are two frequently seen extensions of multi-agent A\*: [Operator Decomposition and Independence Detection](	https://doi.org/10.1609/aaai.v24i1.7564 ). Neither of these are implemented due to the limited benefit they would add with this scenario.
+The first algorithm is an ordinary A\* extended to work with multiple vehicles (heceforth referred to as agents). There are two frequently seen extensions of multi-agent A\*: [Operator Decomposition and Independence Detection](	https://doi.org/10.1609/aaai.v24i1.7564 ). Neither of these are implemented due to the limited benefit they would add with this scenario.
 
 ### Increasing Cost Tree Search (ICTS)
 
@@ -56,4 +67,45 @@ Conflict-Based Search with Priorities (CBSw/P) works very similar to the traditi
 https://doi.org/10.48550/arXiv.1812.06356)
 
 ## How to Run the Program (The Flow of Running the Software)
-Gå igenom vad som behövs i main filen och i vilken ordning. Säg att main-filen innehåller ett exempelfall.
+The main file in its current state contains the code of an example case and can be run without having to do anything. The software in its current state is not fail-safe in that it requires the user to make decisions that make sense. For instance, the user can technically put passing bays outside of the ramp but will make no sense. In other cases, the software might crash if the user input is illogical or not allowed.
+
+### Designing the Ramp
+The Ramp is represented as a Ramp object with four parameters:
+- The ramp length
+- The surface queue length
+- The underground (mining) queue length
+- An array of locations at which passing bays are to be located
+Each location in the array represents the ramp vertex next to which the passing bay starts. For instance, if the array is [5], one passing bay will be constructed next to the fifth and sixth vertex counting from the surface.
+
+### Designing the Agents and Their Arrivals to the Ramp
+An agent is represented as an Agent object with five parameters:
+- An identifier (must be unique)
+- Velocity (has no effect)
+- Direction
+- Ability to use passing bays
+- Priority status
+In order for an agent to be included in the scenario, it must first be added to an agentEntries object. The agentEntries object represents a schedule of at what time steps different agents will enter the mining ramp scenario.
+
+### Creating a Scenario
+The way the software currently works, each algorithm requires its own scenario to work. Thus, if one wants all four algorithms to run on the scenario, four identical scenarios must be created. A scenario is represented as a MAPFScenario which takes three parameters:
+- A Ramp object
+- An agentEntries object
+- The lifespan duration of the scenario
+
+### Invoking the Algorithms
+Before an algorithm is invoked to solve the scenario problem, a MAPFSolver object must be created. The MAPFSolver constitutes the heart of the MAPF-solving machinery as it is the entity responsible for employing algorithms on its scenario. Its solve() method then returns the solution generated by the employed algorithm as a MAPFSolution object. If one wants the algorithm to prioritise higher priority agents, the user must set the prioritise parameter of solve() to true, else false. The MAPFSolver object takes two parameters:
+- A MAPFScenario object
+- A string representation of the algorithm to employ ("astar", "icts", "cbs", or "cbswp")
+
+### The User Interface
+The UI is represented as a visualiser object with multiple parameters:
+- The Ramp object
+- A solution (MAPFSolution) from A\*
+- A solution (MAPFSolution) from ICTS
+- A solution (MAPFSolution) from CBS
+- A solution (MAPFSolution) from CBSw/P
+The visualiser expects a solution from every algorithm. That said, if certain algorithms have not been invoked on a current scenario, they should be set to null.
+
+The UI gives the user a graphical overview of the scenario along with statistics for the current solution being shown. The UI is also interactive in that the user determines what solution to show, and how fast. The user can pause, resume and reset a solution being shown.
+
+The agents are represented as filled circles where an agent occupies one vertex per time step. A red frame around the agent circle represents that the agent is of higher priority.
