@@ -33,10 +33,10 @@ public class Agent {
     public boolean equals(Object o) {
         // Used to compare two agent instances
 
-        if (this == o) {        // True if same reference
+        if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {  // False if null or different class
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
 

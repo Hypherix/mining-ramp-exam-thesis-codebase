@@ -12,8 +12,8 @@ public class Main {
     public static void main(String[] args) {
 
         // Design the ramp
-        int[] passBays = {2};       // the array numbers specify the ramp vertex that the pass bay will be adjacent to
-        Ramp myRamp = new Ramp(7, 5, 5, passBays);
+        int[] passingBays = {2};
+        Ramp myRamp = new Ramp(7, 5, 5, passingBays);
 
         // Set up agents and their arrivals
         AgentEntries agentEntries = new AgentEntries();
@@ -42,8 +42,7 @@ public class Main {
         MAPFScenario scenarioCBSwP = new MAPFScenario(myRamp, agentEntries, 20);
 
         // Invoke algorithms
-
-        boolean prioritise = false;         // toggle algorithms to prioritise
+        boolean prioritise = false;
 
         System.out.println();
 
@@ -100,7 +99,7 @@ public class Main {
         System.out.println("Execution time CBSwP: " + Math.round(cbswpSolution.getObtainTime()) + " ms, and cost: " + cbswpSolution.getCost());
 
 
-        // Visualiser
+        // Construct the UI
         MAPFVisualiser visualiser = new MAPFVisualiser(myRamp, astarSolution, ictsSolution, cbsSolution, cbswpSolution);
     }
 }

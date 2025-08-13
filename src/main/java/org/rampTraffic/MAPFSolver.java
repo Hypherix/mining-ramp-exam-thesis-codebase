@@ -42,7 +42,7 @@ public class MAPFSolver {
         // Note! Parameter prioritise does not affect ICTS since it cannot prioritise
 
         HashMap<Integer, ArrayList<Agent>> agentEntries = scenario.fetchAgentEntries();
-        int endTime = this.scenario.getDuration();
+        int endTime = this.scenario.getLifespan();
         MAPFSolution currentSolution;
 
         // Invoke the algorithm to find a solution
