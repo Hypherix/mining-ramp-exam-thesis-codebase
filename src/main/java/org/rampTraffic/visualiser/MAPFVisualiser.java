@@ -376,7 +376,7 @@ public class MAPFVisualiser extends JFrame implements ActionListener {
         // Passing bays
         int[] passBaysAdjVertex = ramp.getPassBaysAdjVertex();
         ArrayList<Integer> recordedAdjVertices = new ArrayList<>();
-        ArrayList<ArrayList<Integer>> passingBayVertices = ramp.getPassingBayVertices();
+        ArrayList<ArrayList<Integer>> passingBayVertices = ramp.getPassingBayVertexPairs();
         for (int i = 0; i < passBaysAdjVertex.length; i++) {
             heightTracker = -1;
             if (i == 0) {

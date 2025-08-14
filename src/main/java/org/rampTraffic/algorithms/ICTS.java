@@ -126,7 +126,7 @@ public class ICTS implements MAPFAlgorithm {
             }
 
             // Find which passing bay this vertex belongs to
-            ArrayList<ArrayList<Integer>> bays = ramp.getPassingBayVertices();
+            ArrayList<ArrayList<Integer>> bays = ramp.getPassingBayVertexPairs();
             for (int i = 0; i < bays.size(); i++) {
                 if (bays.get(i).contains(vertex)) {
                     passingBayOccupancy.put(i, passingBayOccupancy.getOrDefault(i, 0) + 1);
@@ -556,7 +556,7 @@ public class ICTS implements MAPFAlgorithm {
                     initialState.getRamp(), singleInitialState, 1);
             MAPFAlgorithm aStarSingle = AlgorithmFactory.getAlgorithm("astar");
             MAPFSolution initialSolution = aStarSingle.solve(initialScenario, prioritise);
-            initialSolution.printSolution(true);
+            initialSolution.calculateSolution(true);
             initialSolutions.add(initialSolution);
             initialOptimalCosts.add(initialSolution.getCost());
             accumulatedExpandedStates += initialSolution.getExpandedStates();

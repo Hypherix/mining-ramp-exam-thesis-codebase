@@ -7,22 +7,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-
-/*
- * Activates an algorithm to solve a given MAPFScenario
- * Contents:
- *   - MAPFScenario
- *   - Algorithm to use
- * */
-
-
 public class MAPFSolver {
 
     // Data members
-    private MAPFScenario scenario;
-    private MAPFAlgorithm algorithm;
+    private final MAPFScenario scenario;
+    private final MAPFAlgorithm algorithm;
     private int timeStep;
-    private String algorithmString;
+    private final String algorithmString;
 
 
     // Constructors
@@ -38,26 +29,25 @@ public class MAPFSolver {
     // Methods
 
     public MAPFSolution solve(boolean prioritise) {
-        // Task: Prompts the algorithm to solve the MAPF scenario
-        // Note! Parameter prioritise does not affect ICTS since it cannot prioritise
+        // Prompts the algorithm to solve the MAPF scenario
+        // Note! Parameter prioritise does not affect ICTS since it inherently is unable to prioritise
 
         HashMap<Integer, ArrayList<Agent>> agentEntries = scenario.fetchAgentEntries();
         int endTime = this.scenario.getLifespan();
-        MAPFSolution currentSolution;
 
         // Invoke the algorithm to find a solution
         long startFirstTime = System.nanoTime();
-        currentSolution = this.algorithm.solve(this.scenario, prioritise);
+        MAPFSolution currentSolution = this.algorithm.solve(this.scenario, prioritise);
         long endFirstTime = System.nanoTime();
         long firstDuration = endFirstTime - startFirstTime;
         System.out.println("Execution time " + this.algorithmString + ": " + (firstDuration / 1000000) + " ms");
 
-        double totalReplanTime = 0;
+        double totalReplanTime = 0;     // Accumulates all replan durations
 
         // Go through agent entries for every time step to see if new agents arrive --> replan
         for(timeStep = 1; timeStep < endTime; timeStep++) {
             if (agentEntries.containsKey(timeStep)) {   // If there are new agents entering this timeStep
-                // Remove from solution states those states that are now invalid
+                // Remove from solution states, those states that are now invalid
 
                 ArrayList<MAPFState> currentSolutionStates = new ArrayList<>();
                 if(currentSolution != null) {
@@ -71,8 +61,8 @@ public class MAPFSolver {
                     MAPFState lastSolutionState = currentSolutionStates.getLast();
                     for (int i = 0; i < difference; i++) {
                         MAPFState paddedState = new MAPFState(lastSolutionState);
-                        paddedState.setTimeStep(lastSolutionState.getTimeStep() + i);  // Advance time step
-                        paddedState.parent = currentSolutionStates.getLast();   // Link to previous state
+                        paddedState.setTimeStep(lastSolutionState.getTimeStep() + i);
+                        paddedState.parent = currentSolutionStates.getLast();       // Link state to previous state
                         currentSolutionStates.add(paddedState);
                     }
                 }
@@ -83,13 +73,8 @@ public class MAPFSolver {
                 // Get the state we want to revert to
                 MAPFState newCurrentState = currentSolutionStates.get(timeStep);
 
-                // Assign the scenario newCurrentState as initial state
                 scenario.setInitialState(newCurrentState);
-
-                // Update totalAgentCount to reflect currentState's
                 scenario.setTotalAgentCount(newCurrentState.getAgentLocations().size());
-
-                // Update MAPFScenario's initialState and manually set parent to newCurrentState.parent
                 scenario.setInitialState(scenario.generateState(timeStep, null));
                 scenario.getInitialState().parent = newCurrentState.parent;
 
@@ -100,7 +85,6 @@ public class MAPFSolver {
                 long replanDuration = endReplanTime - startReplanTime;
                 System.out.println("Execution time " + this.algorithmString + " replan: " + (replanDuration / 1000000) + " ms");
                 totalReplanTime += (double) replanDuration;
-
 
                 // Start from goal of new A* run
                 MAPFState goalState = currentSolution.getSolutionSet().getLast();
@@ -118,9 +102,8 @@ public class MAPFSolver {
         }
         System.out.println(this.algorithmString + " total replan time: " + Math.round(totalReplanTime / 1000000) + " ms");
 
-
         if(currentSolution != null) {
-            currentSolution.printSolution(false);
+            currentSolution.calculateSolution(false);
             return currentSolution;
         }
         else {

@@ -6,7 +6,7 @@ import java.util.HashMap;
 public class AgentEntries {
 
     // Data members
-    HashMap<Integer, ArrayList<Agent>> entries;     // timeStep, agents entering
+    final HashMap<Integer, ArrayList<Agent>> entries;     // timeStep, agents entering
 
     // Constructors
     public AgentEntries() {

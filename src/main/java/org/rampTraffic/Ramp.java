@@ -2,44 +2,36 @@ package org.rampTraffic;
 
 import java.util.*;
 
-/*
-* NOTES!!
-* passBaysAdjVertex holds the ACTUAL RAMP vertex IDs. In other words, if passBay[x] = 2, then we mean adjacent to the second
-* vertex in the ACTUAL ramp (i.e. disregarding the queues)
-*
-*
-* */
-
-
 public class Ramp {
 
     // Data members
-    private int rampLength;                     // length of actual ramp
-    private int surfaceQLength;
-    private int undergroundQLength;
-    private int[] passBaysAdjVertex;                     // list of vertexIDs (only considering the actual ramp) that the passing bays are adjacent to
+    private final int rampLength;
+    private final int surfaceQLength;
+    private final int undergroundQLength;
+    private final int[] passBaysAdjVertex;            // list of pars of vertexIDs (only considering the actual ramp) that the passing bays are adjacent to
 
     private int verticesInRamp;
     private int surfaceQFree;
     private int undergroundQFree;
 
-    // Data members to keep track of which vertices are what in the ramp
+    // Data members to keep track of which vertices represent what in the ramp
+    // Upon revisiting, passingBays and verticesInPassingBays may fill the identical functions
     private ArrayList<Integer> verticesInSurfaceQ;
     private ArrayList<Integer> verticesInActualRamp;
     private ArrayList<Integer> verticesInUndergroundQ;
     private ArrayList<Integer> passingBays;         // number of passing bays
-    private ArrayList<Integer> verticesInPassingBays;   // ALL vertices that are in passing bays
-    private ArrayList<ArrayList<Integer>> passingBayVertices;   // all passing bays and their respective vertices
-    private ArrayList<Integer> firstPassBayVertices;       // all vertices closest to the surface in passing bays
-    private ArrayList<Integer> secondPassBayVertices;       // all vertices closest to the underground in passing bays
-    private int surfaceStart;
-    private int undergroundStart;
+    private final ArrayList<Integer> verticesInPassingBays;        // all vertices that are in passing bays
+    private final ArrayList<ArrayList<Integer>> passingBayVertexPairs;   // all passing bays and their respective vertices
+    private ArrayList<Integer> firstPassBayVertices;        // every passing bay vertex closest to the surface
+    private ArrayList<Integer> secondPassBayVertices;       // every passing bay vertex closest to the underground
+    private final int surfaceStart;
+    private final int undergroundStart;
     private int surfaceExit;
     private int undergroundExit;
 
-    private HashMap<Integer, UpDownNeighbourList> adjList;      // adjacency list to keep track of edges
+    private final HashMap<Integer, UpDownNeighbourList> adjList;      // adjacency list to keep track of edges
 
-    // Information about f, g and h values for each vertex in the ramp
+    // Information about f, g and h values for every vertex in the ramp (<vertexId, h>)
     HashMap<Integer, Integer> hUpgoing;
     HashMap<Integer, Integer> hDowngoing;
 
@@ -54,26 +46,21 @@ public class Ramp {
         this.surfaceStart = surfaceQLength;
         this.undergroundStart = surfaceQLength + rampLength - 1;
         this.verticesInPassingBays = new ArrayList<>();
-        this.passingBayVertices = new ArrayList<>();
+        this.passingBayVertexPairs = new ArrayList<>();
         this.firstPassBayVertices = new ArrayList<>();
         this.secondPassBayVertices = new ArrayList<>();
 
-
-        // Initialise the adjacency list which represents the ramp
         this.adjList = new HashMap<>();
         initialiseAdjList(rampLength, surfaceQLength, undergroundQLength, passBaysAdjVertex);
 
-        // Categorise vertices depending on what part of the ramp they are in
         categoriseVertices();
 
         // Calculate and store fgh values for the vertices
-//        fghUpgoing = new HashMap<>();
-//        fghDowngoing = new HashMap<>();
         hUpgoing = new HashMap<>();
         hDowngoing = new HashMap<>();
         seth();
 
-        // Print ramp information
+        // Print ramp information to the console
         printRampParts();
         System.out.println();
         printAdjList();
@@ -106,9 +93,9 @@ public class Ramp {
         this.verticesInPassingBays = new ArrayList<>(other.verticesInPassingBays);
 
         // Special: ArrayList of ArrayLists
-        this.passingBayVertices = new ArrayList<>();
-        for (ArrayList<Integer> innerList : other.passingBayVertices) {
-            this.passingBayVertices.add(new ArrayList<>(innerList));
+        this.passingBayVertexPairs = new ArrayList<>();
+        for (ArrayList<Integer> innerList : other.passingBayVertexPairs) {
+            this.passingBayVertexPairs.add(new ArrayList<>(innerList));
         }
 
         // Copy HashMaps
@@ -117,6 +104,7 @@ public class Ramp {
             this.adjList.put(entry.getKey(), new UpDownNeighbourList(entry.getValue()));
         }
 
+        // Copy h costs
         this.hUpgoing = new HashMap<>(other.hUpgoing);
         this.hDowngoing = new HashMap<>(other.hDowngoing);
     }
@@ -124,7 +112,6 @@ public class Ramp {
 
     // Methods
     private void printAdjList() {
-        // Task: Print the adjacency list
         System.out.println("Ramp adjacency list:");
         System.out.print("{");
 
@@ -141,12 +128,11 @@ public class Ramp {
     }
 
     private void printRampParts() {
-        // Task: Print out the ramp structure
         System.out.println("Surface queue: " + verticesInSurfaceQ);
         System.out.println("Ramp: " + verticesInActualRamp);
         System.out.println("Surface queue: " + verticesInSurfaceQ);
         System.out.println("Underground queue: " + verticesInUndergroundQ);
-        System.out.println("Passing bays: " + passingBayVertices);
+        System.out.println("Passing bays: " + passingBayVertexPairs);
         System.out.println("Surface start: " + surfaceStart);
         System.out.println("Underground start: " + undergroundStart);
         System.out.println("Surface exit: " + surfaceExit);
@@ -154,8 +140,6 @@ public class Ramp {
     }
 
     private void printRampStructure() {
-        // Task: Print the actual ramp
-
         System.out.println("The ramp structure\n");
 
         // Passing bays
@@ -164,13 +148,13 @@ public class Ramp {
                 for (int j = 0; j < this.passBaysAdjVertex[i]; j++) {
                     System.out.print("\t");
                 }
-                System.out.print(passingBayVertices.get(i).getFirst() + "\t" + passingBayVertices.get(i).getLast());
+                System.out.print(passingBayVertexPairs.get(i).getFirst() + "\t" + passingBayVertexPairs.get(i).getLast());
             }
             else {
                 for (int j = 0; j < (this.passBaysAdjVertex[i] - this.passBaysAdjVertex[i - 1] - 1); j++) {
                     System.out.print("\t");
                 }
-                System.out.print(passingBayVertices.get(i).getFirst() + "\t" + passingBayVertices.get(i).getLast());
+                System.out.print(passingBayVertexPairs.get(i).getFirst() + "\t" + passingBayVertexPairs.get(i).getLast());
             }
         }
         System.out.println();
@@ -185,13 +169,9 @@ public class Ramp {
         // Queues
         int surfaceQLength = verticesInSurfaceQ.size();
         int undergroundQLength = verticesInUndergroundQ.size();
-        ArrayList<Integer> longestQueue;
-        if(verticesInSurfaceQ.size() > verticesInUndergroundQ.size()) {
-            longestQueue = verticesInSurfaceQ;
-        }
-        else {
-            longestQueue = verticesInUndergroundQ;
-        }
+        ArrayList<Integer> longestQueue = verticesInSurfaceQ.size() > verticesInUndergroundQ.size()
+                ? verticesInSurfaceQ
+                : verticesInUndergroundQ;
 
         ArrayList<Integer> verticesInSurfaceQReverse = new ArrayList<>(verticesInSurfaceQ);
         Collections.reverse(verticesInSurfaceQReverse);
@@ -213,22 +193,19 @@ public class Ramp {
     }
 
     private void addVertexToRamp(int vertexId) {
-        // Task: Add a vertex to the ramp
         this.adjList.put(vertexId, new UpDownNeighbourList());
     }
 
     private void addUpEdge(int fromVertex, int toVertex) {
-        // Task: Add an edge to the ramp
         this.adjList.get(fromVertex).getUpNeighbours().add(toVertex);
     }
 
     private void addDownEdge(int fromVertex, int toVertex) {
-        // Task: Add an edge to the ramp
         this.adjList.get(fromVertex).getDownNeighbours().add(toVertex);
     }
 
     private void initialiseAdjList(int rampLength, int surfaceQLength, int undergroundQLength, int[] passBays) {
-        // Task: Given length of the ramp, initialise the adjacency list
+        // Creates edges between the vertices, that are stored inside the adjacency list
 
         verticesInRamp = 0;
 
@@ -264,18 +241,18 @@ public class Ramp {
         }
 
         // Add passing bays. Add edge to corresponding edges in the ramp
-        // A passing bay consists of two nodes. The first node is the one closest to the surface
+        // A passing bay consists of two vertices. The first node is the one closest to the surface
         int currentPassBay = 0;
         for(int i = 0; i< passBays.length; i++) {
-            // PassBay vertex closest to surface
+            // Vertex closest to surface
             addVertexToRamp(verticesInRamp);
             addUpEdge(verticesInRamp, verticesInRamp);      // Agents can wait in the passing bay
             addDownEdge(surfaceQLength + passBays[currentPassBay] - 1, verticesInRamp);     // -1 needed for adjustment
             addUpEdge(verticesInRamp, surfaceQLength + passBays[currentPassBay] - 1);
 
-            // PassBay vertex closest to underground
+            // Vertex closest to underground
             addVertexToRamp(verticesInRamp + 1);
-            addDownEdge(verticesInRamp + 1, verticesInRamp + 1);    // Agents can wait in the passing bay
+            addDownEdge(verticesInRamp + 1, verticesInRamp + 1);
             addDownEdge(verticesInRamp, verticesInRamp + 1);
             addUpEdge(verticesInRamp + 1, verticesInRamp);
             addDownEdge(verticesInRamp + 1, surfaceQLength + passBays[currentPassBay]);
@@ -289,12 +266,11 @@ public class Ramp {
             ArrayList<Integer> thisPassingBay = new ArrayList<>();
             thisPassingBay.add(verticesInRamp);
             thisPassingBay.add(verticesInRamp + 1);
-            this.passingBayVertices.add(thisPassingBay);
+            this.passingBayVertexPairs.add(thisPassingBay);
 
             currentPassBay++;
             verticesInRamp += 2;
         }
-
 
         // Add the surface exit vertex to the adjacency list
         addVertexToRamp(verticesInRamp);
@@ -308,14 +284,13 @@ public class Ramp {
         this.undergroundExit = verticesInRamp;
         verticesInRamp++;
 
-        // Set first free slot in surface queue and underground queue
-        // Agents always start in queue before entering the ramp, hence +/- 1
+        // Set first free vertex in surface queue and underground queue
         surfaceQFree = surfaceStart - 1;
         undergroundQFree = undergroundStart + 1;
     }
 
     private void categoriseVertices() {
-        // Task: Categorise vertices depending on what part of the ramp they are in
+        // Categorises vertices depending on what part of the ramp they are in
 
         int currentVertex = 0;
 
@@ -351,58 +326,50 @@ public class Ramp {
     }
 
     private HashMap<Integer, Integer> getVerticesCosts(int sourceVertex) {
-        // Task: Get the vertices costs (= their generation from a starting vertex)
+        // Task: Get the vertices' costs (= their generation from a source vertex) in a breadth-first search manner
 
         HashMap<Integer, Integer> vertexGeneration = new HashMap<>();
 
-        Queue<Integer> frontierVertex = new LinkedList<>();      // Keeps track of vertices in frontier
-        HashMap<Integer, ArrayList<Integer>> frontierNeighbours = new HashMap<>();  // Maps frontier vertices to neighbours
-        ArrayList<Integer> explored = new ArrayList<>();            // Keeps track of explored vertices
-
-        // It is enough to start from the surface start vertex. fgh in downgoing and upgoing direction can be attained
-        // from this
+        Queue<Integer> frontierVertex = new LinkedList<>();
+        HashMap<Integer, ArrayList<Integer>> frontierNeighbours = new HashMap<>();
+        ArrayList<Integer> explored = new ArrayList<>();
 
         // Add surface vertex to frontier and explored
         frontierVertex.add(sourceVertex);
         frontierNeighbours.put(sourceVertex, adjList.get(sourceVertex).getAllNeighbours());
         explored.add(sourceVertex);
-        vertexGeneration.put(sourceVertex, 0);      // surface vertex is the first generation
+        vertexGeneration.put(sourceVertex, 0);
 
         int currentVertex;
-        ArrayList<Integer> currentNeighbours = new ArrayList<>();
+        ArrayList<Integer> currentNeighbours;
 
         // Get costs of all vertices
         while(!frontierVertex.isEmpty()){
-            currentVertex = frontierVertex.poll();              // Dequeue vertex first in queue
-            explored.add(currentVertex);                        // Mark as explored
-            currentNeighbours = frontierNeighbours.get(currentVertex);  // Get its neighbours
+            currentVertex = frontierVertex.poll();
+            explored.add(currentVertex);
+            currentNeighbours = frontierNeighbours.get(currentVertex);
 
-            int currentGeneration = vertexGeneration.get(currentVertex);    // Get current
+            int currentGeneration = vertexGeneration.get(currentVertex);
 
             for(Integer neighbour : currentNeighbours) {
-                // Only add neighbour to frontier if it hasn't already been explored or is already in the frontier
                 if (!explored.contains(neighbour) && !frontierVertex.contains(neighbour)) {
                     frontierVertex.add(neighbour);
 
                     ArrayList<Integer> neighboursOfNeighbour = adjList.get(neighbour).getAllNeighbours();
-
                     frontierNeighbours.put(neighbour, neighboursOfNeighbour);
 
-                    // Set the generation of the neighbour (+ 1 from the parent)
                     vertexGeneration.put(neighbour, currentGeneration + 1);
                 }
             }
         }
 
-        // Manually assign costs/generations to surface queue and underground queue
+        // Manually assign costs/generations to surface queue and underground queue vertices
         // Surface queue
         for(int i = 0; i < surfaceStart; i++) {
             vertexGeneration.put(i, sourceVertex - i);
         }
 
         // Underground queue
-        // Since assigning fgh values assumes the surface start vertex as the source vertex, this must be used
-        // here as well
         for(int i = undergroundStart + 1; i < undergroundStart + undergroundQLength + 1; i++) {
             vertexGeneration.put(i, i - sourceVertex);
         }
@@ -411,27 +378,27 @@ public class Ramp {
     }
 
     private void assignh(int vertex, HashMap<Integer, Integer> vertexGeneration, int direction) {
-        // Task: Assign h values to a vertex based on its generation/cost
+        // Task: Assigns h values to vertices based on their generations/costs
         // Note! Some fgh values for queue vertices will make no sense, but they will not be used in the program
 
         // Depending on direction, populate downgoing or upgoing fgh values
         if (direction == Constants.DOWN) {
-//            fghDowngoing.put(vertex, new int[]{0, 0, 0});
 
             // If a surface queue vertex, g is always 0, h is h, and f = h, since each of these could be the start vertex
             if(verticesInSurfaceQ.contains(vertex)) {
-                hDowngoing.put(vertex, undergroundStart - vertex + 1); // h is the distance from the vertex to underground start + 1
+                hDowngoing.put(vertex, undergroundStart - vertex + 1);
             }
             // If any ramp vertex
             else {
-                int gDowngoing = vertexGeneration.get(vertex);       // Get current vertex's downgoing g
+                int gDowngoing = vertexGeneration.get(vertex);
                 hDowngoing.put(vertex, rampLength - 1 - gDowngoing + 1);
             }
+
             // Passing bay vertices must have their h costs corrected since they are detours
             if(verticesInPassingBays.contains(vertex)) {
                 // Go through every passing bay
                 int passingBayNr = 0;
-                for(ArrayList<Integer> passingBay : passingBayVertices) {
+                for(ArrayList<Integer> passingBay : passingBayVertexPairs) {
                     // Adjust the h value of each passing bay's vertices accordingly
                     if(passingBay.getFirst() == vertex) {
                         int adjVertex = this.passBaysAdjVertex[passingBayNr] + this.surfaceQLength - 1;
@@ -445,22 +412,21 @@ public class Ramp {
                 }
             }
         }
+
         // If an underground queue vertex, g is always 0, h is h, and f = h, since each of these could be the start vertex
         else if (direction == Constants.UP) {
 
             if(verticesInUndergroundQ.contains(vertex)) {
-                hUpgoing.put(vertex, vertex - surfaceStart + 1);    // h is the distance from the vertex to surface start
+                hUpgoing.put(vertex, vertex - surfaceStart + 1);
             }
             else {
-                int gUpgoing = vertexGeneration.get(vertex);       // Get current vertex's downgoing g
+                int gUpgoing = vertexGeneration.get(vertex);
                 hUpgoing.put(vertex, rampLength - 1 - gUpgoing + 1);
             }
-            // Passing bay vertices must have their h costs corrected since they are detours
+
             if(verticesInPassingBays.contains(vertex)) {
-                // Go through every passing bay
                 int passingBayNr = 0;
-                for(ArrayList<Integer> passingBay : passingBayVertices) {
-                    // Adjust the h value of each passing bay's vertices accordingly
+                for(ArrayList<Integer> passingBay : passingBayVertexPairs) {
                     if(passingBay.getFirst() == vertex) {
                         int adjVertex = this.passBaysAdjVertex[passingBayNr] + this.surfaceQLength - 1;
                         hUpgoing.put(vertex, hUpgoing.get(adjVertex + 1));
@@ -479,7 +445,7 @@ public class Ramp {
     }
 
     public void seth() {
-        // Task: Set the h values of all vertices.
+        // Sets the h values of all vertices.
         // Note! h values are set to queue and exit vertices as well. Some of these might technically have
         // incorrect values, but they do not matter for the program to work. E.g. a surface queue's vertex's
         // upgoing h values are nonsensical since only downgoing agents will occupy such a vertex
@@ -533,8 +499,8 @@ public class Ramp {
         return this.verticesInPassingBays;
     }
 
-    public ArrayList<ArrayList<Integer>> getPassingBayVertices() {
-        return this.passingBayVertices;
+    public ArrayList<ArrayList<Integer>> getPassingBayVertexPairs() {
+        return this.passingBayVertexPairs;
     }
 
     public ArrayList<Integer> getFirstPassBayVertices() {

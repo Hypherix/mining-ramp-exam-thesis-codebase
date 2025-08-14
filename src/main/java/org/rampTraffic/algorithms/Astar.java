@@ -1,7 +1,6 @@
 package org.rampTraffic.algorithms;
 import org.rampTraffic.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 public class Astar implements MAPFAlgorithm {
@@ -396,7 +395,7 @@ public class Astar implements MAPFAlgorithm {
 
         // Get initialState and initialise its f cost (h is set in MAPFState constructor)
         MAPFState initialState = scenario.getInitialState();
-        initialState.setFcost(initialState.getGcost() + initialState.getHcost());
+        initialState.setFCost(initialState.getGCost() + initialState.getHCost());
 
         // Initialise priority queues
         PriorityQueue<MAPFState> frontier = prioritise
@@ -450,9 +449,9 @@ public class Astar implements MAPFAlgorithm {
                 if (stateAllowed) {
                     // This many agents have made an action --> gcost++ for each
                     int numOfActiveAgents = currentState.getNumOfActiveAgents();
-                    int newGcost = currentState.getGcost() + numOfActiveAgents;
+                    int newGcost = currentState.getGCost() + numOfActiveAgents;
                     int numOfActivePrioAgents = currentState.getNumOfActivePrioAgents();
-                    int newGcostPrio = currentState.getGcostPrio() + numOfActivePrioAgents;
+                    int newGcostPrio = currentState.getgCostPrio() + numOfActivePrioAgents;
 
                     // Create the neighbourState and assign currentState as its parent
                     MAPFState neighbourState = new MAPFState(currentState.getRamp(), moveCombination, newGcost,
@@ -470,7 +469,7 @@ public class Astar implements MAPFAlgorithm {
                     */
                     else if(frontier.contains(neighbourState)) {
                         for(MAPFState state : frontier) {
-                            if(state.equals(neighbourState) && neighbourState.getGcost() < state.getGcost()) {
+                            if(state.equals(neighbourState) && neighbourState.getGCost() < state.getGCost()) {
                                 frontier.remove(state);
                                 frontier.add(neighbourState);
                             }

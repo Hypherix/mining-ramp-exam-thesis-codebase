@@ -7,8 +7,8 @@ import java.util.Set;
 public class UpDownNeighbourList {
 
     // Data members
-    private ArrayList<Integer> UpNeighbours;
-    private ArrayList<Integer> DownNeighbours;
+    private final ArrayList<Integer> UpNeighbours;
+    private final ArrayList<Integer> DownNeighbours;
     private ArrayList<Integer> allNeighboursUnique;
 
     // Constructor
@@ -35,7 +35,7 @@ public class UpDownNeighbourList {
     }
 
     public ArrayList<Integer> getAllNeighbours() {
-        // Task: Return all unique neighbours.
+        // Returns all unique neighbours.
 
         ArrayList<Integer> allNeighbours = new ArrayList<>();
         allNeighbours.addAll(UpNeighbours);

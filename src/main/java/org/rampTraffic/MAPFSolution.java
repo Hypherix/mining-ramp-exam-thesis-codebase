@@ -30,16 +30,14 @@ public class MAPFSolution {
 
     // Methods
 
-    public void printSolution(boolean initial) {
-        // Task: Print the paths of each agent and calculates the costs in the same go
+    public void calculateSolution(boolean printCosts) {
+        // Calculates the path costs, and prints if parameter is true
 
         HashMap<Agent, ArrayList<String>> agentPaths = new HashMap<>();
 
-        // Get a set of all agents throughout the scenario
         ArrayList<MAPFState> solutionStates = this.getSolutionSet();
         Set<Agent> allAgents = solutionStates.getLast().getAgentLocations().keySet();
 
-        // Initialise empty paths for all agents
         for (Agent agent : allAgents) {
             agentPaths.put(agent, new ArrayList<>());
         }
@@ -50,11 +48,9 @@ public class MAPFSolution {
 
             // Go through all agents for each state
             for (Agent agent : allAgents) {
-                // If the agent existed in that state, add its location
                 if(agentLocations.containsKey(agent)) {
                     agentPaths.get(agent).add(String.valueOf(agentLocations.get(agent)));
                 }
-                // Else, just write "-"
                 else {
                     agentPaths.get(agent).add("-");
                 }
@@ -91,10 +87,8 @@ public class MAPFSolution {
             }
             System.out.println();
 
-
-            // For each action, increment cost. The starting locations do not cost anything
             // For each duplicate (hence cost++ in the end) surfaceExit or undergroundExit, decrement cost
-            cost += path.size() - 1;
+            cost += path.size() - 1;        // Starting locations do not add to the cost
             if (agent.higherPrio) {
                 prioCost += path.size() - 1;
             }
@@ -105,23 +99,18 @@ public class MAPFSolution {
                     int locationInt = Integer.parseInt(location);
                     int prevLocationInt = Integer.parseInt(prevLocation);
 
-                    // If agent has reached an exit
                     if(locationInt == surfaceExit || locationInt == undergroundExit) {
                         cost--;
                         if(agent.higherPrio) {
                             prioCost--;
                         }
                     }
-                    // If agent waits, and not in an exit, increment waitCost
                     else if (locationInt == prevLocationInt) {
                         waitCost++;
-
                         if(agent.higherPrio) {
                             prioWaitCost++;
                         }
                     }
-
-                    // Update prevLocation
                     prevLocation = location;
                 }
                 else {
@@ -134,7 +123,7 @@ public class MAPFSolution {
             cost++;
         }
 
-        if(!initial) {
+        if(!printCosts) {
             System.out.println("Solution cost: " + cost);
             System.out.println("Priority agents SOC: " + prioCost);
             System.out.println("Time steps spent waiting: " + waitCost);

@@ -2,11 +2,11 @@ package org.rampTraffic;
 
 public class Agent {
     // Data members
-    public int id;
-    public int velocity;        // currently not used
-    public int direction;
-    public boolean higherPrio;
-    public boolean passBayAble;
+    public final int id;
+    public final int velocity;        // currently not used
+    public final int direction;
+    public final boolean higherPrio;
+    public final boolean passBayAble;
 
 
     // Constructors

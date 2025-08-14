@@ -111,7 +111,7 @@ public class CBS implements MAPFAlgorithm {
         // Task: Given the root CTNode, return the first conflict amongst agents, else null.
 
         // Get passing bays
-        ArrayList<ArrayList<Integer>> passingBays = ramp.getPassingBayVertices();
+        ArrayList<ArrayList<Integer>> passingBays = ramp.getPassingBayVertexPairs();
 
         ArrayList<Agent> agents = new ArrayList<>(node.agentPaths.keySet());
         agents.sort(Comparator.comparing(agent -> agent.id));
@@ -598,7 +598,7 @@ public class CBS implements MAPFAlgorithm {
         // Task: Check that no passing bay is occupied with more than one agent at a time
 
         // Get the passing bay and their vertices (pairs)
-        ArrayList<ArrayList<Integer>> passingBays = ramp.getPassingBayVertices();
+        ArrayList<ArrayList<Integer>> passingBays = ramp.getPassingBayVertexPairs();
 
         int pathLength = agentPaths.values().iterator().next().size();
 

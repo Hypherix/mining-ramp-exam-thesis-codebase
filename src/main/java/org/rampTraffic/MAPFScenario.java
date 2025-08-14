@@ -2,30 +2,18 @@ package org.rampTraffic;
 
 import java.util.*;
 
-// This class represents a MAPF problem/scenario
-
-/*
- * Contents
- *   - Ramp
- *   - Initial MAPFState
- *   - Duration
- *   - Total agent count
- *   - The agent entries
- *   - Constraints (used by CBS)
- * */
-
 public class MAPFScenario {
 
     // Data members
-    private Ramp ramp;
+    private final Ramp ramp;
     private MAPFState initialState;
-    private int lifespan;
+    private final int lifespan;
     private int totalAgentCount;
-    private AgentEntries agentEntries;
+    private final AgentEntries agentEntries;
 
+    // Constraints (used by CBS)
     // <constrainedAgent, <timeStep, prohibitedVertexSet>>
     private HashMap<Agent, HashMap<Integer, Set<Integer>>> vertexConstraints;
-
     // <constrainedAgent, <timeStep, set of (fromVertex, toVertex)>>
     private HashMap<Agent, HashMap<Integer, Set<ArrayList<Integer>>>> edgeConstraints;
 
@@ -185,8 +173,8 @@ public class MAPFScenario {
                 newGcostPrio = fetchNumOfActivePrioAgents();
             }
             else {
-                newGcost = knownState.getGcost();
-                newGcostPrio = knownState.getGcostPrio();
+                newGcost = knownState.getGCost();
+                newGcostPrio = knownState.getgCostPrio();
             }
 
             return new MAPFState(ramp, finalAgentLocations, newGcost, newGcostPrio, timeStep);
@@ -267,7 +255,7 @@ public class MAPFScenario {
     }
 
     public ArrayList<ArrayList<Integer>> fetchPassingBayVertices() {
-        return this.ramp.getPassingBayVertices();
+        return this.ramp.getPassingBayVertexPairs();
     }
 
     public ArrayList<Integer> fetchVerticesInSurfaceQ() {
