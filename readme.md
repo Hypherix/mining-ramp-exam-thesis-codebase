@@ -67,6 +67,8 @@ Conflict-Based Search with Priorities (CBSw/P) works very similar to the traditi
 https://doi.org/10.48550/arXiv.1812.06356)
 
 ## How to Run the Program (The Flow of Running the Software)
+First and foremost, this software has not been optimised. Although the algorithms work, there is room for improvement in terms of performance. Due to the limited scope of the course in which this project was conducted, the final product is not as polished as it might have been would the course have been longer. Nonetheless, it was a tremendous learning experience and something I look back on fondly.
+
 The main file in its current state contains the code of an example case and can be run without having to do anything. The software in its current state is not fail-safe in that it requires the user to make decisions that make sense. For instance, the user can technically put passing bays outside of the ramp but will make no sense. In other cases, the software might crash if the user input is illogical or not allowed.
 
 ### Designing the Ramp
