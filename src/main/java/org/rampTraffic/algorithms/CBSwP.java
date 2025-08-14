@@ -28,9 +28,8 @@ public class CBSwP extends CBS {
 
     @Override
     protected void generateChildren(CTNode ctParent, Conflict conflict) {
-        // Task: Generate two children, only if they do not violate parent partial ordering
+        // Generates two children, only if they do not violate parent partial ordering
 
-        // Convert to CTwPNode
         CTwPNode parent = (CTwPNode) ctParent;
 
         if(conflict.type != Conflict.ConflictType.PASSBAY_SAME_DIRECTION) {
@@ -43,7 +42,6 @@ public class CBSwP extends CBS {
 
                 CTwPNode leftChild = new CTwPNode(parent.vertexConstraints, parent.edgeConstraints);
 
-                // Handle partialOrdering here
                 // Left child partial ordering is identical to its parent, with the addition that
                 // agent2 has prio over agent1. Add this if not already present
                 HashMap<Agent, ArrayList<Agent>> leftChildOrderings = new HashMap<>();
@@ -64,11 +62,8 @@ public class CBSwP extends CBS {
 
                 CTwPNode rightChild = new CTwPNode(parent.vertexConstraints, parent.edgeConstraints);
 
-                // Right child partial ordering is identical to its parent, with the addition that
-                // agent1 has prio over agent2. Add this if not already present
                 HashMap<Agent, ArrayList<Agent>> rightChildOrderings = new HashMap<>();
                 for (Map.Entry<Agent, ArrayList<Agent>> entry : parent.partialOrderings.entrySet()) {
-                    // Copy each entry from parent's partial orderings to leftChild's partialOrderings
                     rightChildOrderings.put(entry.getKey(), new ArrayList<>(entry.getValue()));
                 }
                 rightChildOrderings.computeIfAbsent(agent1, _ -> new ArrayList<>()).add(agent2);
@@ -85,10 +80,8 @@ public class CBSwP extends CBS {
             Agent agent = conflict.agent1;
             CTwPNode onlyChild = new CTwPNode(parent.vertexConstraints, parent.edgeConstraints);
 
-            // Copy over parent's partial orderings
             HashMap<Agent, ArrayList<Agent>> onlyChildOrderings = new HashMap<>();
             for (Map.Entry<Agent, ArrayList<Agent>> entry : parent.partialOrderings.entrySet()) {
-                // Copy each entry from parent's partial orderings to leftChild's partialOrderings
                 onlyChildOrderings.put(entry.getKey(), new ArrayList<>(entry.getValue()));
             }
             onlyChild.partialOrderings = onlyChildOrderings;

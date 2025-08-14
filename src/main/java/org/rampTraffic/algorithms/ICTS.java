@@ -6,16 +6,10 @@ import org.rampTraffic.ICTSclasses.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/*
- * TODO WHEN ABOVE DONE: ICTS finds multiple different solutions. Include all?
- *  Might be interesting to have a set of equal solutions and compare as new initial state
- *  if new agent arrives.
- * */
-
 public class ICTS implements MAPFAlgorithm {
 
     // Data members
-    private ICT tree;
+    private final ICT tree;
 
     // Constructors
     public ICTS() {
@@ -24,14 +18,13 @@ public class ICTS implements MAPFAlgorithm {
 
     // Methods
     private int getLocationFromAgentLocations(HashMap<Agent, Integer> agentLocations) {
-        // Task: From agentLocations with always ONE entry, get the location
-
+        // agentLocations only ever has one entry
         Collection<Integer> location = agentLocations.values();
         return location.iterator().next();
     }
 
     private MDD createMDDFromPath(MAPFSolution solution) {
-        // Task: From a solution path, generate an MDD of it
+        // From a solution path, generates an MDD of it
 
         // Get the start vertex location.
         ArrayList<MAPFState> solutionSet = solution.getSolutionSet();
@@ -61,7 +54,7 @@ public class ICTS implements MAPFAlgorithm {
     private void generateMDDCombinations(
             ArrayList<ArrayList<MDD>> mddOptionsPerAgent, int depth,
             ArrayList<MDD> current, ArrayList<ArrayList<MDD>> result) {
-        // Task: From multiple arrayLists of MDDs, generate all MDD combinations
+        // From multiple arrayLists of MDDs, generates all MDD combinations
 
         if(depth == mddOptionsPerAgent.size()) {
             result.add(new ArrayList<>(current));
@@ -76,7 +69,7 @@ public class ICTS implements MAPFAlgorithm {
     }
 
     private String encodeVertexList(List<Integer> vertices) {
-        // Retrieve the list of vertices as a string
+        // Retrieves the list of vertices as a string
         return vertices.stream().map(Object::toString).collect(Collectors.joining(","));
     }
 
@@ -87,12 +80,10 @@ public class ICTS implements MAPFAlgorithm {
         int undergroundExit = ramp.getUndergroundExit();
 
         // Check if vertex conflict
-        // If seenVertices already contains the vertex of the current mddNode, that means that another agent
-        // has already occupied it --> vertex conflict
         HashSet<Integer> seenVertices = new HashSet<>();
         for (MDDNode mddNode : nodes) {
-            if(seenVertices.contains(mddNode.vertex) &&
-                    mddNode.vertex != surfaceExit && mddNode.vertex != undergroundExit) {
+            if(seenVertices.contains(mddNode.vertex) && mddNode.vertex != surfaceExit
+                    && mddNode.vertex != undergroundExit) {
                 return true;
             }
             else {
@@ -120,7 +111,6 @@ public class ICTS implements MAPFAlgorithm {
         for (MDDNode mddNode : nodes) {
             int vertex = mddNode.vertex;
 
-            // Skip if not in a passing bay
             if (!ramp.getVerticesInPassingBays().contains(vertex)) {
                 continue;
             }
@@ -131,11 +121,10 @@ public class ICTS implements MAPFAlgorithm {
                 if (bays.get(i).contains(vertex)) {
                     passingBayOccupancy.put(i, passingBayOccupancy.getOrDefault(i, 0) + 1);
 
-                    // Conflict if more than one agent in the same passing bay
                     if (passingBayOccupancy.get(i) > 1) {
                         return true;
                     }
-                    break; // Stop after finding the bay
+                    break;
                 }
             }
         }
@@ -151,11 +140,11 @@ public class ICTS implements MAPFAlgorithm {
                                        HashSet<String> visited,
                                        HashMap<String, ArrayList<MDDNode>> parentMap,
                                        Ramp ramp) {
-        // Task: Generate every combination of child MDDNodes (one from each agent) and add to the queue
-        // if they are conflict-free and not visited
+        // Generates every combination of child MDDNodes (one from each agent) and adds to the queue if they are
+        // conflict-free and not visited
 
         // Base case: our childrenLists size is full
-        if(depth == childrenLists.size()) {             // If one child per agent has been chosen, base case is fulfilled
+        if(depth == childrenLists.size()) {
             if(!hasConflict(partial, previous, ramp)) {
                 List<Integer> vertices = partial.stream().map(n -> n.vertex).collect(Collectors.toList());
                 String key = encodeVertexList(vertices);
@@ -179,7 +168,7 @@ public class ICTS implements MAPFAlgorithm {
     private boolean hasIllogicalQueueBehavior(ArrayList<ArrayList<Integer>> agentPaths,
                                               ArrayList<Integer> surfaceQ,
                                               ArrayList<Integer> undergroundQ) {
-        // Check if the agent paths violate expected queue behaviour, i.e. always moving forward when able to
+        // Checks if the agent paths violate expected queue behaviour
 
         int numAgents = agentPaths.size();
         int pathLength = agentPaths.getFirst().size();
@@ -227,7 +216,7 @@ public class ICTS implements MAPFAlgorithm {
     }
 
     private ArrayList<ArrayList<Integer>> MDDToSolutionPaths(ICTNode ictNode, Ramp ramp) {
-        // Task: Given an ICT node, check its agent MDDs for a solution
+        // Given an ICT node, checks its agent MDDs for a solution
 
         ArrayList<ArrayList<MDD>> rootMDDs = ictNode.agentPaths;
         int numOfAgents = rootMDDs.size();
@@ -271,7 +260,6 @@ public class ICTS implements MAPFAlgorithm {
                 }
 
                 if(goalNode) {
-
                     // Reconstruct the solution path
                     ArrayList<ArrayList<MDDNode>> solutionPath = new ArrayList<>();
                     String key = encodeVertexList(currentNodes.stream().map(n -> n.vertex).collect(Collectors.toList()));
@@ -298,9 +286,8 @@ public class ICTS implements MAPFAlgorithm {
                         }
                     }
 
-                    // Final check for illogical queue behaviour
                     if (hasIllogicalQueueBehavior(agentPaths, ramp.getVerticesInSurfaceQ(), ramp.getVerticesInUndergroundQ())) {
-                        continue; // Skip this invalid solution
+                        continue;
                     }
 
                     return agentPaths;
@@ -329,12 +316,11 @@ public class ICTS implements MAPFAlgorithm {
             }
         }
 
-        // If no goal node is found, return null as the agentPaths
         return null;
     }
 
     private ArrayList<MAPFState> buildSolution(MAPFScenario scenario, ArrayList<ArrayList<Integer>> solutionPaths) {
-        // Task: From solutionPaths, build an ArrayList<MAPFState> with all solution paths
+        // From solutionPaths, builds an ArrayList<MAPFState> with all solution paths
 
         MAPFState initialState = scenario.getInitialState();
         Ramp ramp = initialState.getRamp();
@@ -379,8 +365,6 @@ public class ICTS implements MAPFAlgorithm {
     }
 
     private void generateChildren(ICTNode parent) {
-        // Task: Given a parent node, generate child nodes
-
         ArrayList<Integer> costVector = parent.costVector;
         for (int i = 0; i < costVector.size(); i++) {
             ArrayList<Integer> childCostVector = new ArrayList<>(costVector);
@@ -394,14 +378,10 @@ public class ICTS implements MAPFAlgorithm {
 
                 this.tree.addCostVector(childCostVector);
             }
-
-            //System.out.println("ICT child node with cost vector " + childCostVector + " was pruned");
         }
     }
 
     private ArrayList<Integer> getNeighbours(Ramp ramp, Agent agent, int location) {
-        // Task: Return all eligible neighbour locations for a location/vertex
-
         ArrayList<Integer> neighbours = new ArrayList<>();
         HashMap<Integer, UpDownNeighbourList> adjList = ramp.getAdjList();
 
@@ -412,16 +392,12 @@ public class ICTS implements MAPFAlgorithm {
         }
         else if(agent.direction == Constants.DOWN) {
             neighbours = adjList.get(location).getDownNeighbours();
-
-            // If downgoing agent can't enter passing bays, remove the move entering a passing bay
             if(!agent.passBayAble) {
                 neighbours.removeIf(neighbour -> ramp.getFirstPassBayVertices().contains(neighbour));
             }
         }
         else {
             neighbours = adjList.get(location).getUpNeighbours();
-
-            // If upgoing agent can't enter passing bays, remove the move entering a passing bay
             if(!agent.passBayAble) {
                 neighbours.removeIf(neighbour -> ramp.getSecondPassBayVertices().contains(neighbour));
             }
@@ -431,11 +407,11 @@ public class ICTS implements MAPFAlgorithm {
     }
 
     private ArrayList<MAPFSolution> getValidSolutions(Ramp ramp, Agent agent, int startLocation, int cost) {
-        // Return all paths with the specified cost that leads to goal
+        // Returns all paths with the specified cost that lead to goal
 
         // Initialise with root
         BFSTreeNode root = new BFSTreeNode(startLocation);
-        ArrayList<Integer> possibleLocations = new ArrayList<>();
+        ArrayList<Integer> possibleLocations;
         possibleLocations = getNeighbours(ramp, agent, startLocation);
 
         Queue<BFSTreeNode> leafGen = new LinkedList<>();
@@ -539,8 +515,6 @@ public class ICTS implements MAPFAlgorithm {
         ArrayList<Integer> initialOptimalCosts = new ArrayList<>();
         ArrayList<MAPFSolution> initialSolutions = new ArrayList<>();
 
-//        System.out.println("Initial independent solution paths:");
-
         // Create a scenario for each initial agent and get their independent optimal solutions
         for(Map.Entry<Agent, Integer> entry : agentLocations.entrySet()) {
             Agent agent = entry.getKey();
@@ -555,7 +529,7 @@ public class ICTS implements MAPFAlgorithm {
             MAPFScenario initialScenario = new MAPFScenario(
                     initialState.getRamp(), singleInitialState, 1);
             MAPFAlgorithm aStarSingle = AlgorithmFactory.getAlgorithm("astar");
-            MAPFSolution initialSolution = aStarSingle.solve(initialScenario, prioritise);
+            MAPFSolution initialSolution = aStarSingle.solve(initialScenario, false);
             initialSolution.calculateSolution(true);
             initialSolutions.add(initialSolution);
             initialOptimalCosts.add(initialSolution.getCost());
@@ -591,16 +565,12 @@ public class ICTS implements MAPFAlgorithm {
         // If not a goal node, create ICT child nodes
         generateChildren(root);
 
-
         // Create an ICT ictQueue from which nodes up for checking are retrieved
         Queue<ICTNode> ictQueue = new LinkedList<>(root.children);
 
         // Search through the ICT until a goal node is found
         while(!ictQueue.isEmpty()) {
             ICTNode currentNode = ictQueue.poll();
-
-            // Generate an MDD for each agent i, imposing all combinations of costVector.get(i) possible actions
-            // Run BFS for x moves only and return the solution. Then call createMDDFromPath() to get MDD
 
             ArrayList<ArrayList<MAPFSolution>> childSolutions = new ArrayList<>();
 

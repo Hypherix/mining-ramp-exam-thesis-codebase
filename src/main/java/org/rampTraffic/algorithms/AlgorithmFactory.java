@@ -1,10 +1,9 @@
 package org.rampTraffic.algorithms;
 
 /*
-* AlgorithmFactory implements the factory pattern where, depending on the by string
-* specified algorithm, AlgorithmFactory returns an instance of that algorithm.
-* The factory pattern is used to alleviate extension of further algorithms
-*
+* AlgorithmFactory implements the factory pattern where, depending on the algorithm
+* specified, AlgorithmFactory returns an instance of that algorithm.
+* The factory pattern is used to alleviate extension of additionally implemented algorithms
 * */
 
 public class AlgorithmFactory {
@@ -23,7 +22,7 @@ public class AlgorithmFactory {
             case ("icts") -> new ICTS();
             case ("cbs") -> new CBS();
             case ("cbswp") -> new CBSwP();
-            default -> throw new IllegalArgumentException("Tried to use unknown algorithm: " + algorithm);
+            default -> throw new IllegalArgumentException("Tried to invoke unknown algorithm: " + algorithm);
         };
     }
 }

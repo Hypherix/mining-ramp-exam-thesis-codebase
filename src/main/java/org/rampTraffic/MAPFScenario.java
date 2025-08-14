@@ -174,7 +174,7 @@ public class MAPFScenario {
             }
             else {
                 newGcost = knownState.getGCost();
-                newGcostPrio = knownState.getgCostPrio();
+                newGcostPrio = knownState.getGCostPrio();
             }
 
             return new MAPFState(ramp, finalAgentLocations, newGcost, newGcostPrio, timeStep);
