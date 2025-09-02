@@ -27,7 +27,7 @@ Each vehicle has the following adjustable properties:
 + Direction of travel
 + Ability to use passing bays
 + Priority status
-+ Velocity (a bit misleading since only velocity = 1 works in this version)
++ Velocity (a bit misleading since only `velocity = 1` works in this version)
 
 As is explained later, the user decides what algorithms to apply on a scenario. Whenever the algorithms are finished computing, a UI appears which allows the user to graphically see the solutions of the algorithms time step by time step.
 
