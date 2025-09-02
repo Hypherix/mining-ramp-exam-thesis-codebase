@@ -16,7 +16,7 @@ The following list includes the main constraints of the scenario:
 4. Implied by the previous constraint is that some vehicles have higher priority than others. In a practical scenario, such a prioritised vehicle might be one that carries workers to the underground whenever they are urgently needed, or one that is heading to the surface when the mine suffers lack of space.
 5. The queues must maintain a valid queue behaviour. More specifically, if an agent inside the queue stays in the same vertex with the vertex in fron being free, this is an invalid behaviour. All vehicles must always move forward if such a move is possible inside the queue.
 
-The thesis report for which this software was implemented is found within the `/doc` directory.
+The thesis report for which this software was implemented is found within the `doc` directory.
 
 ## User Controls
 
