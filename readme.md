@@ -1,7 +1,7 @@
 # Mining Ramp Traffic Simulator
 
 <div align='center'>
-	<img src='./doc/ui_snapshot.png'/>
+	<img src='./doc/resources/ui_snapshot.png'/>
 </div>
 
 ## Introduction
